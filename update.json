@@ -1,0 +1,21 @@
+{
+    "schema_version":  1,
+    "publisher_tool":  "SurveySync Publisher 2.0.1",
+    "channels":  {
+                     "beta":  {
+                                  "version":  "9.0.0",
+                                  "channel":  "beta",
+                                  "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.0.0-beta/SurveySync_Setup_9.0.0.exe",
+                                  "size_bytes":  5850560,
+                                  "sha256":  "d07aa691e0b7389dee2c5870777467b50bffa6e5b5fe9b2fa7114cbc497720d9",
+                                  "publisher":  "Clever Bird Development",
+                                  "required":  false,
+                                  "release_notes":  "SurveySync 9.0.0 is the first major platform release replacing standalone FieldBook Sync with the modular SurveySync application. Existing FieldBook Sync projects and workflows are preserved through the FieldBookSync module. This release adds the shared SurveySync project architecture, module-tab navigation, ControlSync, COGOSync, ReportSync, QASync foundation, shared CRS/units, audit history, source integrity tracking, and the new SurveySync update platform.",
+                                  "release_tag":  "v9.0.0-beta",
+                                  "published_utc":  "2026-09-13T06:39:25Z",
+                                  "artifact_identity":  "sha256:d07aa691e0b7389dee2c5870777467b50bffa6e5b5fe9b2fa7114cbc497720d9"
+                              }
+                 },
+    "generated_utc":  "2026-09-13T06:39:25Z",
+    "product":  "SurveySync"
+}
