@@ -1,6 +1,6 @@
 {
     "schema_version":  1,
-    "generated_utc":  "2026-09-13T22:12:40Z",
+    "generated_utc":  "2026-09-14T00:15:39Z",
     "publisher_tool":  "SurveySync Publisher 2.0.1",
     "product":  "SurveySync",
     "channels":  {
@@ -18,19 +18,17 @@
                                   "required":  false
                               },
                      "stable":  {
-                                    "required":  false,
-                                    "promoted_from":  "beta",
-                                    "promoted_utc":  "2026-09-13T22:12:40Z",
-                                    "version":  "9.0.1",
-                                    "size_bytes":  7722877,
-                                    "published_utc":  "2026-09-13T22:12:40Z",
+                                    "version":  "9.0.2",
                                     "channel":  "stable",
+                                    "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.0.2/SurveySync_Setup_9.0.2.exe",
+                                    "size_bytes":  5837271,
+                                    "sha256":  "8ba3c804d8c4ff52bc2908287a9392453fbf151c89fcec6bf8a10d36722a5059",
                                     "publisher":  "Clever Bird Development",
-                                    "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.0.1-beta/SurveySync_Setup_9.0.1.exe",
-                                    "release_notes":  "SurveySync 9.0.1 improves the unified application shell and FieldBookSync workflow. This release adds consistent SurveySync ribbon navigation across modules, global themes with System/Light/Dark modes, updated SurveySync globe branding, restored application-wide Feedback Wizard with local-first retry handling, improved AI/OCR provider selection including Windows AI, Foundry Local, Gemini, OpenAI, and Anthropic options, safer PointID handling, and manual field-book review tools.",
-                                    "sha256":  "7cc4b3e5088a03004ce37953e61209da37c5cd62e317155f8b434bfd9814d33a",
-                                    "release_tag":  "v9.0.1-beta",
-                                    "artifact_identity":  "sha256:7cc4b3e5088a03004ce37953e61209da37c5cd62e317155f8b434bfd9814d33a"
+                                    "required":  false,
+                                    "release_notes":  "SurveySync 9.0.2 (stable)",
+                                    "release_tag":  "v9.0.2",
+                                    "published_utc":  "2026-09-14T00:15:39Z",
+                                    "artifact_identity":  "sha256:8ba3c804d8c4ff52bc2908287a9392453fbf151c89fcec6bf8a10d36722a5059"
                                 }
                  }
 }
