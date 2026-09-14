@@ -1,34 +1,34 @@
 {
     "schema_version":  1,
-    "generated_utc":  "2026-09-14T00:15:39Z",
+    "generated_utc":  "2026-09-14T02:41:26Z",
     "publisher_tool":  "SurveySync Publisher 2.0.1",
     "product":  "SurveySync",
     "channels":  {
                      "beta":  {
-                                  "size_bytes":  7722877,
-                                  "release_notes":  "SurveySync 9.0.1 improves the unified application shell and FieldBookSync workflow. This release adds consistent SurveySync ribbon navigation across modules, global themes with System/Light/Dark modes, updated SurveySync globe branding, restored application-wide Feedback Wizard with local-first retry handling, improved AI/OCR provider selection including Windows AI, Foundry Local, Gemini, OpenAI, and Anthropic options, safer PointID handling, and manual field-book review tools.",
-                                  "version":  "9.0.1",
-                                  "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.0.1-beta/SurveySync_Setup_9.0.1.exe",
-                                  "published_utc":  "2026-09-13T21:32:30Z",
-                                  "release_tag":  "v9.0.1-beta",
+                                  "version":  "9.1.0",
                                   "channel":  "beta",
+                                  "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.1.0-beta/SurveySync_Setup_9.1.0.exe",
+                                  "size_bytes":  6217944,
+                                  "sha256":  "4f2d02b46e11fa9a3fd4e3b7de1ce5db8a6a6e8ea99cccd61d7217dec77cf987",
                                   "publisher":  "Clever Bird Development",
-                                  "sha256":  "7cc4b3e5088a03004ce37953e61209da37c5cd62e317155f8b434bfd9814d33a",
-                                  "artifact_identity":  "sha256:7cc4b3e5088a03004ce37953e61209da37c5cd62e317155f8b434bfd9814d33a",
-                                  "required":  false
+                                  "required":  false,
+                                  "release_notes":  "SurveySync 9.1.0 (beta)",
+                                  "release_tag":  "v9.1.0-beta",
+                                  "published_utc":  "2026-09-14T02:41:26Z",
+                                  "artifact_identity":  "sha256:4f2d02b46e11fa9a3fd4e3b7de1ce5db8a6a6e8ea99cccd61d7217dec77cf987"
                               },
                      "stable":  {
-                                    "version":  "9.0.2",
-                                    "channel":  "stable",
-                                    "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.0.2/SurveySync_Setup_9.0.2.exe",
                                     "size_bytes":  5837271,
-                                    "sha256":  "8ba3c804d8c4ff52bc2908287a9392453fbf151c89fcec6bf8a10d36722a5059",
-                                    "publisher":  "Clever Bird Development",
-                                    "required":  false,
                                     "release_notes":  "SurveySync 9.0.2 (stable)",
+                                    "version":  "9.0.2",
+                                    "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.0.2/SurveySync_Setup_9.0.2.exe",
                                     "release_tag":  "v9.0.2",
                                     "published_utc":  "2026-09-14T00:15:39Z",
-                                    "artifact_identity":  "sha256:8ba3c804d8c4ff52bc2908287a9392453fbf151c89fcec6bf8a10d36722a5059"
+                                    "sha256":  "8ba3c804d8c4ff52bc2908287a9392453fbf151c89fcec6bf8a10d36722a5059",
+                                    "channel":  "stable",
+                                    "publisher":  "Clever Bird Development",
+                                    "artifact_identity":  "sha256:8ba3c804d8c4ff52bc2908287a9392453fbf151c89fcec6bf8a10d36722a5059",
+                                    "required":  false
                                 }
                  }
 }
