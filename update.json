@@ -1,36 +1,36 @@
 {
     "schema_version":  1,
-    "generated_utc":  "2026-09-20T03:35:18Z",
+    "generated_utc":  "2026-09-20T03:35:44Z",
     "publisher_tool":  "SurveySync Publisher 2.0.1",
     "product":  "SurveySync",
     "channels":  {
                      "beta":  {
-                                  "version":  "9.2.5",
-                                  "channel":  "beta",
-                                  "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.5-beta/SurveySync_Setup_9.2.5.exe",
                                   "size_bytes":  6333749,
-                                  "sha256":  "332350cda8679b33cdefd65aa89943fee521a6e32d34ee153fbb513a01ba167b",
-                                  "publisher":  "Clever Bird Development",
-                                  "required":  false,
                                   "release_notes":  "SurveySync 9.2.5 (beta)",
+                                  "version":  "9.2.5",
+                                  "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.5-beta/SurveySync_Setup_9.2.5.exe",
                                   "release_tag":  "v9.2.5-beta",
                                   "published_utc":  "2026-09-20T03:35:18Z",
-                                  "artifact_identity":  "sha256:332350cda8679b33cdefd65aa89943fee521a6e32d34ee153fbb513a01ba167b"
+                                  "sha256":  "332350cda8679b33cdefd65aa89943fee521a6e32d34ee153fbb513a01ba167b",
+                                  "channel":  "beta",
+                                  "publisher":  "Clever Bird Development",
+                                  "artifact_identity":  "sha256:332350cda8679b33cdefd65aa89943fee521a6e32d34ee153fbb513a01ba167b",
+                                  "required":  false
                               },
                      "stable":  {
                                     "required":  false,
-                                    "promoted_utc":  "2026-09-20T03:17:05Z",
+                                    "promoted_from":  "beta",
+                                    "promoted_utc":  "2026-09-20T03:35:44Z",
                                     "version":  "9.2.5",
-                                    "artifact_identity":  "sha256:2bfc49992aae82f892f542c77cfa59c53a556f435c4f750a40e1cccb4717f529",
-                                    "size_bytes":  6333299,
-                                    "published_utc":  "2026-09-20T03:17:05Z",
+                                    "size_bytes":  6333749,
+                                    "published_utc":  "2026-09-20T03:35:44Z",
                                     "channel":  "stable",
                                     "publisher":  "Clever Bird Development",
                                     "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.5-beta/SurveySync_Setup_9.2.5.exe",
                                     "release_notes":  "SurveySync 9.2.5 (beta)",
-                                    "sha256":  "2bfc49992aae82f892f542c77cfa59c53a556f435c4f750a40e1cccb4717f529",
+                                    "sha256":  "332350cda8679b33cdefd65aa89943fee521a6e32d34ee153fbb513a01ba167b",
                                     "release_tag":  "v9.2.5-beta",
-                                    "promoted_from":  "beta"
+                                    "artifact_identity":  "sha256:332350cda8679b33cdefd65aa89943fee521a6e32d34ee153fbb513a01ba167b"
                                 }
                  }
 }
