@@ -1,0 +1,562 @@
+{
+  "product": "SurveySync",
+  "version": "9.3.0",
+  "features": {
+    "field_note_profile_trainer": {
+      "introduced": "9.1.2",
+      "implementation": [
+        "fieldbook_sync/field_note_profiles.py",
+        "fieldbook_sync/models.py",
+        "fieldbook_sync/app.py",
+        "fieldbook_sync/static/index.html",
+        "fieldbook_sync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v912_field_note_profiles.py"
+      ],
+      "documentation": [
+        "docs/FIELD_NOTE_PROFILE_TRAINER.md",
+        "docs/FIELDBOOKSYNC.md"
+      ]
+    },
+    "fbr_0010_fieldbook_profile_workflow": {
+      "introduced": "9.1.3",
+      "implementation": [
+        "fieldbook_sync/models.py",
+        "fieldbook_sync/app.py",
+        "fieldbook_sync/ai_reader.py",
+        "fieldbook_sync/static/index.html",
+        "fieldbook_sync/static/app.js",
+        "fieldbook_sync/static/styles.css"
+      ],
+      "tests": [
+        "tests/test_v913_fieldbook_training_workflow.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_1_3.md",
+        "docs/FIELDBOOKSYNC.md",
+        "docs/DATA_FLOW.md",
+        "docs/API_REFERENCE.md",
+        "docs/DECISIONS.md"
+      ]
+    },
+    "point_range": {
+      "introduced": "9.1.1",
+      "implementation": [
+        "surveysync/reports.py",
+        "surveysync/router.py",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v911_features.py"
+      ],
+      "documentation": [
+        "docs/FEATURE_MATRIX.md",
+        "docs/RELEASE_HISTORY.md"
+      ]
+    },
+    "trimble_job_import": {
+      "introduced": "9.1.1",
+      "implementation": [
+        "surveysync/trimble_job.py",
+        "surveysync/router.py",
+        "fieldbook_sync/survey.py"
+      ],
+      "tests": [
+        "tests/test_v911_features.py"
+      ],
+      "documentation": [
+        "docs/FIELD_CLOUD_INTEGRATIONS.md",
+        "docs/KNOWN_ISSUES.md"
+      ]
+    },
+    "ron_control_qc": {
+      "introduced": "9.1.1",
+      "implementation": [
+        "surveysync/control.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v911_features.py"
+      ],
+      "documentation": [
+        "docs/RON_CONTROL_LEVEL_WORKBOOK_PROFILE.md"
+      ]
+    },
+    "release_documentation_gate": {
+      "introduced": "9.1.3",
+      "implementation": [
+        "scripts/validate_release_docs.py",
+        "Build_SurveySync.ps1"
+      ],
+      "tests": [
+        "tests/test_v913_fieldbook_training_workflow.py",
+        "tests/test_v914_reliability.py"
+      ],
+      "documentation": [
+        "docs/RELEASE_CHECKLIST.md"
+      ]
+    },
+    "fbr_0011_review_responsive_layout": {
+      "introduced": "9.1.4",
+      "implementation": [
+        "fieldbook_sync/static/app.js",
+        "fieldbook_sync/static/styles.css"
+      ],
+      "tests": [
+        "tests/test_v914_reliability.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_1_4.md",
+        "docs/FIELDBOOKSYNC.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "fbr_0012_atomic_save_as_diagnostics": {
+      "introduced": "9.1.4",
+      "implementation": [
+        "desktop.py",
+        "fieldbook_sync/app.py",
+        "surveysync/diagnostics.py",
+        "surveysync/router.py",
+        "fieldbook_sync/feedback.py",
+        "tracker_endpoint/Code.gs"
+      ],
+      "tests": [
+        "tests/test_v914_reliability.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_1_4.md",
+        "docs/API_REFERENCE.md",
+        "docs/DECISIONS.md",
+        "tracker_endpoint/README_DEPLOY.md"
+      ]
+    },
+    "v914_update_install_consent": {
+      "introduced": "9.1.4",
+      "implementation": [
+        "surveysync/router.py",
+        "surveysync/static/app.js",
+        "fieldbook_sync/app.py",
+        "fieldbook_sync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v914_reliability.py",
+        "tests/test_v9_api.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_1_4.md",
+        "docs/API_REFERENCE.md",
+        "docs/DECISIONS.md"
+      ]
+    },
+    "v920_control_revision_management": {
+      "introduced": "9.2.0",
+      "implementation": [
+        "surveysync/revisions.py",
+        "surveysync/audit.py",
+        "surveysync/control.py",
+        "surveysync/leveling.py",
+        "surveysync/router.py",
+        "surveysync/reporting.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v920_control_revisions.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_0.md",
+        "docs/API_REFERENCE.md",
+        "docs/DECISIONS.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/RELEASE_HISTORY.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v921_project_health_qc": {
+      "introduced": "9.2.1",
+      "implementation": [
+        "surveysync/qa.py",
+        "surveysync/qa_rules.py",
+        "surveysync/coordinate_sanity.py",
+        "surveysync/operations.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v921_operations.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_1.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/API_REFERENCE.md",
+        "docs/DECISIONS.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v921_import_staging_mapping_compare": {
+      "introduced": "9.2.1",
+      "implementation": [
+        "surveysync/staging.py",
+        "surveysync/comparison.py",
+        "surveysync/audit.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v921_operations.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_1.md",
+        "docs/DATA_FLOW.md",
+        "docs/KNOWN_ISSUES.md",
+        "docs/API_REFERENCE.md"
+      ]
+    },
+    "v921_continuity_timeline": {
+      "introduced": "9.2.1",
+      "implementation": [
+        "surveysync/continuity.py",
+        "surveysync/operations.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v921_operations.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_1.md",
+        "docs/PROJECT_SYSTEM.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md"
+      ]
+    },
+    "v921_delivery_batch_review": {
+      "introduced": "9.2.1",
+      "implementation": [
+        "surveysync/delivery.py",
+        "surveysync/task_queue.py",
+        "surveysync/operations.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v921_operations.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_1.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/API_REFERENCE.md",
+        "docs/RELEASE_CHECKLIST.md"
+      ]
+    },
+    "feedback_intake_backward_compatibility": {
+      "introduced": "9.2.2",
+      "implementation": [
+        "fieldbook_sync/feedback.py",
+        "tracker_endpoint/Code.gs"
+      ],
+      "tests": [
+        "tests/test_v922_feedback_compat.py",
+        "legacy_tests/test_v8118_feedback_wizard.py",
+        "tests/test_v914_reliability.py"
+      ],
+      "documentation": [
+        "docs/FIELDBOOKSYNC.md",
+        "docs/RELEASE_HISTORY.md",
+        "RELEASE_NOTES_v9_2_2.md"
+      ]
+    },
+    "v923_control_survey_database": {
+      "introduced": "9.2.3",
+      "implementation": [
+        "surveysync/control.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v923_controls_browse.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_3.md",
+        "docs/ARCHITECTURE.md",
+        "docs/API_REFERENCE.md",
+        "docs/DATA_FLOW.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/DECISIONS.md"
+      ]
+    },
+    "v923_universal_path_browsing": {
+      "introduced": "9.2.3",
+      "implementation": [
+        "desktop.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js",
+        "surveysync/static/styles.css"
+      ],
+      "tests": [
+        "tests/test_v923_controls_browse.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_3.md",
+        "docs/PROJECT_SYSTEM.md",
+        "docs/TEST_COVERAGE.md",
+        "docs/RELEASE_CHECKLIST.md"
+      ]
+    },
+    "v924_project_database_bootstrap": {
+      "introduced": "9.2.4",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/project.py",
+        "surveysync/project_templates.py",
+        "surveysync/resources/project_template.db",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v924_project_database.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_4.md",
+        "docs/ARCHITECTURE.md",
+        "docs/PROJECT_SYSTEM.md",
+        "docs/DATA_FLOW.md",
+        "docs/DECISIONS.md"
+      ]
+    },
+    "v924_project_data_manager": {
+      "introduced": "9.2.4",
+      "implementation": [
+        "surveysync/data_manager.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js",
+        "surveysync/qa.py",
+        "surveysync/qa_rules.py"
+      ],
+      "tests": [
+        "tests/test_v924_project_database.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_4.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/API_REFERENCE.md",
+        "docs/KNOWN_ISSUES.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v924_database_health_migrations": {
+      "introduced": "9.2.4",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/project.py",
+        "surveysync/data_manager.py"
+      ],
+      "tests": [
+        "tests/test_v924_project_database.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_4.md",
+        "docs/RELEASE_CHECKLIST.md",
+        "docs/RELEASE_HISTORY.md",
+        "QA_REPORT_v9_2_4.md"
+      ]
+    },
+    "v925_correctness_error_visibility_static_quality": {
+      "introduced": "9.2.5",
+      "implementation": [
+        "surveysync/coordinate_sanity.py",
+        "surveysync/logging_config.py",
+        "surveysync/router.py",
+        "surveysync/config.py",
+        "surveysync/continuity.py",
+        "surveysync/project.py",
+        "fieldbook_sync/storage.py",
+        "scripts/validate_static_quality.py",
+        "Build_SurveySync.ps1",
+        "CHANGELOG.md"
+      ],
+      "tests": [
+        "tests/test_v925_hardening.py"
+      ],
+      "documentation": [
+        "CHANGELOG.md",
+        "RELEASE_NOTES_v9_2_5.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DECISIONS.md",
+        "docs/KNOWN_ISSUES.md",
+        "docs/TEST_COVERAGE.md",
+        "docs/RELEASE_CHECKLIST.md"
+      ]
+    },
+    "v925_control_survey_workspace_local_site": {
+      "introduced": "9.2.5",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/crs.py",
+        "surveysync/project.py",
+        "surveysync/control.py",
+        "surveysync/control_workspace_routes.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js",
+        "surveysync/resources/project_template.db",
+        "surveysync/static/styles.css"
+      ],
+      "tests": [
+        "tests/test_v925_control_workspace.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_5.md",
+        "docs/ARCHITECTURE.md",
+        "docs/PROJECT_SYSTEM.md",
+        "docs/DATA_FLOW.md",
+        "docs/API_REFERENCE.md",
+        "docs/DECISIONS.md",
+        "docs/KNOWN_ISSUES.md",
+        "docs/TEST_COVERAGE.md",
+        "docs/FEATURE_MATRIX.md"
+      ]
+    },
+    "v925_control_field_observation_qc": {
+      "introduced": "9.2.5",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/control.py",
+        "surveysync/control_workspace_routes.py",
+        "surveysync/data_manager.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js",
+        "surveysync/resources/project_template.db"
+      ],
+      "tests": [
+        "tests/test_v925_control_workspace.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_5.md",
+        "CHANGELOG.md",
+        "docs/ARCHITECTURE.md",
+        "docs/API_REFERENCE.md",
+        "docs/DATA_FLOW.md",
+        "docs/DECISIONS.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/KNOWN_ISSUES.md",
+        "docs/PROJECT_SYSTEM.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v925_controlsync_trimble_job_direct": {
+      "introduced": "9.2.5",
+      "implementation": [
+        "surveysync/trimble_job.py",
+        "surveysync/control.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html"
+      ],
+      "tests": [
+        "tests/test_v925_control_workspace.py",
+        "tests/test_v911_features.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_2_5.md",
+        "docs/API_REFERENCE.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/KNOWN_ISSUES.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v926_controlsync_production_quality": {
+      "introduced": "9.2.6",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/trimble_job.py",
+        "surveysync/control.py",
+        "surveysync/control_workspace_routes.py",
+        "surveysync/crs.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js",
+        "surveysync/static/styles.css",
+        "fieldbook_sync/static/app.js",
+        "fieldbook_sync/static/styles.css",
+        "surveysync/resources/project_template.db"
+      ],
+      "tests": [
+        "tests/test_v926_control_production.py",
+        "tests/test_v925_control_workspace.py"
+      ],
+      "documentation": [
+        "CHANGELOG.md",
+        "RELEASE_NOTES_v9_2_6.md",
+        "QA_REPORT_v9_2_6.md",
+        "docs/ARCHITECTURE.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/API_REFERENCE.md",
+        "docs/DATA_FLOW.md",
+        "docs/KNOWN_ISSUES.md",
+        "docs/TEST_COVERAGE.md",
+        "docs/RELEASE_HISTORY.md",
+        "docs/RELEASE_CHECKLIST.md"
+      ]
+    },
+    "v926_control_column_mapping": {
+      "introduced": "9.2.6",
+      "implementation": [
+        "surveysync/control_import_mapping.py",
+        "surveysync/control.py",
+        "surveysync/control_workspace_routes.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v926_control_production.py"
+      ],
+      "documentation": [
+        "CHANGELOG.md",
+        "RELEASE_NOTES_v9_2_6.md",
+        "QA_REPORT_v9_2_6.md",
+        "docs/API_REFERENCE.md",
+        "docs/DATA_FLOW.md",
+        "docs/FEATURE_MATRIX.md"
+      ]
+    },
+    "engineering_hardening_v930": {
+      "implementation": [
+        "scripts/release_gate.py",
+        "scripts/audit_locks.py",
+        "pyproject.toml",
+        "surveysync/control_math.py",
+        "fieldbook_sync/vision_pipeline.py"
+      ],
+      "tests": [
+        "tests/test_v930_hardening.py"
+      ],
+      "documentation": [
+        "docs/ENGINEERING_STANDARDS.md",
+        "RELEASE_NOTES_v9_3_0.md"
+      ]
+    },
+    "topo_rod_ranges_v930": {
+      "introduced": "9.3.0",
+      "implementation": [
+        "surveysync/topo/routes.py",
+        "surveysync/topo/detection.py",
+        "surveysync/static/topo_qc.js"
+      ],
+      "tests": [
+        "tests/test_topo_rod_ranges.py"
+      ],
+      "documentation": [
+        "docs/TOPO_ROD_HEIGHT_QC.md",
+        "RELEASE_NOTES_v9_3_0.md"
+      ]
+    }
+  }
+}

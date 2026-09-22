@@ -1,0 +1,3 @@
+# Core runtime lock, including Windows dependencies. Update requirements.in intentionally.
+--require-hashes
+-r requirements.lock

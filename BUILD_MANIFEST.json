@@ -1,0 +1,47 @@
+{
+  "product": "SurveySync",
+  "version": "9.3.0",
+  "build_type": "engineering-hardening-toposync-source-candidate",
+  "generated_utc": "2026-09-22T21:49:09.884309+00:00",
+  "baseline": "9.2.6 HEADERLESS_MAPPING_SAFE; verified original ZIP SHA-256",
+  "feedback": {
+    "checked_before_build": true,
+    "checked_utc": "2026-09-22T21:47:12.795565+00:00",
+    "latest_intake": "FBR-0016",
+    "error_tracker_entries": 0,
+    "note": "FBR-0016 implemented in the source candidate; real field acceptance pending. No tracker statuses changed."
+  },
+  "qa": {
+    "baseline_tests_passed": 246,
+    "tests_passed": 279,
+    "tests_skipped": 1,
+    "tests_failed": 0,
+    "skip_reason": "Native executable subsystem check awaits Windows Go compilation; post-build verifier is mandatory.",
+    "line_coverage_percent": 56.27,
+    "coverage_floor_percent": 54,
+    "ruff_undefined_name_gate": true,
+    "formatted_modules": 22,
+    "mypy_modules": 11,
+    "python_compileall": true,
+    "javascript_syntax": true,
+    "documentation_gate": true,
+    "static_safety_gate": true,
+    "all_platform_dependency_pins_audited": 102,
+    "known_dependency_vulnerabilities": 0,
+    "windows_runtime_field_test_completed": false,
+    "native_launchers_built": false,
+    "installer_compiled": false,
+    "topo_regression_cases": 25,
+    "browser_visual_acceptance_completed": false
+  },
+  "release_constraints": [
+    "Windows build and real survey acceptance required",
+    "Authenticode and update-manifest signing not configured",
+    "Do not publish as Stable without field validation"
+  ],
+  "dependency_locks": [
+    "requirements.lock",
+    "requirements-dev.lock",
+    "requirements-windows-ai.lock"
+  ]
+}

@@ -1,0 +1,107 @@
+name: SurveySync Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version matching VERSION.txt
+        required: true
+      action:
+        description: Publish Beta or promote the exact tested Beta artifact
+        required: true
+        type: choice
+        options: [publish_beta, promote_stable]
+permissions:
+  contents: write
+concurrency:
+  group: surveysync-release
+  cancel-in-progress: false
+env:
+  RELEASE_VERSION: ${{ inputs.version }}
+  RELEASE_REPO: ${{ github.repository }}
+jobs:
+  beta:
+    if: ${{ inputs.action == 'publish_beta' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Validate version and notes
+        shell: pwsh
+        run: |
+          $v=(Get-Content VERSION.txt -Raw).Trim()
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$' -or $v -ne $env:RELEASE_VERSION) { throw 'Requested version does not match VERSION.txt.' }
+          $notes="RELEASE_NOTES_v$($v.Replace('.', '_')).md"
+          if (!(Test-Path $notes)) { throw "Missing $notes" }
+          "RELEASE_NOTES=$notes" >> $env:GITHUB_ENV
+      - name: Install locked build and test dependencies
+        run: python -m pip install --require-hashes -r requirements-dev.lock
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+      - name: Run shared gate and build Windows installer
+        shell: pwsh
+        run: ./Build_SurveySync.ps1
+      - name: Retain coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+      - name: Publish Beta
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag="v$env:RELEASE_VERSION-beta"
+          $p="installer/output/SurveySync_Setup_$env:RELEASE_VERSION.exe"
+          gh release create $tag $p "$p.sha256" $env:RELEASE_NOTES --title "SurveySync $env:RELEASE_VERSION [beta]" --notes-file $env:RELEASE_NOTES --prerelease
+          if ($LASTEXITCODE -ne 0) { throw 'Beta publication failed.' }
+          $url="https://github.com/$env:RELEASE_REPO/releases/download/$tag/SurveySync_Setup_$env:RELEASE_VERSION.exe"
+          python scripts/update_manifest.py --channel beta --version $env:RELEASE_VERSION --installer $p --installer-url $url --release-tag $tag --release-notes-file $env:RELEASE_NOTES
+          if ($LASTEXITCODE -ne 0) { throw 'Manifest update failed.' }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add update.json
+          git commit -m "Publish SurveySync $env:RELEASE_VERSION beta manifest"
+          if ($LASTEXITCODE -ne 0) { throw 'Manifest commit failed.' }
+          git push
+          if ($LASTEXITCODE -ne 0) { throw 'Manifest push failed.' }
+  promote:
+    if: ${{ inputs.action == 'promote_stable' }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Promote exact Beta artifact
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v=(Get-Content VERSION.txt -Raw).Trim()
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$' -or $v -ne $env:RELEASE_VERSION) { throw 'Version mismatch.' }
+          $notes="RELEASE_NOTES_v$($v.Replace('.', '_')).md"
+          if (!(Test-Path $notes)) { throw 'Release notes missing.' }
+          $tag="v$env:RELEASE_VERSION-beta"
+          New-Item -ItemType Directory -Force release | Out-Null
+          gh release download $tag --pattern "SurveySync_Setup_$env:RELEASE_VERSION.exe" --dir release
+          if ($LASTEXITCODE -ne 0) { throw 'Beta download failed.' }
+          $p="release/SurveySync_Setup_$env:RELEASE_VERSION.exe"
+          $url="https://github.com/$env:RELEASE_REPO/releases/download/$tag/SurveySync_Setup_$env:RELEASE_VERSION.exe"
+          python scripts/update_manifest.py --channel stable --version $env:RELEASE_VERSION --installer $p --installer-url $url --release-tag $tag --release-notes-file $notes --promoted-from beta
+          if ($LASTEXITCODE -ne 0) { throw 'Beta integrity verification failed.' }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add update.json
+          git commit -m "Promote SurveySync $env:RELEASE_VERSION beta artifact to stable"
+          if ($LASTEXITCODE -ne 0) { throw 'Manifest commit failed.' }
+          git push
+          if ($LASTEXITCODE -ne 0) { throw 'Manifest push failed.' }

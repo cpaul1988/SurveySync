@@ -1,0 +1,130 @@
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python scripts/validate_release_docs.py
+SurveySync 9.3.0 documentation gate passed (13 living docs, 28 indexed features).
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python scripts/validate_static_quality.py
+SurveySync static quality gate passed (blind broad handlers: surveysync=0, fieldbook_sync=0; broad handlers: surveysync=127, fieldbook_sync=149; remaining orchestration growth frozen after 9.3.0 domain extraction).
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python -m ruff check surveysync fieldbook_sync
+All checks passed!
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python -m ruff check --select F surveysync/topo surveysync/api_models.py surveysync/control_math.py surveysync/operations_routes.py surveysync/survey_routes.py fieldbook_sync/api_models.py fieldbook_sync/map_routes.py fieldbook_sync/profile_routes.py fieldbook_sync/vision_pipeline.py fieldbook_sync/live_analysis.py fieldbook_sync/batch_workers.py fieldbook_sync/rod_height_qc.py scripts/release_gate.py scripts/audit_locks.py scripts/verify_native.py surveysync/control_exports.py
+All checks passed!
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python -m ruff format --check surveysync/topo surveysync/api_models.py surveysync/control_math.py surveysync/operations_routes.py surveysync/survey_routes.py fieldbook_sync/api_models.py fieldbook_sync/map_routes.py fieldbook_sync/profile_routes.py fieldbook_sync/vision_pipeline.py fieldbook_sync/live_analysis.py fieldbook_sync/batch_workers.py fieldbook_sync/rod_height_qc.py scripts/release_gate.py scripts/audit_locks.py scripts/verify_native.py surveysync/control_exports.py
+22 files already formatted
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python -m mypy
+Success: no issues found in 11 source files
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python -m compileall -q surveysync fieldbook_sync tracker_endpoint
+Gate: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node --check surveysync/static/app.js
+Gate: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node --check surveysync/static/topo_qc.js
+Gate: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node --check fieldbook_sync/static/app.js
+Gate: /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node --check fieldbook_sync/static/menu_bootstrap.js
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python -m pytest -q tests legacy_tests/test_core.py legacy_tests/test_v8117_dip_book_statuses.py legacy_tests/test_v6_features.py legacy_tests/test_v8118_feedback_wizard.py --cov --cov-report=xml:coverage.xml --cov-report=term:skip-covered
+........................................................................ [ 25%]
+........................................................................ [ 51%]
+..............................................s......................... [ 77%]
+................................................................         [100%]
+=============================== warnings summary ===============================
+../../venv/lib/python3.12/site-packages/starlette/testclient.py:53
+  /workspace/scratch/48c065cd5868/venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.14-final-0 _______________
+
+Name                                     Stmts   Miss  Cover
+------------------------------------------------------------
+fieldbook_sync/aggregate.py                 96     10    90%
+fieldbook_sync/ai_reader.py                503    228    55%
+fieldbook_sync/annotated_pdf.py             59     59     0%
+fieldbook_sync/api_models.py               160      3    98%
+fieldbook_sync/app.py                     2638   1816    31%
+fieldbook_sync/arcgis_integration.py       295    181    39%
+fieldbook_sync/batch_pairing.py             93      8    91%
+fieldbook_sync/batch_workers.py            330    273    17%
+fieldbook_sync/cache_stats.py              101     57    44%
+fieldbook_sync/diagnostics.py               57     44    23%
+fieldbook_sync/errors.py                    52     36    31%
+fieldbook_sync/evidence_pipeline.py        129      6    95%
+fieldbook_sync/exporter.py                 236     16    93%
+fieldbook_sync/feedback.py                 200     48    76%
+fieldbook_sync/field_note_profiles.py      281     53    81%
+fieldbook_sync/fieldbook.py                 87     47    46%
+fieldbook_sync/global_mapper.py             98     79    19%
+fieldbook_sync/gpu_compat.py                 1      1     0%
+fieldbook_sync/image_processing.py         183     88    52%
+fieldbook_sync/intelligence.py             211     27    87%
+fieldbook_sync/interpret_cache.py           77     57    26%
+fieldbook_sync/job_engine.py               203     94    54%
+fieldbook_sync/levelbook_extract.py         57     57     0%
+fieldbook_sync/live_analysis.py            171    120    30%
+fieldbook_sync/map_gis.py                  475    413    13%
+fieldbook_sync/map_routes.py               325    270    17%
+fieldbook_sync/ocr_local.py                605    348    42%
+fieldbook_sync/performance.py              152     48    68%
+fieldbook_sync/profile_routes.py           239    154    36%
+fieldbook_sync/profiles.py                 191     87    54%
+fieldbook_sync/project_files.py             79      3    96%
+fieldbook_sync/rod_height_qc.py             68      6    91%
+fieldbook_sync/search_index.py              20      1    95%
+fieldbook_sync/storage.py                   90     27    70%
+fieldbook_sync/survey.py                   252     89    65%
+fieldbook_sync/validation.py                49     37    24%
+fieldbook_sync/vision_pipeline.py          607    513    15%
+surveysync/ai_runtime.py                   378    258    32%
+surveysync/attachments.py                   60     45    25%
+surveysync/audit.py                        115     28    76%
+surveysync/cogo.py                          31     12    61%
+surveysync/comparison.py                    80     10    88%
+surveysync/config.py                       125     29    77%
+surveysync/continuity.py                   185     30    84%
+surveysync/control.py                      552     56    90%
+surveysync/control_exports.py              107      3    97%
+surveysync/control_import_mapping.py       186     14    92%
+surveysync/control_math.py                 285     58    80%
+surveysync/control_workspace_routes.py     331     78    76%
+surveysync/coordinate_sanity.py             68      9    87%
+surveysync/crs.py                          229     46    80%
+surveysync/data_manager.py                 101     14    86%
+surveysync/delivery.py                     104      5    95%
+surveysync/diagnostics.py                  113     17    85%
+surveysync/field_cloud.py                   89     73    18%
+surveysync/field_to_finish.py               83     43    48%
+surveysync/leveling.py                     213     69    68%
+surveysync/logging_config.py                25      1    96%
+surveysync/notifications.py                110     30    73%
+surveysync/operations.py                    64     18    72%
+surveysync/operations_routes.py            190    104    45%
+surveysync/project.py                      193     16    92%
+surveysync/project_templates.py             10      1    90%
+surveysync/qa.py                            92     10    89%
+surveysync/qa_rules.py                      46      4    91%
+surveysync/reporting.py                    132     17    87%
+surveysync/reports.py                      154     25    84%
+surveysync/revisions.py                     87     15    83%
+surveysync/router.py                       731    301    59%
+surveysync/scale_factor.py                  77     32    58%
+surveysync/spatial.py                      263    160    39%
+surveysync/staging.py                      192     46    76%
+surveysync/survey_routes.py                367    233    37%
+surveysync/task_queue.py                    71     13    82%
+surveysync/topo/codes.py                    45      4    91%
+surveysync/topo/detection.py               226     19    92%
+surveysync/topo/exports.py                  37      2    95%
+surveysync/topo/imports.py                 105     17    84%
+surveysync/topo/routes.py                  147     24    84%
+surveysync/topo/storage.py                  32      8    75%
+surveysync/traverse.py                     124     70    44%
+surveysync/trimble_job.py                  320     65    80%
+surveysync/updater.py                       69     50    28%
+surveysync/utility.py                      168    145    14%
+------------------------------------------------------------
+TOTAL                                    17678   7731    56%
+
+6 files skipped due to complete coverage.
+Coverage XML written to file coverage.xml
+Required test coverage of 54.0% reached. Total coverage: 56.27%
+279 passed, 1 skipped, 1 warning in 17.65s
+Gate: /workspace/scratch/48c065cd5868/venv/bin/python scripts/audit_locks.py
+Auditing 102 exact pins across all platform branches.
+WARNING:pip_audit._cli:--no-deps is supported, but users are encouraged to fully hash their pinned dependencies
+WARNING:pip_audit._cli:Consider using a tool like `pip-compile`: https://pip-tools.readthedocs.io/en/latest/#using-hashes
+No known vulnerabilities found
+All release quality gates passed. Windows acceptance testing is still required.

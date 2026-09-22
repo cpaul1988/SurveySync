@@ -1,0 +1,8 @@
+-r requirements.in
+pytest>=8,<10
+httpx2
+ruff==0.16.8
+mypy==2.3.1
+pytest-cov==7.1.0
+pip-audit==2.10.1
+uv==0.12.17

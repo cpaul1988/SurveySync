@@ -1,0 +1,8 @@
+{
+  "form_url": "",
+  "submit_url": "https://script.google.com/macros/s/AKfycbzmpUudERiJUXb5TuJzTd-G1TrtujD6XnZQ2PKpn-x6mXrcgAz34-sWZS4HHaTUnYZVlw/exec",
+  "intake_url": "https://script.google.com/macros/s/AKfycbzmpUudERiJUXb5TuJzTd-G1TrtujD6XnZQ2PKpn-x6mXrcgAz34-sWZS4HHaTUnYZVlw/exec",
+  "transport": "google_apps_script",
+  "tracker_url": "https://docs.google.com/spreadsheets/d/1OvFje-9m8yFWTz6h73ZXmVcRdXKU6zRE6HQ2qPtlAa4/edit",
+  "message": "Submit bugs, feature requests, improvements, or questions from SurveySync. Reports are saved locally first, then synced to the shared Intake tracker."
+}

@@ -1,0 +1,46 @@
+code,description,role
+604,Ground Shot,surface
+675,Surface Edge,surface
+871,Pavement Edge Left,surface
+872,Pavement Edge Right,surface
+873,Shoulder Left,surface
+874,Shoulder Right,surface
+226,No Passing Stripe,surface
+671,Street Centerline,surface
+694,Lane Stripe,surface
+575,Gutter Flowline,surface
+573,Gutter Edge,surface
+502,Back of Curb,surface
+607,Breakline,surface
+296,Retaining Wall,discontinuity
+294,Wall,discontinuity
+579,Concrete Barrier,discontinuity
+633,Parapet Wall,discontinuity
+634,Wingwall,discontinuity
+311,Headwall,discontinuity
+309,Flared End Section,discontinuity
+305,Drop Box,discontinuity
+306,Catch Basin,discontinuity
+308,Inlet,discontinuity
+351,Manhole,discontinuity
+423,Sign,support
+331,Water Meter,support
+253,Power Pole,support
+254,Pole With Light,support
+255,Pole With Transformer,support
+280,Junction Box,support
+281,Splice Box,support
+363,Ditch,ditch
+877,Ditch,ditch
+878,Ditch,ditch
+879,Ditch,ditch
+880,Ditch,ditch
+364,Creek,creek
+365,Creek,creek
+366,Creek,creek
+367,Creek,creek
+800,Setup / control marker,setup
+100,Setup / control marker,setup
+103,Setup / control marker,setup
+114,Setup / control marker,setup
+124,Setup / control marker,setup

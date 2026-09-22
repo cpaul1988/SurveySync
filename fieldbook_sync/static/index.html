@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-theme-mode="system" data-product-theme="classic" data-accent="default">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0B2447" />
+  <title>FieldBookSync · SurveySync v9.3.0</title>
+  <link rel="icon" href="/static/favicon.ico?v=9.3.0" />
+  <script>
+    try {
+      const mode=localStorage.getItem('surveysync-appearance')||localStorage.getItem('fbs-theme')||'system';
+      const theme=mode==='system'?(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'):mode;
+      const savedProduct=localStorage.getItem('surveysync-product-theme')||localStorage.getItem('fbs-product-theme');
+      const productThemes=['classic','edsi','slate','midnight','lightpro','contrast','carbon','obsidian','teal','violet','graphite','frost','arctic','sandstone','edsidark','edsilight'];
+      const product=productThemes.includes(savedProduct)?savedProduct:'classic';
+      const accent=localStorage.getItem('surveysync-accent')||localStorage.getItem('fbs-accent')||'default';
+      document.documentElement.dataset.theme=theme; document.documentElement.dataset.themeMode=mode; document.documentElement.dataset.productTheme=product; document.documentElement.dataset.accent=accent;
+    } catch(_) {}
+  </script>
+  <link rel="stylesheet" href="/static/styles.css?v=9.3.0" />
+</head>
+<body>
+<div id="startupSplash" class="startup-splash hide" aria-hidden="true" style="display:none"><img id="startupBrandLogo" src="/static/app_icon.png" alt=""></div>
+<input id="prefSplash" type="checkbox" style="display:none" aria-hidden="true" tabindex="-1">
+<div class="app">
+  <div id="globalEnvStrip" class="env-strip" aria-hidden="true"></div>
+  <nav class="desktop-menubar" aria-label="Application menu">
+      <a href="/" class="product-brand" title="SurveySync Home"><img class="brand-globe" src="/surveysync-static/surveysync_globe.svg" alt=""><span>SurveySync</span></a>
+      <span class="menu-divider"></span>
+      <button class="menu-trigger" data-menu="fileMenu">File</button>
+      <button class="menu-trigger" data-menu="homeMenu">Home</button>
+      <button class="menu-trigger" data-menu="editMenu">Edit</button>
+      <button class="menu-trigger" data-menu="viewMenu">View</button>
+      <button class="menu-trigger" data-menu="dataMenu">Data</button>
+      <button class="menu-trigger" data-menu="toolsMenu">Tools</button>
+      <button class="menu-trigger" data-menu="optionsMenu">Options</button>
+      <button id="helpMenuTrigger" class="menu-trigger" data-menu="helpMenu">Help</button>
+      <span class="menubar-spacer"></span>
+      <button id="globalAppearanceBtn" class="appearance-pill" title="Cycle System, Light and Dark appearance"><span id="globalAppearanceGlyph">◐</span><span id="globalAppearanceText">System</span></button>
+      <span id="globalEnvironmentBadge" class="env-badge">BETA</span>
+      <span id="menubarProject" class="menubar-project">No project open</span>
+    </nav>
+
+  <nav class="surveysync-module-tabs" aria-label="SurveySync modules">
+      <a href="/" class="module-tab home-tab">Home</a>
+      <a href="/fieldbook" class="module-tab active">FieldBookSync</a>
+      <a href="/?module=ControlSync" class="module-tab">ControlSync</a>
+      <a href="/?module=UtilitySync" class="module-tab">UtilitySync</a>
+      <a href="/?module=TopoSync" class="module-tab">TopoSync</a>
+      <a href="/?module=COGOSync" class="module-tab">COGOSync</a>
+      <a href="/?module=BoundarySync" class="module-tab">BoundarySync</a>
+      <a href="/?module=GISSync" class="module-tab">GISSync</a>
+      <a href="/?module=ReportSync" class="module-tab">ReportSync</a>
+      <a href="/?module=QASync" class="module-tab">QASync</a>
+      <a href="/?module=CrewSync" class="module-tab">CrewSync</a>
+    </nav>
+  <aside class="sidebar">
+    <div class="brand-row">
+      <div class="brand-mark" aria-hidden="true"><img id="sideBrandIcon" src="/static/app_icon.png" alt="" /></div>
+      <div><div class="brand-name" id="sideBrandName">FieldBookSync</div><div class="brand-sub">SurveySync v9.3.0 · FieldBook module</div><div class="brand-tagline" id="sideBrandTagline">Field data. Connected.</div></div>
+    </div>
+
+    <div class="project-tile">
+      <div class="project-tile-top"><span class="live-dot"></span><span>Local workspace</span><button id="renameProjectBtn" class="icon-btn" title="Rename project">✎</button></div>
+      <strong id="sideProjectName">Untitled Project</strong>
+      <small id="sideAutosave">Autosave ready</small>
+    </div>
+
+    <nav class="nav" aria-label="Workspace">
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav-btn active" data-tab="dashboard"><span class="nav-ico">⌂</span><span>Dashboard</span><kbd>1</kbd></button>
+      <button class="nav-btn" data-tab="review"><span class="nav-ico">✓</span><span>Review</span><kbd>2</kbd></button>
+      <button class="nav-btn" data-tab="map"><span class="nav-ico">⌖</span><span>Map & Network</span><kbd>3</kbd></button>
+      <button class="nav-btn" data-tab="index"><span class="nav-ico">⌕</span><span>Field Book Index</span><kbd>4</kbd></button>
+      <button class="nav-btn" data-tab="batch"><span class="nav-ico">≡</span><span>Batch Queue</span><kbd>5</kbd></button>
+      <div class="nav-label">CONFIGURE</div>
+      <button class="nav-btn" data-tab="profiles"><span class="nav-ico">▤</span><span>Code Profiles</span></button>
+      <button class="nav-btn" data-tab="training"><span class="nav-ico">◎</span><span>Field Note Trainer</span></button>
+      <button class="nav-btn" data-tab="engine"><span class="nav-ico">✦</span><span>Analysis Engine</span></button>
+      <button class="nav-btn" data-tab="history"><span class="nav-ico">↶</span><span>History</span></button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="privacy-badge"><span>◆</span><div><strong>Local-first</strong><small id="privacyText">Hybrid local mode keeps field books on this PC.</small></div></div>
+      <div class="version-line"><span id="engineMini">Hybrid Local</span><span>SurveySync 9.3.0</span></div>
+    </div>
+  </aside>
+
+  <div class="main-shell">
+
+
+
+
+    <div id="fileMenu" class="desktop-menu hidden">
+      <button data-command="new-project">New FieldBook Project <kbd>Ctrl+N</kbd></button><button data-command="open-project">Open .fbs Project… <kbd>Ctrl+O</kbd></button><button data-command="recent-projects">Recent .fbs Projects…</button><button data-command="surveysync-projects">Switch SurveySync Project… <kbd>Ctrl+Shift+O</kbd></button><div class="menu-sep"></div><button data-command="save-project">Save Project <kbd>Ctrl+S</kbd></button><button data-command="save-as">Save Project As… <kbd>Ctrl+Shift+S</kbd></button><div class="menu-sep"></div><button data-command="export-package">Export QA/GIS Package <kbd>Ctrl+E</kbd></button><button data-command="exit-app">Exit</button>
+    </div>
+    <div id="homeMenu" class="desktop-menu hidden"><button data-command="dashboard">Dashboard</button><button data-command="analyze">Analyze Field Book <kbd>Ctrl+Enter</kbd></button><button data-command="review">Review Results</button><button data-command="search">Search Project <kbd>Ctrl+K</kbd></button></div>
+    <div id="editMenu" class="desktop-menu hidden"><button data-command="undo">Undo <kbd>Ctrl+Z</kbd></button><button data-command="redo">Redo <kbd>Ctrl+Y</kbd></button><button data-command="search">Find / Search <kbd>Ctrl+K</kbd></button></div>
+    <div id="viewMenu" class="desktop-menu hidden"><button data-command="dashboard">Dashboard</button><button data-command="review">Results & QA/QC</button><button data-command="map">Map & Network</button><button data-command="index">Field Book Index</button><button data-command="batch">Batch Queue</button><div class="menu-sep"></div><button data-command="fullscreen">Full Screen <kbd>F11</kbd></button></div>
+    <div id="dataMenu" class="desktop-menu hidden"><button data-command="import-survey">Import Survey Data…</button><button data-command="available-point-ranges">Available Point Ranges…</button><button data-command="import-fieldbook">Import Field Book…</button><button data-command="import-codes">Import Code Profile (CSV / Excel)…</button><button data-command="profiles">Code Profiles</button><button data-command="global-mapper">Global Mapper Converter…</button><div class="menu-sep"></div><button data-command="geojson">Export GeoJSON</button><button data-command="dxf">Export DXF</button><button data-command="kml">Export KML</button><button data-command="arcgis">ArcGIS Pro / ArcMap…</button></div>
+    <div id="toolsMenu" class="desktop-menu hidden"><button data-command="available-point-ranges">Available Point Ranges…</button><div class="menu-sep"></div><button data-command="profiles">Code Profiles</button><button data-command="engine">Analysis Engine</button><button data-command="batch">Batch Queue</button><button data-command="diagnostics">Diagnostics</button></div>
+    <div id="optionsMenu" class="desktop-menu hidden"><button data-command="options">Options &amp; Themes <kbd>Ctrl+,</kbd></button><div class="menu-sep"></div><button data-appearance-command="system">Appearance: System</button><button data-appearance-command="light">Appearance: Light</button><button data-appearance-command="dark">Appearance: Dark</button></div>
+    <div id="helpMenu" class="desktop-menu hidden"><button data-command="help">Help Center <kbd>F1</kbd></button><button data-command="quick-start">Quick Start</button><div class="menu-sep"></div><button data-command="feedback">Feedback Wizard…</button><button data-command="copy-support-info">Copy Support Info</button><button data-command="global-mapper">Global Mapper Converter…</button><button data-command="diagnostics">Diagnostics</button><div class="menu-sep"></div><button data-command="check-updates">Check & Update…</button><button data-command="about">About SurveySync</button></div>
+
+    <header class="topbar">
+      <div class="topbar-left quick-actions">
+        <button class="quick-btn" data-command="new-project" title="New Project (Ctrl+N)">＋<span>New</span></button>
+        <button class="quick-btn" data-command="open-project" title="Open Project (Ctrl+O)">▱<span>Open</span></button>
+        <button class="quick-btn" data-command="save-project" title="Save Project (Ctrl+S)">▣<span>Save</span></button>
+        <span class="quick-sep"></span>
+        <button class="quick-btn" data-command="import-survey">⇧<span>Survey</span></button>
+        <button class="quick-btn" data-command="import-fieldbook">▤<span>Field Book</span></button>
+        <button class="quick-btn primary-quick" data-command="analyze">✦<span>Analyze</span></button>
+        <button class="quick-btn" data-command="review">✓<span>Review</span></button>
+        <button class="quick-btn" data-command="arcgis">⌖<span>ArcGIS</span></button>
+        <button id="globalSearchBtn" class="quick-btn" title="Search project (Ctrl+K)">⌕<span>Search</span></button>
+      </div>
+      <div class="topbar-actions">
+        <button id="undoBtn" class="icon-btn text-icon" title="Undo (Ctrl+Z)">↶</button>
+        <button id="redoBtn" class="icon-btn text-icon" title="Redo (Ctrl+Y)">↷</button>
+        <button id="themeBtn" class="pill-btn" title="Appearance"><span id="themeGlyph">◐</span><span id="themeText">System</span></button>
+        <div class="divider"></div>
+        <button id="saveProjectBtn" class="btn secondary">Save Project</button>
+        <button id="projectMenuBtn" class="icon-btn" aria-label="Project menu">•••</button>
+      </div>
+    </header>
+
+    <div id="projectMenu" class="popup-menu hidden">
+      <button id="openProjectMenuBtn">Open .fbs project… <span>Ctrl+O</span></button>
+      <button id="recentProjectsBtn">Recent saved projects…</button>
+      <button id="saveAsProjectBtn">Save project as .fbs <span>Ctrl+Shift+S</span></button>
+      <button id="exportMenuBtn">Export QA/GIS package <span>Ctrl+E</span></button>
+      <div class="menu-sep"></div>
+      <button id="restoreRecoveryBtn">Restore recovery snapshot</button>
+      <button id="resetMenuBtn" class="danger-text">Reset current project</button>
+    </div>
+    <input id="openProjectFile" type="file" accept=".fbs" hidden />
+    <input id="pointRangeFiles" type="file" multiple accept=".txt,.csv,.tsv,.pnezd,.asc,.job,.jxl,.xml" hidden />
+
+    <main class="content">
+      <section id="tab-dashboard" class="view active">
+        <div class="hero-row">
+          <div><div class="eyebrow">FIELD DATA. CONNECTED.</div><h1>Turn field books into reviewable survey data.</h1><p>Local OCR finds the target PointIDs, Qwen interprets only the relevant handwriting, and deterministic QA/QC decides what is safe to accept.</p></div>
+          <div class="hero-actions"><button id="analyzeHeroBtn" class="btn primary large">✦ Analyze Field Book</button><button class="btn secondary" data-jump="review">Open Review</button></div>
+        </div>
+
+        <div id="metricCards" class="metric-grid"></div>
+
+        <div class="workflow-head"><div><div class="eyebrow">PROJECT SETUP</div><h2>Analysis pipeline</h2></div><div id="readinessChip" class="chip">Waiting for inputs</div></div>
+        <div class="workflow-grid">
+          <article class="card step-card" id="profileStep"><div class="step-head"><span class="step-no">01</span><span class="step-status">Required</span></div><h3>Client profile</h3><p>Code rules decide which raw survey points are structures.</p><select id="profileSelect" class="control"></select><button class="btn subtle" data-jump="profiles">Edit profile rules</button><div id="profileHint" class="hint"></div></article>
+          <article class="card step-card" id="surveyStep"><div class="step-head"><span class="step-no">02</span><span class="step-status">Waiting</span></div><h3>Survey data</h3><p>Import TXT/CSV/TSV/PNEZD or Trimble Access JOB/JobXML with PointID, Northing, Easting, Elevation and Code.</p><label class="dropzone" id="surveyDropzone"><input id="surveyFiles" type="file" multiple accept=".txt,.csv,.tsv,.pnezd,.asc,.job,.jxl,.xml"/><span class="drop-icon">⇧</span><strong>Drop survey files here</strong><small id="surveyFileLabel">or click to browse · TXT, CSV, TSV, JOB, JXL</small></label><div class="row"><button id="importSurveyBtn" class="btn secondary grow">Import survey</button><button id="pointRangesBtn" class="btn subtle" title="Review every numeric PointID and recommend safe crew-allocation ranges">Point ranges</button><button id="surveyIssuesBtn" class="btn subtle">Issues</button><button id="rodBustBtn" class="btn subtle" title="Scan nearby elevations for likely round-increment rod height busts">Rod Height QC</button></div><div id="surveyImportProgress" class="import-progress hidden"><div class="progress-line"><span id="surveyImportStage">Waiting</span><strong id="surveyImportPercent">0%</strong></div><div class="progress"><div id="surveyImportBar"></div></div><small id="surveyImportDetail">No import running.</small></div><div id="surveyImportMsg" class="hint"></div></article>
+          <article class="card step-card" id="fieldbookStep"><div class="step-head"><span class="step-no">03</span><span class="step-status">Waiting</span></div><h3>Field book</h3><p>PDF or page images. Original and enhanced review copies stay local.</p><label class="dropzone" id="fieldbookDropzone"><input id="fieldbookFiles" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp"/><span class="drop-icon">⇧</span><strong>Drop field-book files here</strong><small id="fieldbookFileLabel">or click to browse · PDF, PNG, JPG, WEBP</small></label><div class="row"><button id="importFieldbookBtn" class="btn secondary grow">Import field book</button><button id="previewPagesBtn" class="btn subtle">Preview</button></div><div id="fieldbookImportProgress" class="import-progress hidden"><div class="progress-line"><span id="fieldbookImportStage">Waiting</span><strong id="fieldbookImportPercent">0%</strong></div><div class="progress"><div id="fieldbookImportBar"></div></div><small id="fieldbookImportDetail">No import running.</small></div><div id="fieldbookImportMsg" class="hint"></div><div id="fieldbookProfilePanel" class="fieldbook-profile-panel hidden"><div class="eyebrow">FIELD NOTE PROFILE</div><label>Imported field book<select id="fieldbookProfileSource" class="control"></select></label><label>Interpretation profile<select id="fieldbookProfileSelect" class="control"><option value="AUTO">Auto-detect per page</option></select></label><div class="row"><span id="fieldbookProfileStatus" class="chip">Auto</span><span class="grow"></span><button id="fieldbookPreviewTrainingBtn" class="btn subtle">Preview first pages</button><button id="fieldbookTrainBtn" class="btn primary">Train this field book</button></div><p id="fieldbookProfileHint" class="hint">Auto mode keeps the book unforced and lets SurveySync compare installed field-note profiles during analysis.</p></div></article>
+          <article class="card step-card accent-card" id="analysisStep"><div class="step-head"><span class="step-no">04</span><span id="engineBadge" class="step-status good">Hybrid Local</span></div><h3>Analyze & validate</h3><p id="analysisDescription">PaddleOCR-VL locates exact PointIDs; local vision interprets targeted crops locally.</p><div class="progress-box"><div class="progress-line"><span id="jobText">Ready when inputs are loaded.</span><strong id="jobPercent">0%</strong></div><div class="progress"><div id="jobProgress"></div></div><small id="jobStage">Idle</small><small id="jobDetail" class="progress-detail">No analysis running.</small></div><div class="row"><button id="analyzeBtn" class="btn primary grow">Analyze Field Book</button><button id="pauseBtn" class="btn secondary" disabled>Pause</button><button id="cancelBtn" class="btn subtle" disabled>Cancel</button></div></article>
+        </div>
+
+        <article class="card imported-files-card">
+          <div class="card-head"><div><div class="eyebrow">CURRENT PROJECT INPUTS</div><h2>Imported files</h2><p class="hint">Files appear here after FieldBookSync has finished importing them.</p></div><span id="importedFilesCount" class="chip">0 files</span></div>
+          <div class="imported-files-grid">
+            <section><div class="imported-list-head"><strong>Survey data</strong><span id="surveyImportedCount">0</span></div><div id="surveyImportedList" class="imported-file-list"><div class="empty-state compact">No survey files imported.</div></div></section>
+            <section><div class="imported-list-head"><strong>Field books</strong><span id="fieldbookImportedCount">0</span></div><div id="fieldbookImportedList" class="imported-file-list"><div class="empty-state compact">No field-book files imported.</div></div></section>
+          </div>
+        </article>
+
+        <div class="two-col">
+          <article class="card guardrail"><div class="guard-icon">◇</div><div><div class="eyebrow">QA GUARDRAIL</div><h3>Uncertain handwriting never becomes a silent answer.</h3><p><b>YES</b> needs visible measurement or explicit dipped evidence. <b>NO</b> needs explicit not-dipped evidence. Conflicts and weak matches become <b>REVIEW</b>.</p></div></article>
+          <article class="card autosave-card"><div class="eyebrow">PROJECT SAFETY</div><h3>Autosave + crash recovery</h3><p>Every committed edit is saved atomically. A one-generation recovery snapshot is retained locally.</p><div class="mini-stats"><span><b id="historyMini">0</b> edits</span><span><b id="verifiedMini">0</b> verified examples</span></div></article>
+        </div>
+      </section>
+
+      <section id="tab-review" class="view">
+        <div class="view-head"><div><div class="eyebrow">RESULTS & QA/QC</div><h1>Review structures</h1><p>AI/OCR results are suggestions until the evidence is strong enough or a reviewer accepts the record.</p></div><div class="row export-actions"><button id="manualEntryBtn" class="btn primary">+ Manual Entry</button><button id="refreshResultsBtn" class="btn secondary">Refresh</button><a href="/api/export/geojson" class="btn subtle" title="Direct GeoJSON">GeoJSON</a><a href="/api/export/dxf" class="btn subtle" title="Direct CAD DXF">DXF</a><a href="/api/export/kml" class="btn subtle" title="KML stores projected survey XY as attributes until a CRS is assigned">KML</a><button id="arcgisExportBtn" class="btn secondary" title="Export Shapefiles to a folder and optionally add them to ArcGIS Pro or ArcMap 10.x">ArcGIS</button><a href="/api/export" class="btn primary">Export QA/GIS</a></div></div>
+        <div id="reviewMetrics" class="metric-grid compact"></div>
+        <article class="card table-card">
+          <div class="filter-row"><div class="search-field"><span>⌕</span><input id="resultSearch" placeholder="PointID, code, category…"/></div><span id="resultCountChip" class="chip">0 results</span><select id="statusFilter" class="control"><option value="">All statuses</option><option value="PENDING">PENDING OCR</option><option value="OCR_FOUND">OCR FOUND</option><option>YES</option><option>NO</option><option>CNA</option><option>CNL</option><option>REVIEW</option><option value="NOT_FOUND">NOT FOUND</option></select><select id="reviewFilter" class="control"><option value="">All review states</option><option>UNREVIEWED</option><option>ACCEPTED</option><option>EDITED</option><option>REJECTED</option></select><label class="toggle"><input id="qcOnly" type="checkbox"/><span></span>QC flags only</label></div>
+          <div id="resultsTableWrap" class="table-wrap virtual-table-wrap"><table id="resultsTable"><thead><tr><th>Point</th><th>Code</th><th>Status</th><th>Dip detail</th><th>Smart confidence</th><th>Pipes</th><th>QC</th><th>Review</th><th></th></tr></thead><tbody></tbody></table></div>
+        </article>
+        <article class="card table-card"><div class="card-head"><div><div class="eyebrow warning">UNMATCHED EVIDENCE</div><h2>Needs manual attention</h2></div><span id="unmatchedCountChip" class="chip">0</span></div><div class="table-wrap"><table id="unmatchedTable"><thead><tr><th>Raw PointID</th><th>Confidence</th><th>Source</th><th>Page</th><th>Reason</th><th></th></tr></thead><tbody></tbody></table></div></article>
+      </section>
+
+      <section id="tab-map" class="view">
+        <div class="view-head map-view-head"><div><div class="eyebrow">GIS MAP WORKSPACE</div><h1>Map & Network</h1><p>Review field-book results spatially, overlay GIS data, measure, trace connections, and compare against online basemaps.</p></div><div id="mapLegend" class="map-legend"></div></div>
+        <div class="map-commandbar card">
+          <div class="map-command-group"><span class="map-command-label">Basemap</span><select id="basemapSelect" class="control compact-control"><option value="none">No basemap</option><option value="aerial">Aerial</option><option value="navigation">Navigation</option><option value="topo">Topographic</option></select><label class="map-opacity-label" title="Basemap opacity">Opacity <input id="basemapOpacity" type="range" min="0" max="100" value="100"/></label></div>
+          <div class="map-command-group"><button id="mapZoomIn" class="btn subtle map-icon-btn" title="Zoom in">+</button><button id="mapZoomOut" class="btn subtle map-icon-btn" title="Zoom out">−</button><button id="mapZoomBoxIn" class="btn subtle" data-map-tool="zoom-box-in" title="Magnifying glass: drag a rectangle to zoom to that extent">⌕ +</button><button id="mapZoomBoxOut" class="btn subtle" data-map-tool="zoom-box-out" title="Drag a rectangle to zoom out">⌕ −</button><button id="fitMapBtn" class="btn subtle">Fit</button><button id="mapPrevExtent" class="btn subtle map-icon-btn" title="Previous extent">←</button><button id="mapNextExtent" class="btn subtle map-icon-btn" title="Next extent">→</button></div>
+          <div class="map-command-group"><button id="mapPanTool" class="btn subtle active" data-map-tool="pan">Pan</button><button id="mapIdentifyTool" class="btn subtle" data-map-tool="identify">Identify</button><button id="mapSelectTool" class="btn subtle" data-map-tool="select">Select</button><button id="mapMeasureDistance" class="btn subtle" data-map-tool="measure-distance">Distance</button><button id="mapMeasureArea" class="btn subtle" data-map-tool="measure-area">Area</button><button id="mapMeasureBearing" class="btn subtle" data-map-tool="measure-bearing">Bearing</button><button id="mapClearGraphics" class="btn subtle">Clear</button></div>
+          <div class="map-command-group map-command-right"><button id="mapImportBtn" class="btn secondary">Import GIS</button><input id="mapImportFiles" class="hidden" type="file" multiple accept="*/*"/><button id="mapCrsBtn" class="btn subtle">Coordinate System</button><button id="mapBookmarkBtn" class="btn subtle">Bookmark</button><button id="mapExportBtn" class="btn subtle">Export Map</button></div>
+        </div>
+        <div class="map-workspace">
+          <aside class="card map-sidebar">
+            <div class="map-side-section"><div class="card-head compact"><div><div class="eyebrow">LAYERS</div><h3>Contents</h3></div><span id="mapLayerCount" class="chip">0</span></div><div class="map-builtins"><label><input id="mapShowSurvey" type="checkbox" checked/> Survey structures</label><label><input id="mapShowNetwork" type="checkbox" checked/> Network connections</label><label><input id="mapShowLabels" type="checkbox" checked/> PointID labels</label><label><input id="mapShowAzimuth" type="checkbox"/> Pipe azimuth rays</label><label><input id="mapShowQa" type="checkbox" checked/> QA highlighting</label></div><div id="mapLayerList" class="map-layer-list"></div></div>
+            <div class="map-side-section"><div class="eyebrow">DISPLAY</div><label>Structure symbology<select id="mapMode" class="control"><option value="status">Analysis status</option><option value="confidence">Confidence</option><option value="heat">Confidence heatmap</option><option value="code">Survey code</option></select></label><label>Filter imported features<input id="mapLayerFilter" class="control" placeholder="name, parcel, owner…"/></label></div>
+            <div class="map-side-section"><div class="card-head compact"><div><div class="eyebrow">BOOKMARKS</div><h3>Saved views</h3></div></div><div id="mapBookmarkList" class="map-bookmark-list"><div class="empty-state compact">No bookmarks yet.</div></div></div>
+            <div class="map-side-section"><div class="eyebrow">SEARCH</div><div class="map-search-row"><input id="mapSearchPoint" class="control" placeholder="PointID or code"/><button id="mapSearchBtn" class="btn subtle">Go</button></div><button id="mapGotoXYBtn" class="btn subtle wide">Go to XY / Lat-Lon</button></div>
+          </aside>
+          <main class="card map-card gis-map-card">
+            <div class="map-toolbar"><div><span id="mapSummary">No coordinates loaded</span><div id="mapCrsWarning" class="map-crs-warning hidden"></div></div><div class="row"><span id="mapCrsChip" class="chip">Local XY</span><span id="mapAlignmentChip" class="chip">No alignment</span><span id="mapSelectionChip" class="chip">0 selected</span></div></div>
+            <div id="networkMap" class="network-map gis-network-map" tabindex="0">
+              <div id="basemapTiles" class="basemap-tiles"></div>
+              <svg id="mapOverlay" class="map-overlay" aria-label="FieldBookSync map"></svg>
+              <div id="mapNorthArrow" class="map-north-arrow"><b>N</b><span>▲</span></div>
+              <div id="mapScaleBar" class="map-scale-bar"></div>
+              <div id="mapCoordinates" class="map-coordinate-readout">Move over the map for coordinates</div>
+              <div id="mapAttribution" class="map-attribution"></div>
+              <div id="mapDropHint" class="map-drop-hint hidden">Drop KML, KMZ, Shapefile ZIP/components, GeoJSON, or zipped File GDB</div>
+              <div id="mapPopup" class="map-popup hidden"></div>
+            </div>
+          </main>
+          <aside class="card network-list map-network-panel"><div class="card-head"><div><div class="eyebrow">NETWORK QC</div><h2>Connections</h2></div><span id="edgeCountChip" class="chip">0</span></div><div class="network-panel-actions"><button id="mapConnectBtn" class="btn subtle">Connect selected</button><button id="mapTraceBtn" class="btn subtle">Trace connected</button><button id="mapProfileBtn" class="btn subtle">Profile</button><button id="mapExportSelectedBtn" class="btn subtle">Export selected</button></div><div id="networkEdges" class="edge-list"></div></aside>
+        </div>
+      </section>
+
+      <section id="tab-index" class="view">
+        <div class="view-head"><div><div class="eyebrow">FIELD BOOK INDEX</div><h1>PointID locator</h1><p>PaddleOCR-VL indexes where target survey PointIDs appear so a reviewer can jump directly to the relevant handwritten block.</p></div><div class="row"><button id="openFirstPageBtn" class="btn secondary">Preview book</button><button class="btn primary" data-jump="engine">Local OCR setup</button></div></div>
+        <article class="card table-card"><div class="filter-row"><div class="search-field wide"><span>⌕</span><input id="indexSearch" placeholder="Search PointID or OCR text…"/></div><span id="indexCountChip" class="chip">0 locations</span></div><div class="table-wrap"><table id="indexTable"><thead><tr><th>PointID</th><th>Source</th><th>Page</th><th>OCR text</th><th>Engine</th><th></th></tr></thead><tbody></tbody></table></div></article>
+      </section>
+
+      <section id="tab-batch" class="view">
+        <div class="view-head"><div><div class="eyebrow">UNATTENDED PROCESSING</div><h1>Batch queue</h1><p>Queue complete .fbs projects or pair raw survey files with their matching field books. Ambiguous filename matches are never guessed.</p></div><div class="row"><button id="addCurrentBatchBtn" class="btn secondary">+ Queue current project</button><label class="btn secondary file-btn">Import .fbs projects<input id="batchProjectFiles" type="file" multiple accept=".fbs"/></label><button id="startBatchBtn" class="btn primary">▶ Start queue</button></div></div>
+        <article class="card raw-batch-card"><div class="card-head"><div><div class="eyebrow">RAW JOB PAIRING</div><h2>Queue survey + field-book files</h2><p class="hint">Best results: give matching files the same job/order identifier, for example <strong>12345_survey.csv</strong> and <strong>12345_fieldbook.pdf</strong>.</p></div><span class="status-pill">Conservative matching</span></div><div class="raw-batch-grid"><label class="drop-mini" id="batchSurveyDropzone"><strong>Survey files</strong><input id="batchRawSurveyFiles" type="file" multiple accept=".csv,.txt,.tsv,.pnezd,.asc,.job,.jxl,.xml"/><small id="batchRawSurveyLabel">Drop survey files here or click to browse</small></label><label class="drop-mini" id="batchFieldbookDropzone"><strong>Field books</strong><input id="batchRawFieldbookFiles" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp"/><small id="batchRawFieldbookLabel">Drop field books here or click to browse</small></label><button id="queueRawBatchBtn" class="btn primary">Pair & queue raw jobs</button></div></article>
+        <article class="card table-card"><div class="table-wrap"><table id="batchTable"><thead><tr><th>Project</th><th>Engine</th><th>Status</th><th>Progress</th><th>Message</th><th></th></tr></thead><tbody></tbody></table></div></article>
+      </section>
+
+      <section id="tab-profiles" class="view">
+        <div class="view-head"><div><div class="eyebrow">CLIENT CONFIGURATION</div><h1>Code profiles</h1><p>Create rules manually or import a code list from CSV or Excel. Excel import automatically finds Code / Survey Code / Feature Code headings and optional Category, Include, and Match columns.</p></div><button id="newProfileBtn" class="btn primary">+ New profile</button></div>
+        <div class="settings-layout"><article class="card profile-sidebar"><div id="profileList" class="profile-list"></div><div class="profile-import"><div class="eyebrow">IMPORT CODE LIST</div><label class="btn secondary full">Choose CSV / Excel<input id="profileCsvFile" type="file" accept=".csv,.xlsx,.xlsm,.xltx,.xltm" hidden/></label><small id="profileImportFileName" class="hint">CSV or Excel workbook (.xlsx/.xlsm)</small><input id="profileCsvName" class="control" placeholder="New profile name"/><button id="importProfileCsvBtn" class="btn subtle full">Import code profile</button></div></article><article class="card editor-card"><div class="form-grid"><label>Name<input id="profileName" class="control"/></label><label>Client<input id="profileClient" class="control"/></label><label class="span2">Notes<textarea id="profileNotes" class="control" rows="2"></textarea></label></div><div class="card-head"><div><div class="eyebrow">CODE RULES</div><h2>Included structures</h2></div><button id="addCodeBtn" class="btn secondary">+ Add rule</button></div><div class="table-wrap"><table id="codesTable"><thead><tr><th>Code</th><th>Category</th><th>Match</th><th>Include</th><th></th></tr></thead><tbody></tbody></table></div><div class="editor-actions"><button id="deleteProfileBtn" class="btn danger ghost">Delete</button><div class="grow"></div><button id="exportProfileCsvBtn" class="btn secondary">Export CSV</button><button id="saveProfileBtn" class="btn primary">Save profile</button></div></article></div>
+      </section>
+
+      <section id="tab-training" class="view">
+        <div class="view-head"><div><div class="eyebrow">FIELD-NOTE INTELLIGENCE</div><h1>Field Note Profile Trainer</h1><p>Teach SurveySync how different crews and job types organize handwritten notes. Training here creates reusable layout/semantic profiles and verified examples; it does not silently retrain OCR model weights.</p></div><div class="row"><label class="btn secondary file-btn">Import .fnp<input id="fieldNoteProfileImport" type="file" accept=".fnp" hidden/></label><button id="newFieldNoteProfileBtn" class="btn primary">+ New profile</button></div></div>
+        <div class="trainer-grid">
+          <aside class="card trainer-sidebar"><div class="eyebrow">ACTIVE INTERPRETATION</div><label>Profile used for analysis<select id="fieldNoteActiveProfile" class="control"><option value="AUTO">Auto-detect per page</option></select></label><p class="hint">Auto mode compares the visible page against every installed field-note profile and falls back to generic review when the format is unknown.</p><div class="card-head"><div><div class="eyebrow">PROFILE LIBRARY</div><h2>Formats</h2></div><span id="fieldNoteProfileCount" class="chip">0</span></div><div id="fieldNoteProfileList" class="profile-list"></div></aside>
+          <main class="trainer-main">
+            <article class="card trainer-profile-editor"><div class="card-head"><div><div class="eyebrow">PROFILE GRAMMAR</div><h2 id="fieldNoteProfileTitle">Select a profile</h2></div><span id="fieldNoteExampleChip" class="chip">0 examples</span></div><div class="form-grid"><label>Profile name<input id="fieldNoteName" class="control"/></label><label>Client / company<input id="fieldNoteClient" class="control"/></label><label>Job type<input id="fieldNoteJobType" class="control"/></label><label>Profile ID<input id="fieldNoteId" class="control"/></label><label class="span2">Description<textarea id="fieldNoteDescription" class="control" rows="2"></textarea></label><label class="span2">Detection cues <span class="hint">one per line</span><textarea id="fieldNoteCues" class="control" rows="4"></textarea></label><label class="span2">Common vocabulary / abbreviations <span class="hint">one per line</span><textarea id="fieldNoteVocabulary" class="control" rows="3"></textarea></label><label class="span2">Extraction / association rules <span class="hint">one per line</span><textarea id="fieldNoteRules" class="control" rows="5"></textarea></label><label class="span2">Expected fields <span class="hint">one per line</span><textarea id="fieldNoteFields" class="control" rows="3"></textarea></label></div><div class="editor-actions"><button id="deleteFieldNoteProfileBtn" class="btn danger ghost">Delete</button><button id="duplicateFieldNoteProfileBtn" class="btn secondary">Duplicate</button><div class="grow"></div><button id="exportFieldNoteProfileBtn" class="btn secondary">Export .fnp</button><button id="saveFieldNoteProfileBtn" class="btn primary">Save profile</button></div></article>
+            <article class="card trainer-canvas-card"><div class="card-head"><div><div class="eyebrow">VISUAL EXAMPLES</div><h2>Annotate a real field-book page</h2></div><div class="row"><select id="trainerSourceFilter" class="control" title="Limit trainer to one imported field book"><option value="">All field books</option></select><button id="trainerPrevPageBtn" class="btn subtle">←</button><select id="trainerPageSelect" class="control trainer-page-select"><option value="">No imported pages</option></select><button id="trainerNextPageBtn" class="btn subtle">→</button><select id="trainerPageProfileOverride" class="control" title="Profile override for this page"><option value="AUTO">Page profile: Auto</option></select></div></div><div id="trainerQuickPreview" class="trainer-quick-preview"></div><div class="trainer-toolbar"><label>Label<select id="trainerLabel" class="control"><option value="structure">Structure / manhole</option><option value="structure_point_id">Structure PointID</option><option value="north_arrow">North arrow / N</option><option value="pipe_leader">Pipe / connection leader</option><option value="dip">Dip / depth</option><option value="diameter">Pipe diameter</option><option value="material">Pipe material</option><option value="azimuth">Written azimuth</option><option value="destination_point">Destination PointID</option><option value="structure_note">Structure-wide note</option><option value="pipe_note">Pipe-specific note</option><option value="other">Other</option></select></label><label>Pipe # <input id="trainerPipeIndex" class="control compact-input" type="number" min="1" step="1" placeholder="optional"/></label><label class="grow">Visible text/value<input id="trainerText" class="control" placeholder="optional transcription or meaning"/></label><button id="trainerClearAnnotationsBtn" class="btn subtle">Clear boxes</button></div><p class="hint">Drag a box around an item on the page. Each box records the label, optional pipe number, visible text and normalized coordinates. You can annotate only the relationships needed to teach this format.</p><div class="trainer-workspace"><div id="trainerImageStage" class="trainer-image-stage"><img id="trainerImage" alt="Training page"/><div id="trainerOverlay" class="trainer-overlay"></div></div><aside class="trainer-annotation-panel"><div class="eyebrow">ANNOTATIONS</div><div id="trainerAnnotationList" class="trainer-annotation-list"><div class="empty-state compact">Draw a box on the page to add an annotation.</div></div><label>Example notes<textarea id="trainerExampleNotes" class="control" rows="3" placeholder="Anything distinctive about this crew/job format"></textarea></label><button id="saveTrainingExampleBtn" class="btn primary full">Save training example</button></aside></div></article>
+            <article class="card"><div class="card-head"><div><div class="eyebrow">LEARNING LIBRARY</div><h2>Saved examples</h2></div><span id="trainerSavedCount" class="chip">0</span></div><div id="trainerExampleList" class="trainer-example-list"><div class="empty-state">No examples saved for this profile yet.</div></div><div class="note-box">Corrections can also be added from Review with <b>Teach this profile</b>. SurveySync stores the original image/evidence plus the approved interpretation so future model tuning and regression tests have labeled ground truth.</div></article>
+          </main>
+        </div>
+      </section>
+
+      <section id="tab-engine" class="view">
+        <div class="view-head"><div><div class="eyebrow">ANALYSIS ENGINE</div><h1>Local-first intelligence</h1><p><b>Automatic — Best Local (Recommended)</b> is recommended. SurveySync uses Windows AI first when it is ready, then Microsoft Foundry Local or the proven SurveySync local stack. It never falls back to a paid/cloud provider automatically.</p></div><button id="saveSettingsBtn" class="btn primary">Save settings</button></div>
+        <div class="engine-grid">
+          <button class="engine-card selected" data-provider="auto"><span class="engine-icon">⊙</span><div><strong>Automatic — Best Local (Recommended)</strong><small>Recommended · Windows AI first · local fallbacks only</small></div><span class="engine-tag free">$0</span></button>
+          <button class="engine-card" data-provider="hybrid"><span class="engine-icon">◆</span><div><strong>Hybrid Local</strong><small>Recommended · PaddleOCR + hardware-aware local vision</small></div><span class="engine-tag free">$0</span></button>
+          <button class="engine-card" data-provider="ollama"><span class="engine-icon">Q</span><div><strong>Qwen Local</strong><small>Full-page local vision · model selectable</small></div><span class="engine-tag free">$0</span></button>
+          <button class="engine-card" data-provider="paddle"><span class="engine-icon">P</span><div><strong>Paddle OCR only</strong><small>PointID index + manual semantic review</small></div><span class="engine-tag free">$0</span></button>
+          <button class="engine-card" data-provider="gemini"><span class="engine-icon">G</span><div><strong>Gemini</strong><small>Optional cloud backup / second opinion</small></div><span class="engine-tag">API</span></button>
+          <button class="engine-card" data-provider="openai"><span class="engine-icon">O</span><div><strong>OpenAI</strong><small>Optional cloud backup / second opinion</small></div><span class="engine-tag">API</span></button>
+          <button class="engine-card" data-provider="anthropic"><span class="engine-icon">A</span><div><strong>Anthropic Claude</strong><small>Optional cloud backup / second opinion</small></div><span class="engine-tag">API</span></button>
+          <button class="engine-card" data-provider="manual"><span class="engine-icon">✎</span><div><strong>Manual Review</strong><small>No AI required</small></div><span class="engine-tag free">$0</span></button>
+        </div>
+        <div class="engine-settings-grid">
+          <article class="card"><div class="card-head"><div><div class="eyebrow">MICROSOFT LOCAL AI</div><h2>Windows AI + Foundry Local</h2></div><span id="autoAiStatus" class="status-pill">Checking…</span></div><p id="autoAiPlan" class="hint">Detecting the best free on-device pipeline…</p><div class="note-box"><b>Automatic never uses paid cloud AI.</b><br/>Windows AI components and Foundry models are only downloaded after you approve the download.</div><div class="row"><button id="refreshAiStatusBtn" class="btn secondary">Refresh</button><button id="enableWindowsOcrBtn" class="btn secondary">Enable Windows AI OCR</button><button id="enableFoundryBtn" class="btn primary">Enable Foundry Local Vision</button></div><div id="windowsAiDetail" class="hint">Windows AI: checking…</div><div id="foundryAiDetail" class="hint">Foundry Local: checking…</div></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">LOCAL OCR</div><h2>PaddleOCR-VL 1.6</h2></div><span id="paddleStatus" class="status-pill">Checking…</span></div><p>Runs in an isolated Python environment so its large dependencies cannot destabilize the app.</p><div class="code-line">install_paddleocr_auto.bat · CPU/GPU compatibility selected safely</div><div class="row"><button id="testPaddleBtn" class="btn secondary">Check installation</button><button id="installPaddleBtn" class="btn primary">Install / Repair PaddleOCR</button></div><div id="paddleDeviceHint" class="hint">CPU/GPU device is reported after a full installation check.</div></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">LOCAL VISION</div><h2>Qwen / Ollama</h2></div><span id="ollamaStatus" class="status-pill">Not tested</span></div><label>Local AI profile<select id="ollamaProfile" class="control"><option value="auto">Auto — hardware recommended</option><option value="fast">Fast — qwen3-vl:2b-instruct</option><option value="balanced">Balanced — qwen3-vl:4b-instruct (recommended)</option><option value="maximum">Maximum Accuracy — qwen3-vl:8b-instruct</option><option value="custom">Custom model</option></select></label><label>Ollama server<input id="ollamaBaseUrl" class="control" value="http://127.0.0.1:11434"/></label><label>Model<input id="ollamaModel" class="control" value="qwen3-vl:4b-instruct"/></label><div class="row"><button id="testOllamaBtn" class="btn secondary">Test &amp; Warm Model</button><span id="ollamaRuntime" class="hint">Not loaded</span></div><div id="ollamaRecommendation" class="hint">Auto will choose from installed vision models using detected VRAM.</div><div id="ollamaModels" class="hint"></div></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">PERFORMANCE ENGINE V2</div><h2>Accuracy-first acceleration</h2></div><span id="performanceStatus" class="status-pill good">Auto</span></div><label>Performance mode<select id="performanceMode" class="control"><option value="auto">Auto — Accuracy First (recommended)</option><option value="safe">Safe</option><option value="balanced">Balanced</option><option value="high">High Performance</option></select></label><div id="performanceSummary" class="hint">Detecting CPU, memory and GPU…</div><div id="gpuPerformanceSummary" class="hint"></div><div class="row"><button id="clearAnalysisCacheBtn" class="btn secondary">Clear analysis caches</button><span id="analysisCacheSummary" class="hint">No cache yet</span></div><p class="hint">Auto uses multicore page preparation, bounded RAM prefetch, Paddle high-performance inference when supported, GPU OCR when the Paddle GPU runtime is installed, persistent Paddle + Qwen caches, and conservative near-match routing. It never accepts a fuzzy PointID or skips the full-book fallback unless the exact target is visually confirmed.</p></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">RELIABILITY ENGINE</div><h2>Persistent jobs & recovery</h2></div><span id="reliabilityStatus" class="status-pill good">Ready</span></div><p id="reliabilitySummary" class="hint">Loading persistent job state…</p><div class="row"><button id="resumeJobBtn" class="btn primary" disabled>Resume interrupted job</button><button id="diagnosticBundleBtn" class="btn secondary">Create diagnostic ZIP</button></div><div class="row"><button id="jobHistoryBtn" class="btn secondary">Job history</button><button id="errorHistoryBtn" class="btn secondary">Error history</button></div><div class="row"><button id="validationBaselineBtn" class="btn secondary">Freeze reviewed baseline</button><button id="validationCompareBtn" class="btn secondary">Compare to baseline</button></div><p class="hint">Analysis jobs, page checkpoints and structured errors are stored in SQLite. Diagnostic bundles exclude field-book images, survey uploads, crops and API keys by default.</p></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">OPTIONAL CLOUD</div><h2>Gemini</h2></div><span id="geminiStatus" class="status-pill">No key</span></div><label>API key<input id="geminiKey" class="control" type="password" placeholder="Paste key for this session" autocomplete="off"/></label><label>Model<input id="geminiModel" class="control" value="gemini-3.8-flash"/></label><div class="row"><button id="testGeminiBtn" class="btn secondary">Test key</button><span class="hint">Only used when Gemini is selected explicitly.</span></div></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">OPTIONAL CLOUD</div><h2>OpenAI</h2></div><span id="openaiStatus" class="status-pill">No key</span></div><label>API key<input id="openaiKey" class="control" type="password" placeholder="Paste key for this session" autocomplete="off"/></label><label>Model<input id="openaiModel" class="control" value="gpt-5.6-luna"/></label><div class="row"><span class="hint">Only used when OpenAI is selected explicitly.</span></div></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">OPTIONAL CLOUD</div><h2>Anthropic Claude</h2></div><span id="anthropicStatus" class="status-pill">No key</span></div><label>API key<input id="anthropicKey" class="control" type="password" placeholder="Paste key for this session" autocomplete="off"/></label><label>Model<input id="anthropicModel" class="control" value="claude-sonnet-5"/></label><div class="row"><span class="hint">Only used when Anthropic is selected explicitly.</span></div></article>
+          <article class="card"><div class="card-head"><div><div class="eyebrow">STATUS RULE</div><h2>Primary YES / NO logic</h2></div><span class="status-pill good">Recommended</span></div><label>Primary status rule<select id="statusRule" class="control"><option value="POINT_ID_FOUND">PointID found in field book = YES</option><option value="CONFIRMED_DIP">Require confirmed dip evidence = YES (Advanced)</option></select></label><p class="hint">Recommended mode keeps the required deliverable simple: exact PointID found = YES; no matching PointID = NO. Dip, pipe, confidence and disagreement checks remain separate QA and never suppress the basic YES/NO result.</p></article><article class="card"><div class="card-head"><div><div class="eyebrow">SURVEY QC</div><h2>Derived intelligence</h2></div></div><label class="toggle-row"><input id="elevationIsRim" type="checkbox"/><span><b>Survey elevation is structure rim/top</b><small>Enables automatic invert = elevation − dip.</small></span></label><label>Max connection distance (survey units)<input id="networkDistance" class="control" type="number" min="1" value="1500"/></label><label>Bearing / reciprocal tolerance (degrees)<input id="networkTolerance" class="control" type="number" min="1" max="90" value="25"/></label><hr/><div class="eyebrow">ROD HEIGHT BUST DETECTION</div><label class="toggle-row"><input id="rodBustEnabled" type="checkbox" checked/><span><b>Automatically flag likely elevation / rod-height busts</b><small>QC only — survey elevations are never changed automatically.</small></span></label><label>Horizontal search radius (project units)<input id="rodBustRadius" class="control" type="number" min="0.1" step="0.5" value="15"/></label><label>Maximum realistic local slope (%)<input id="rodBustSlope" class="control" type="number" min="0" step="0.5" value="8"/></label><label>Round-increment tolerance (project units)<input id="rodBustTolerance" class="control" type="number" min="0" step="0.01" value="0.08"/></label><label>Minimum nearby points<input id="rodBustNeighbors" class="control" type="number" min="1" max="20" value="2"/></label><p class="hint">Flags suspicious local elevation jumps near common 0.50, 1.00 and 2.00 project-unit increments when the implied slope is too steep. Designed to catch likely human rod-height/setup mistakes before surface/TIN creation.</p></article>
+        </div>
+        <article class="card privacy-note"><span>◇</span><div><h3>Privacy behavior</h3><p><b>Automatic, Windows AI, Foundry Local, Hybrid, Qwen, Paddle and Manual</b> stay on this computer. Gemini, OpenAI, and Anthropic upload only the selected/rendered page imagery when you explicitly choose that cloud engine or request a second opinion. Automatic never sends project data to a paid cloud provider.</p></div></article>
+      </section>
+
+      <section id="tab-options" class="view">
+        <div class="view-head"><div><div class="eyebrow">APPLICATION OPTIONS</div><h1>Theme, appearance & desktop behavior</h1><p>Product identity and Light/Dark/System appearance are independent. Changes apply immediately and never modify project data.</p></div><button id="resetUiPrefsBtn" class="btn secondary">Reset UI preferences</button></div>
+        <article class="card options-card"><div class="card-head"><div><div class="eyebrow">PRODUCT THEME</div><h2>Choose a visual identity</h2></div><span id="activeThemeChip" class="chip">FieldBook Classic</span></div><div id="themeCards" class="theme-grid">
+          <button class="theme-card" data-theme-choice="classic"><span class="theme-preview classic"><i></i><i></i><i></i></span><strong>FieldBook Classic</strong><small>Blue + teal · Default</small></button>
+          <button class="theme-card" data-theme-choice="carbon"><span class="theme-preview carbon"><i></i><i></i><i></i></span><strong>Carbon</strong><small>Near-black + precision accents</small></button>
+          <button class="theme-card" data-theme-choice="obsidian"><span class="theme-preview obsidian"><i></i><i></i><i></i></span><strong>Obsidian Blue</strong><small>Deep navy + cool blue</small></button>
+          <button class="theme-card" data-theme-choice="teal"><span class="theme-preview teal"><i></i><i></i><i></i></span><strong>Slate Teal</strong><small>Engineering slate + teal</small></button>
+          <button class="theme-card" data-theme-choice="violet"><span class="theme-preview violet"><i></i><i></i><i></i></span><strong>Midnight Violet</strong><small>Indigo + restrained violet</small></button>
+          <button class="theme-card" data-theme-choice="graphite"><span class="theme-preview graphite"><i></i><i></i><i></i></span><strong>Graphite</strong><small>Neutral charcoal + steel</small></button>
+          <button class="theme-card" data-theme-choice="frost"><span class="theme-preview frost"><i></i><i></i><i></i></span><strong>Frost</strong><small>Clean cool neutral</small></button>
+          <button class="theme-card" data-theme-choice="arctic"><span class="theme-preview arctic"><i></i><i></i><i></i></span><strong>Arctic Blue</strong><small>Bright ice + professional blue</small></button>
+          <button class="theme-card" data-theme-choice="sandstone"><span class="theme-preview sandstone"><i></i><i></i><i></i></span><strong>Sandstone</strong><small>Warm stone + amber</small></button>
+          <button class="theme-card" data-theme-choice="slate"><span class="theme-preview slate"><i></i><i></i><i></i></span><strong>Slate Professional</strong><small>Neutral engineering office</small></button>
+          <button class="theme-card" data-theme-choice="midnight"><span class="theme-preview midnight"><i></i><i></i><i></i></span><strong>Midnight</strong><small>Deep navy + cyan</small></button>
+          <button class="theme-card" data-theme-choice="lightpro"><span class="theme-preview lightpro"><i></i><i></i><i></i></span><strong>Light Professional</strong><small>Bright neutral + blue</small></button>
+          <button class="theme-card" data-theme-choice="edsi"><span class="theme-preview edsi"><i></i><i></i><i></i></span><strong>EDSI Adaptive</strong><small>Official red · follows appearance</small></button>
+          <button class="theme-card" data-theme-choice="edsidark"><span class="theme-preview edsidark"><i></i><i></i><i></i></span><strong>EDSI Dark</strong><small>Official red + charcoal</small></button>
+          <button class="theme-card" data-theme-choice="edsilight"><span class="theme-preview edsilight"><i></i><i></i><i></i></span><strong>EDSI Light</strong><small>Official red + clean white</small></button>
+          <button class="theme-card" data-theme-choice="contrast"><span class="theme-preview contrast"><i></i><i></i><i></i></span><strong>High Contrast</strong><small>Maximum separation</small></button>
+        </div><div id="accentPanel" class="accent-panel"><div><div class="eyebrow">ACCENT COLOR</div><strong>Personalize neutral themes</strong><p id="accentHint">Accent changes controls and highlights; success/warning/error colors keep the same meaning.</p></div><div class="accent-choices"><button data-accent-choice="default" class="accent-choice default" title="Theme default"><span></span>Default</button><button data-accent-choice="azure" class="accent-choice azure"><span></span>Azure</button><button data-accent-choice="teal" class="accent-choice teal"><span></span>Teal</button><button data-accent-choice="emerald" class="accent-choice emerald"><span></span>Emerald</button><button data-accent-choice="violet" class="accent-choice violet"><span></span>Violet</button><button data-accent-choice="amber" class="accent-choice amber"><span></span>Amber</button><button data-accent-choice="rose" class="accent-choice rose"><span></span>Rose</button></div></div></article>
+        <div class="options-grid">
+          <article class="card option-panel"><div class="eyebrow">APPEARANCE</div><h2>Light / Dark / System</h2><div class="segmented" id="appearanceChoices"><button data-appearance="system">System</button><button data-appearance="light">Light</button><button data-appearance="dark">Dark</button></div><p class="hint">System follows the Windows appearance preference.</p></article>
+          <article class="card option-panel"><div class="eyebrow">LAYOUT</div><h2>Desktop workspace</h2><label class="toggle-row"><input id="prefCompactSidebar" type="checkbox"/><span><b>Compact sidebar</b><small>Use icon-focused navigation.</small></span></label><label class="toggle-row"><input id="prefReducedMotion" type="checkbox"/><span><b>Reduced motion</b><small>Disable decorative transitions and splash animation.</small></span></label><label class="toggle-row"><input id="prefRestoreWorkspace" type="checkbox"/><span><b>Restore last workspace</b><small>Optional: return to your previous tab instead of the Dashboard/default start page.</small></span></label></article>
+          <article class="card option-panel"><div class="eyebrow">STARTUP</div><h2>Launch behavior</h2><p class="hint">SurveySync release notes are shown on the main Home page after an update. FieldBookSync opens directly to its workspace.</p><label>Default start page<select id="prefStartPage" class="control"><option value="dashboard">Dashboard</option><option value="review">Results & QA/QC</option><option value="map">Map & Network</option><option value="index">Field Book Index</option></select></label></article>
+          <article class="card option-panel"><div class="eyebrow">TABLES</div><h2>Information density</h2><label>Table density<select id="prefTableDensity" class="control"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label><div class="note-box">Layout preferences stay local to this workstation. Theme and appearance are shared across all SurveySync modules and are not written into the survey project.</div></article>
+        </div>
+      </section>
+
+      <section id="tab-help" class="view">
+        <div class="view-head"><div><div class="eyebrow">HELP & SUPPORT</div><h1>FieldBookSync Help Center</h1><p>Quick-start guidance, shortcuts, diagnostics and version information.</p></div><span class="chip">SurveySync v9.3.0</span></div>
+        <div class="help-grid">
+          <article class="card help-card"><div class="help-icon">▶</div><h2>Quick start</h2><ol><li>Select a client code profile.</li><li>Drag in survey data.</li><li>Drag in the field book.</li><li>Analyze locally.</li><li>Review exceptions.</li><li>Export or add to ArcGIS.</li></ol></article>
+          <article class="card help-card"><div class="help-icon">⌨</div><h2>Keyboard shortcuts</h2><div class="shortcut-list"><span><kbd>Ctrl+N</kbd> New project</span><span><kbd>Ctrl+O</kbd> Open project</span><span><kbd>Ctrl+S</kbd> Save project</span><span><kbd>Ctrl+K</kbd> Search</span><span><kbd>Ctrl+Enter</kbd> Analyze</span><span><kbd>Ctrl+,</kbd> Options</span><span><kbd>F1</kbd> Help</span><span><kbd>F11</kbd> Full screen</span></div></article>
+          <article class="card help-card"><div class="help-icon">◇</div><h2>Diagnostics</h2><p>Logs are stored under <code>%LOCALAPPDATA%\FieldBookSync\logs</code>. Slow requests and background exceptions are recorded with tracebacks.</p><div class="row"><button id="helpEngineBtn" class="btn secondary">Analysis Engine</button><button id="helpHistoryBtn" class="btn secondary">History</button><button id="helpDiagnosticBundleBtn" class="btn secondary">Diagnostic ZIP</button></div></article>
+          <article class="card help-card"><div class="help-icon">✎</div><h2>Feedback Log</h2><p>Use the in-app wizard to report bugs, request features, suggest improvements, or ask questions. Every submission is logged locally first and can sync to the shared tracker.</p><p id="feedbackStatus" class="hint">Checking feedback log…</p><div class="row"><button id="helpBugBtn" class="btn primary">Report Bug</button><button id="helpFeatureBtn" class="btn secondary">Request Feature</button><button id="helpFeedbackLogBtn" class="btn secondary">Feedback Log</button><button id="helpFeedbackSettingsBtn" class="btn secondary">Log & Sync</button><button id="helpCopySupportBtn" class="btn secondary">Copy Support Info</button></div></article>
+          <article class="card help-card"><div class="help-icon">⇄</div><h2>Global Mapper bridge</h2><p>When Global Mapper is installed, FieldBookSync can use its scripting engine as a broad format-conversion adapter while keeping native formats available without it.</p><p id="globalMapperStatus" class="hint">Checking installation…</p><div class="row"><button id="helpGlobalMapperBtn" class="btn secondary">Open Converter</button></div></article>
+          <article class="card help-card"><div class="help-icon">i</div><h2>About</h2><p><b>FieldBookSync · SurveySync v9.3.0</b><br/>Desktop Edition<br/><span id="aboutTheme">FieldBook Classic theme</span></p><p class="hint">Local-first survey field-book synchronization and QA/QC with ArcGIS Pro / ArcMap integration.</p><div class="row" style="margin-top:12px"><button class="btn secondary" data-command="check-updates">Check & Update</button></div></article>
+        </div>
+      </section>
+
+      <section id="tab-history" class="view">
+        <div class="view-head"><div><div class="eyebrow">AUDIT TRAIL</div><h1>History & verified examples</h1><p>Manual edits and approvals are retained for auditability and future handwriting-learning workflows.</p></div><div class="row"><button id="historyUndoBtn" class="btn secondary">↶ Undo</button><button id="historyRedoBtn" class="btn secondary">↷ Redo</button></div></div>
+        <div class="history-layout"><article class="card"><div class="card-head"><h2>Recent actions</h2><span id="historyCountChip" class="chip">0</span></div><div id="historyList" class="timeline"></div></article><article class="card"><div class="eyebrow">LEARNING LIBRARY</div><h2>Verified field-book examples</h2><p>When you accept a result with a highlighted evidence region, FieldBookSync stores that crop locally with the approved interpretation.</p><div class="big-stat" id="verifiedCount">0</div><small>verified examples retained locally</small><div class="note-box">v6 stores these examples for retrieval and future model tuning; it does not automatically fine-tune Qwen.</div></article></div>
+      </section>
+    </main>
+    <footer class="desktop-statusbar"><span id="statusProject">Project: Untitled Project</span><span id="statusEngine">Engine: Automatic</span><span id="statusResults">Results: 0</span><span class="status-spacer"></span><span id="statusTheme">Theme: FieldBook Classic</span><span id="statusAutosave">Autosave ready</span></footer>
+  </div>
+</div>
+
+<div id="globalDropOverlay" class="global-drop-overlay hidden" aria-hidden="true">
+  <div class="global-drop-card">
+    <div class="global-drop-icon">⇩</div>
+    <strong id="globalDropTitle">Drop files into FieldBookSync</strong>
+    <small id="globalDropHint">Survey TXT/CSV/TSV · field-book PDF/images · .fbs projects</small>
+  </div>
+</div>
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-backdrop"></div><div class="modal-panel"><div class="modal-head"><div><div id="modalEyebrow" class="eyebrow">FIELD BOOK</div><h2 id="modalTitle">Review</h2></div><button id="modalClose" class="icon-btn">×</button></div><div id="modalBody" class="modal-body"></div></div></div>
+<div id="commandPalette" class="command hidden"><div class="command-backdrop"></div><div class="command-box"><div class="command-search"><span>⌕</span><input id="commandInput" placeholder="Search PointID, code, field-book page…" autocomplete="off"/><kbd>Esc</kbd></div><div id="commandResults" class="command-results"><div class="empty-state">Start typing to search this project.</div></div></div></div>
+<div id="toastStack" class="toast-stack"></div>
+<script src="/static/menu_bootstrap.js?v=9.3.0"></script>
+<script src="/static/app.js?v=9.3.0"></script>
+</body>
+</html>

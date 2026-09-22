@@ -1,0 +1,69 @@
+# SurveySync Test Coverage
+
+## Automated suites
+
+The maintained Windows/source gate runs `tests/` plus selected FieldBookSync legacy regression suites. Major covered areas include project lifecycle, updater/version logic, Point Range, Trimble JobXML/JOB adapter contract, Ron control outputs, BRT topology/QC, Field Note Profile CRUD/training/bundles, the v9.1.3 book-profile workflow, v9.1.4 reliability/diagnostics behavior, and v9.2.0 active-revision management.
+
+## v9.2.0 regression target
+
+`tests/test_v920_control_revisions.py` covers automatic activation of newly solved control/level revisions, control and level comparisons, rejection of cross-object restoration, non-destructive restore of an older revision, and PDF reporting from the restored active control solution.
+
+## v9.1.4 regression target
+
+`tests/test_v914_reliability.py` covers explicit update-install confirmation, the FieldBookSync legacy update proxy, atomic `.fbs` Save As, redacted diagnostics/error-log export, Apps Script route payloads, and the static Review modal/native Save As UI contracts.
+
+## v9.1.3 regression target
+
+`tests/test_v913_fieldbook_training_workflow.py` is the permanent regression test for FBR-0010. If future UI/backend changes remove profile selection after field-book import, training preview, trainer source filtering, or book/profile persistence, this suite should fail.
+
+## Real-world tests still required
+
+Automated fixtures cannot prove OCR quality on handwritten books, actual Trimble converter interoperability, installer/update behavior on every workstation, or third-party local AI runtime availability. These remain explicit Beta-to-Stable gates and are recorded in each QA report/build manifest.
+
+## v9.2.1 regression target
+
+`tests/test_v921_operations.py` covers shared Health/QA rules and coordinate sanity; staging/mapping and duplicate protection; recovery/manual snapshot creation, comparison and restore; project timeline; external-file and SurveySync-project comparison; custom export profiles and checksum-backed package manifests; visual map/Review Center/Why evidence; persistent task completion/failure; and Operations Center API wiring.
+
+
+## v9.2.2 feedback compatibility
+- `tests/test_v922_feedback_compat.py` reproduces the legacy deployed Intake gate and confirms the client submits the compatible FieldBook Sync envelope.
+- Existing feedback attachment/retry/idempotency and SurveySync error-log routing regressions remain in the maintained suite.
+
+## v9.2.3 bulk controls and path browsing
+
+Tests cover multi-Control-ID import, append-only control observations, batch analysis with minimum-shot skipping, immutable solution creation, the new observation/analyze API routes, universal path-picker markup, and native multi-file bridge/source presence. Existing v9.2.2 feedback-compatibility coverage remains active.
+
+## v9.2.4 database platform coverage
+Tests verify independent template-created project DBs, project-template module selection, project metadata seeding, automatic schema migration with pre-migration backup, controlled-edit snapshots/history/stale-result marking, recalculation clearing stale control state, read-only dataset protection, DB integrity/maintenance, and Project Data Manager/API shell exposure.
+
+## v9.2.5 correctness and static-quality coverage
+
+- Regression case with a finite Northing and non-finite Easting inserted between valid points verifies pair alignment is never shifted.
+- Regression verifies an extreme remote point is reported using the actual source PointID even when another row is invalid.
+- Non-finite coordinate rows are counted/reported and excluded from min/max/median statistics as complete pairs.
+- `scripts/validate_static_quality.py` runs in the Windows build and under pytest, checking exception baselines, monolith ceilings, duplicate routes/functions, mutable defaults, pickle/eval/exec/shell use, and common credential literals.
+
+## v9.2.5 Control Survey workspace coverage
+
+`tests/test_v925_control_workspace.py` covers offline CRS search plus the ESRI-style Projected/Geographic folder browser (including State Plane/Missouri), Local Site persistence and reversible grid/ground math, TBC-style suffix grouping, Code preservation, all-triplet best-three selection, failing-control reshoot suffix generation, Control QC persistence, API routes, default deliverables, saved custom exporter profiles, geographic header semantics, projected-target validation and the Control Survey UI contract. These run alongside the coordinate-sanity/static-quality hardening tests.
+
+`tests/test_v925_control_workspace.py` also covers spatially inferred control grouping/misnumber detection (`1A`,`1B`,`2C` -> Control 1 / inferred 1C) and verifies reshoot suffixes continue from the inferred shot identity without altering raw IDs.
+The same suite covers strict field-observation QC: common Time/Epochs/Duration/Satellites CSV parsing, 60-minute pairwise shot separation, the 300-epoch OR 5-minute rule, the 5-satellite minimum, explicit field failures, and REVIEW behavior when required metadata is absent.
+
+Direct Trimble control intake coverage verifies JobXML control grouping plus GNSS occupation metadata extraction (shot time, epochs, duration, satellites), TBC JobXML `InventoryData` fallback when `Reductions` is empty, exclusion of non-shot PRS/reference points from repeated-control groups, and an API-level `.job` import using a simulated official-converter result before running strict ControlSync QC.
+
+FBR-0015 regression coverage verifies the GISSync Trimble JOB/JobXML Browse control is wired to the resilient native picker and local fallback route.
+
+## v9.2.6 ControlSync production coverage
+
+`tests/test_v926_control_production.py` verifies rich Access-style JXL quality metadata, DOP threshold failures, coordinate-preserving dual-source metadata merge, vertical spatial separation, manual misnumber review states, persisted QC profiles, ArcGIS-style CRS folder families, resizable modal contracts, and complete QC package provenance. Existing v9.2.5 tests remain active for suffix grouping, real TBC InventoryData behavior, all-triplet selection, time/epoch-duration/satellite checks and direct Trimble JOB adapter behavior.
+
+
+## 9.3.0 engineering hardening
+
+See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared release gates, dependency locks, domain extraction, diagnostics and standalone TopoSync rod-height range QC. Windows acceptance and distribution signing remain outstanding.
+
+
+### 9.3.0 TopoSync range QC
+
+Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.

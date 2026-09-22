@@ -1,0 +1,11 @@
+# Optional Microsoft local-AI integrations for SurveySync 9.2.6.
+# Setup installs these best-effort on Windows. Failure never blocks SurveySync itself.
+winui3-Microsoft.Windows.ApplicationModel.DynamicDependency.Bootstrap>=3.2.1,<4; platform_system == "Windows"
+winui3-Microsoft.Windows.AI>=3.2.1,<4; platform_system == "Windows"
+winui3-Microsoft.Windows.AI.Imaging>=3.2.1,<4; platform_system == "Windows"
+winui3-Microsoft.Windows.AI.Text>=3.2.1,<4; platform_system == "Windows"
+winui3-Microsoft.Graphics.Imaging>=3.2.1,<4; platform_system == "Windows"
+winrt-Windows.Storage>=3.2.1,<4; platform_system == "Windows"
+winrt-Windows.Storage.Streams>=3.2.1,<4; platform_system == "Windows"
+winrt-Windows.Graphics.Imaging>=3.2.1,<4; platform_system == "Windows"
+foundry-local-sdk-winml>=1.2,<2; platform_system == "Windows"

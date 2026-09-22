@@ -1,0 +1,21 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E9", "F821", "F822", "F823"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["surveysync/topo", "surveysync/control_math.py", "surveysync/api_models.py", "fieldbook_sync/api_models.py", "fieldbook_sync/rod_height_qc.py"]
+follow_imports = "silent"
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+
+[tool.coverage.run]
+source = ["surveysync", "fieldbook_sync"]
+
+[tool.coverage.report]
+show_missing = false
+fail_under = 54
