@@ -1,49 +1,49 @@
 {
-    "schema_version":  1,
-    "generated_utc":  "2026-09-20T16:25:04Z",
-    "publisher_tool":  "SurveySync Publisher 2.0.1",
-    "product":  "SurveySync",
-    "channels":  {
-                     "developer":  {
-                                       "size_bytes":  6360913,
-                                       "release_notes":  "SurveySync 9.2.6 (developer)",
-                                       "version":  "9.2.6",
-                                       "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.6-dev-20260920112420/SurveySync_Setup_9.2.6.exe",
-                                       "publisher":  "Clever Bird Development",
-                                       "published_utc":  "2026-09-20T16:24:36Z",
-                                       "release_tag":  "v9.2.6-dev-20260920112420",
-                                       "channel":  "developer",
-                                       "sha256":  "596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
-                                       "artifact_identity":  "sha256:596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
-                                       "required":  false
-                                   },
-                     "beta":  {
-                                  "size_bytes":  6360913,
-                                  "release_notes":  "SurveySync 9.2.6 (beta)",
-                                  "version":  "9.2.6",
-                                  "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.6-beta/SurveySync_Setup_9.2.6.exe",
-                                  "release_tag":  "v9.2.6-beta",
-                                  "published_utc":  "2026-09-20T16:24:57Z",
-                                  "sha256":  "596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
-                                  "channel":  "beta",
-                                  "publisher":  "Clever Bird Development",
-                                  "artifact_identity":  "sha256:596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
-                                  "required":  false
-                              },
-                     "stable":  {
-                                    "required":  false,
-                                    "promoted_from":  "beta",
-                                    "promoted_utc":  "2026-09-20T16:25:04Z",
-                                    "version":  "9.2.6",
-                                    "size_bytes":  6360913,
-                                    "published_utc":  "2026-09-20T16:25:04Z",
-                                    "channel":  "stable",
-                                    "publisher":  "Clever Bird Development",
-                                    "installer_url":  "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.6-beta/SurveySync_Setup_9.2.6.exe",
-                                    "release_notes":  "SurveySync 9.2.6 (beta)",
-                                    "sha256":  "596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
-                                    "release_tag":  "v9.2.6-beta",
-                                    "artifact_identity":  "sha256:596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298"
-                                }
-                 }
+  "schema_version": 1,
+  "generated_utc": "2026-09-23T02:41:21Z",
+  "publisher_tool": "GitHub Actions",
+  "product": "SurveySync",
+  "channels": {
+    "developer": {
+      "size_bytes": 6360913,
+      "release_notes": "SurveySync 9.2.6 (developer)",
+      "version": "9.2.6",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.6-dev-20260920112420/SurveySync_Setup_9.2.6.exe",
+      "publisher": "Clever Bird Development",
+      "published_utc": "2026-09-20T16:24:36Z",
+      "release_tag": "v9.2.6-dev-20260920112420",
+      "channel": "developer",
+      "sha256": "596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
+      "artifact_identity": "sha256:596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
+      "required": false
+    },
+    "beta": {
+      "version": "9.3.0",
+      "channel": "beta",
+      "publisher": "Clever Bird Development",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.3.0-beta/SurveySync_Setup_9.3.0.exe",
+      "size_bytes": 7155174,
+      "sha256": "c81ae4aabbfe5bb95164e9107693c372a7ab8c21055f869177b351b5d863b06e",
+      "artifact_identity": "sha256:c81ae4aabbfe5bb95164e9107693c372a7ab8c21055f869177b351b5d863b06e",
+      "release_tag": "v9.3.0-beta",
+      "release_notes": "# SurveySync 9.3.0 — Engineering hardening and TopoSync QC candidate\n\nThis source candidate makes builds reproducible, unifies release checks and begins the planned domain refactor. It preserves the 9.2.6 survey calculations and project schema.\n\n- GitHub release notes now follow the requested version. CI calls the same Windows build script and Python quality gate as the local build. Failed checks block the release.\n- Exact, SHA-256-verified dependency locks cover core runtime, development tools and optional Windows AI. The bootstrap fingerprints the core lock rather than its wrapper.\n- Ruff checks undefined variables across both applications; extracted modules require consistent formatting. Gradual mypy checks cover request schemas, control calculations and rod-height QC. Whole-application line coverage must remain at least 54%.\n- Dependency audits cover every platform branch, including Windows-only packages on a Linux test host. Weekly and pull-request quality workflows are included.\n- API schemas, control math/report exports, project operations, survey routes, map/profile routes, vision processing, live analysis and batch workers have separate modules. Compatibility imports retain existing callers and runtime lookup respects project switches.\n- All 22 FieldBookSync silent broad exception handlers now log their fallback failures. Some input/operations catches are narrower. Other broad handlers remain and are capped; this is not a claim that exception hardening is finished.\n- Fixed an undefined variable in the recent-project metadata error path.\n- TopoSync has an explicit Rod Height Bust QC entry. FieldBookSync distinguishes disabled QC and missing survey data. Non-finite coordinates cannot crash the spatial index. No elevations are changed.\n- Windows release builds require Go and verify rebuilt launchers. Old 9.2.6 executables are not included as 9.3.0 binaries.\n\n## Rod-height scope\n\nThe existing isolated-point detector remains in FieldBookSync → Home → Survey data → Rod Height QC. TopoSync → Rod Height Bust QC now has a separate standalone range detector.\n\nRon’s FBR-0016, submitted September 22, requests a different, advanced workflow: feature-code classification, chain continuity, common-offset ranges, terrain-break exclusions, standalone load/export and recommended corrections. Implemented in this candidate: standalone point/code-list import, editable classifications, geometric feature chains, correlated constant-offset ranges, exclusions, evidence scores, explicit review and separate corrected-copy exports. Scores are heuristics, not statistical probabilities. Uncertain boundaries and unreviewed units/order/codes block corrections. See docs/TOPO_ROD_HEIGHT_QC.md and the synthetic example. Field validation is still pending.\n\nThe supplied navy/gold globe, compass, satellite and SurveySync wordmark are integrated into application and installer assets. The exact original artwork is retained in branding/SurveySync_Logo.jpg.\n\n## Before release\n\nBuild and test on Windows using BUILD_9_3_0.md. Validate real Trimble imports, ControlSync outputs, FieldBookSync analysis/project switching, updates and rod-height QC. Authenticode credentials and signed update manifests remain unconfigured. This package is not an installer and has not been published.",
+      "required": false,
+      "published_utc": "2026-09-23T02:41:21Z"
+    },
+    "stable": {
+      "required": false,
+      "promoted_from": "beta",
+      "promoted_utc": "2026-09-20T16:25:04Z",
+      "version": "9.2.6",
+      "size_bytes": 6360913,
+      "published_utc": "2026-09-20T16:25:04Z",
+      "channel": "stable",
+      "publisher": "Clever Bird Development",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.2.6-beta/SurveySync_Setup_9.2.6.exe",
+      "release_notes": "SurveySync 9.2.6 (beta)",
+      "sha256": "596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
+      "release_tag": "v9.2.6-beta",
+      "artifact_identity": "sha256:596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298"
+    }
+  }
 }
