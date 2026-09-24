@@ -48,6 +48,9 @@ function doPost(e) {
     }
     const route = String(payload.route || 'feedback').toLowerCase();
     const targetSheet = String(payload.target_sheet || '').toLowerCase();
+    if (route === 'feedback_status') {
+      return feedbackStatuses_(payload);
+    }
     if (route === 'error_log' || targetSheet === String(FBS_ERROR_LOG_SHEET).toLowerCase()) {
       return appendErrorLog_(payload);
     }
@@ -123,6 +126,36 @@ function doPost(e) {
   } finally {
     try { lock.releaseLock(); } catch (_) {}
   }
+}
+
+
+function feedbackStatuses_(payload) {
+  const ids = Array.isArray(payload.local_report_ids) ? payload.local_report_ids.slice(0, 100) : [];
+  const clean = ids.map(function(value) { return String(value || '').trim(); }).filter(Boolean);
+  if (!clean.length) return jsonResponse_({ok: true, route: 'feedback_status', statuses: []});
+
+  const ss = SpreadsheetApp.openById(FBS_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(FBS_INTAKE_SHEET);
+  if (!sheet) throw new Error('Intake sheet not found.');
+  if (sheet.getLastRow() < 2) return jsonResponse_({ok: true, route: 'feedback_status', statuses: []});
+
+  const width = Math.max(18, sheet.getLastColumn());
+  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, width).getDisplayValues();
+  const wanted = {};
+  clean.forEach(function(id) { wanted[id] = true; });
+  const statuses = [];
+  values.forEach(function(row, index) {
+    const localId = String(row[16] || '').trim();
+    if (!wanted[localId]) return;
+    statuses.push({
+      local_report_id: localId,
+      intake_id: String(row[0] || '').trim(),
+      status: String(row[15] || 'New').trim() || 'New',
+      released_in: String(row[18] || '').trim(),
+      row: index + 2
+    });
+  });
+  return jsonResponse_({ok: true, route: 'feedback_status', statuses: statuses});
 }
 
 function appendErrorLog_(payload) {
