@@ -70,3 +70,8 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ### 9.3.0 TopoSync range QC
 
 Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.
+
+## 9.3.1 BetaCandidate - support, recovery, inspection, and reviewed TopoSync QC
+
+Adds the integrated Support Center, interrupted-session detection/recovery, SHA-256-cached Survey Data Inspector with downstream workflow handoff, and TopoSync QC profiles/run history/candidate decisions/advisory calibration. The release hardening pass also fixes normal-start update initialization, prevents file-association maintenance commands from creating false recovery notices, and refreshes project CRS/unit context on Inspector cache hits. See `RELEASE_NOTES_v9_3_1.md` and `QA_REPORT_v9_3_1.md`.
+
