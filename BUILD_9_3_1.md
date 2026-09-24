@@ -2,6 +2,8 @@
 
 This branch is the SurveySync 9.3.1 BetaCandidate source. Keep the current stable 9.3.0 installer available for rollback. User projects are stored separately from the source/build folder and must not be moved into the build tree.
 
+**Source quality status:** Windows GitHub Actions quality run 36074103291 passed: 286 tests passed, 1 skipped, 0 failed; 56.25% line coverage; documentation/static/Ruff/format/mypy/compile/JavaScript gates passed; 102 dependency pins audited with no known vulnerabilities. The next step is the local Windows compile command below, which reruns the same gate before building the native launchers and installer.
+
 ## Prerequisites
 
 Install:
