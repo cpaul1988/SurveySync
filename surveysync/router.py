@@ -123,6 +123,9 @@ from .field_cloud import trimble_list_projects, import_cloud_file, list_sync_log
 from .trimble_job import prepare_jobxml, parse_jobxml_points, trimble_runtime_status, TrimbleJobError
 from .logging_config import configure_logging as configure_core_logging
 from .control_workspace_routes import router as control_workspace_router
+from .topo.routes import router as topo_router
+from .support_center import router as support_center_router
+from .data_inspector import router as data_inspector_router
 from .diagnostics import (
     build_diagnostic_bundle,
     error_log_path,
@@ -133,17 +136,16 @@ from .diagnostics import (
 
 STATIC = Path(__file__).resolve().parent / "static"
 router = APIRouter()
-router.include_router(control_workspace_router)
-from .topo.routes import router as topo_router
-router.include_router(topo_router)
+for subrouter in (control_workspace_router, topo_router, support_center_router, data_inspector_router):
+    router.include_router(subrouter)
 config_store = ConfigStore()
 core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.3.0: unified release checks, hashed dependency locks, modularized processing and visible recovery diagnostics.",
-    "TopoSync adds standalone rod-height range detection, code-list review, chain evidence and separate reviewed correction exports; supplied SurveySync branding is integrated.",
+    "9.3.1: adds the Support Center, Survey Data Inspector, interrupted-session recovery and production-focused TopoSync review tooling.",
+    "Survey Data Inspector caches survey sources by SHA-256, detects common point schemas and normalizes Trimble JOB/JXL data for reuse across SurveySync.",
     "Coordinate sanity now keeps Northing/Easting/PointID row-aligned, excludes non-finite pairs explicitly, and reports the correct point when a remote coordinate is flagged.",
     "SurveySync core persistence/configuration fallbacks now log diagnostic context instead of silently swallowing broad exceptions; FieldBook state persistence received the same treatment.",
     "A new static-quality build gate blocks new blind broad-exception passes, dangerous eval/exec or shell=True use, committed key patterns, duplicate routes/functions, mutable defaults, and further growth of the two pre-9.3 API monoliths.",
@@ -163,7 +165,6 @@ SURVEYSYNC_RELEASE_NOTES = [
     "Smart export profiles and the Deliverable Package Builder create repeatable point exports plus checksum-backed ZIP manifests.",
     "Background task queue, batch staging/comparison, unified Review Center, project visual-QC map, and Why? explanations make outstanding work easier to find and understand.",
 ]
-
 
 
 def _fieldbook_app_module():
@@ -217,6 +218,8 @@ def _set_current(project: SurveyProject) -> SurveyProject:
         _bind_fieldbook(project)
         current_project = project
         _remember_project(project.paths.root)
+        from .session_recovery import set_project
+        set_project(config_store.root, project.paths.root)
     return project
 
 
@@ -283,12 +286,6 @@ def require_project() -> SurveyProject:
     if current_project is None:
         raise HTTPException(409, "No SurveySync project is open.")
     return current_project
-
-
-
-
-
-
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -497,31 +494,6 @@ def migrate_fieldbook(file_path: str):
 
 @router.get("/api/v9/audit")
 def audit(limit: int=100): return require_project().db.recent_audit(limit)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @router.post("/api/v9/crs/inspect")
@@ -795,47 +767,6 @@ def control_compare_revisions(control_id: str, solution_a: str, solution_b: str)
         return compare_control_solutions(p.db,control_id,solution_a,solution_b)
     except ValueError as exc:
         raise HTTPException(400,str(exc))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @router.get("/api/v9/config")
