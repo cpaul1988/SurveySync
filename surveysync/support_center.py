@@ -11,7 +11,12 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from fieldbook_sync.feedback import list_reports
+from fieldbook_sync.feedback import (
+    create_report,
+    list_reports,
+    submit_to_tracker_endpoint,
+    update_report_sync,
+)
 
 from . import __version__
 from .audit import utc_now
@@ -37,6 +42,10 @@ class ErrorSyncIn(BaseModel):
 
 class FeedbackRefreshIn(BaseModel):
     local_report_ids: list[str] = Field(default_factory=list, max_length=100)
+
+
+class ErrorReportIn(BaseModel):
+    error_id: str = Field(min_length=6, max_length=100)
 
 
 class RecoveryRestoreIn(BaseModel):
@@ -292,6 +301,62 @@ def sync_selected_errors(payload: ErrorSyncIn) -> dict[str, Any]:
     except (ValueError, RuntimeError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
     return {"ok": True, **result}
+
+
+@router.post("/errors/report")
+def report_error(payload: ErrorReportIn) -> dict[str, Any]:
+    context = _context()
+    error = next(
+        (item for item in _merged_errors(limit=500) if item.get("error_id") == payload.error_id),
+        None,
+    )
+    if error is None:
+        raise HTTPException(404, "SurveySync error was not found.")
+    field_app = context._fieldbook_app_module()
+    storage_root = field_app.runtime.storage.root
+    cfg = context.config_store.load()
+    report = create_report(
+        storage_root=storage_root,
+        report={
+            "report_type": "Bug",
+            "reporter_name": "",
+            "title": f"{error.get('code')}: {str(error.get('message') or 'SurveySync error')[:120]}",
+            "description": (
+                f"Reported from SurveySync Support Center. Error ID: {error.get('error_id')}. "
+                f"Component: {error.get('component')}. Message: {error.get('message')}"
+            ),
+            "app_version": __version__,
+            "importance": "High" if str(error.get("severity") or "").upper() in {"ERROR", "CRITICAL"} else "Normal",
+            "severity": "Major" if str(error.get("severity") or "").upper() in {"ERROR", "CRITICAL"} else "Minor",
+            "steps": "",
+            "expected": "The operation completes without an application error.",
+            "actual": str(error.get("detail") or error.get("message") or "")[-12000:],
+            "additional": "Created with Report This Error. Survey source files were not attached.",
+            "context": {
+                "job_state": "",
+                "provider": "",
+                "support_error_id": str(error.get("error_id") or ""),
+            },
+        },
+    )
+    endpoint = str(cfg.feedback_endpoint or "").strip()
+    if endpoint:
+        try:
+            report_dir = storage_root / "feedback" / "reports" / str(report["report_id"])
+            sync = submit_to_tracker_endpoint(endpoint, report, report_dir)
+            report = update_report_sync(storage_root, str(report["report_id"]), sync)
+        except (ValueError, RuntimeError, OSError) as exc:
+            update_report_sync(
+                storage_root,
+                str(report["report_id"]),
+                {"status": "pending", "last_error": str(exc), "attempted_utc": utc_now()},
+            )
+    return {
+        "ok": True,
+        "report_id": report.get("report_id"),
+        "sync": report.get("sync") or {},
+        "survey_data_attached": False,
+    }
 
 
 @router.post("/feedback/refresh")
