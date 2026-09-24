@@ -25,3 +25,10 @@ A recommendation requires score >80, constant offset, verified recovery, no unsu
 `examples/topo/rod_bust_demo.csv` is synthetic, in international feet. Select international feet for both units and confirm the review checkboxes. Expected result: points **36138–36157**, observed offset **−1.83 ft**, recommended correction **+1.83 ft**, score **85/100**, five supporting classes. It demonstrates behavior; it is not field acceptance data. `code_list_template.csv` contains editable defaults.
 
 Validate against Ron's actual known bust, no-bust roads, walls/curbs, drainage crossings, multiple setups, mixed units and sparse/end-of-file runs before release. No measured detection sensitivity, false-positive rate or 92% probability is claimed.
+
+## v9.3.1 reviewed-production workflow
+
+Version 9.3.1 adds reusable QC profiles, run history, explicit per-candidate review decisions, and an advisory review-calibration summary. A reviewer may record `confirmed_bust`, `not_bust`, or `needs_review` with a reason. These decisions are stored as separate immutable review records; project-backed reviews also write the project audit trail.
+
+Confirmed-review scatter can be summarized into a suggested consistency tolerance, but SurveySync never applies the suggestion automatically. The detector remains evidence-based/advisory and corrected-copy export still requires explicit confirmation. Original point files and stored source evidence are never rewritten by the review/calibration workflow.
+
