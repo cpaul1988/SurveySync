@@ -194,8 +194,10 @@ def schedule_auto_sync() -> dict[str, Any]:
 def _feedback_rows(limit: int = 100) -> list[dict[str, Any]]:
     context = _context()
     state = _load_state()
+    field_app = context._fieldbook_app_module()
+    feedback_storage = field_app.runtime.storage.root
     rows: list[dict[str, Any]] = []
-    for report in list_reports(context.config_store.root, limit=limit):
+    for report in list_reports(feedback_storage, limit=limit):
         report_id = str(report.get("report_id") or "")
         sync = dict(report.get("sync") or {})
         remote = dict(state["feedback"].get(report_id) or {})
