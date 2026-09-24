@@ -41,7 +41,8 @@ def test_v9_navigation_shell_layout(tmp_path, monkeypatch):
     from fieldbook_sync.app import app
     client=TestClient(app)
     root=client.get('/').text
-    assert '<title>SurveySync v9.3.0</title>' in root
+    from surveysync import __version__
+    assert f'<title>SurveySync v{__version__}</title>' in root
     assert 'data-menu="fileMenu">File</button>' in root
     assert 'data-menu="viewMenu">View</button>' in root
     assert 'class="module-tabs"' in root
@@ -125,7 +126,8 @@ def test_fieldbook_update_check_is_survey_sync_managed(tmp_path, monkeypatch):
     assert res.status_code==200
     body=res.json()
     assert body['mode']=='managed_by_surveysync'
-    assert body['current_version']=='9.3.0'
+    from surveysync import __version__
+    assert body['current_version']==__version__
     assert body['available'] is False
 
 
