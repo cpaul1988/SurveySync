@@ -67,3 +67,10 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ### 9.3.0 TopoSync range QC
 
 Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.
+
+## v9.3.1 release-candidate coverage
+
+`tests/test_v931_release_candidate.py` is the permanent regression suite for the 9.3.1 integration pass. It checks that release/version surfaces agree on 9.3.1, startup update initialization is not nested in the browser storage event, maintenance-only file-association commands do not begin crash-recovery sessions, clean versus interrupted sessions are distinguished, cached Inspector results refresh the active project/CRS/unit context, TopoSync profiles round-trip safely, and TopoSync candidate review history/calibration remains advisory.
+
+The shared release gate also runs the existing TopoSync range detector, diagnostics/feedback, updater, project database, ControlSync, FieldBookSync, and legacy regression suites. A successful automated gate still does not prove installed Windows/WebView behavior, official Trimble JOB converter interoperability, OCR/local-AI behavior, or production rod-height accuracy on field-verified data.
+
