@@ -72,6 +72,8 @@ def replace_record(root: Path, record_id: str, kind: str, data: dict) -> dict:
     current = load_record(root, record_id, kind)
     updated = {**current, **data, "record_id": record_id, "kind": kind}
     temp = path.with_suffix(".tmp")
-    temp.write_text(json.dumps(updated, ensure_ascii=False, allow_nan=False, indent=2), encoding="utf-8")
+    temp.write_text(
+        json.dumps(updated, ensure_ascii=False, allow_nan=False, indent=2), encoding="utf-8"
+    )
     temp.replace(path)
     return updated
