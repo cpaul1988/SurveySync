@@ -90,13 +90,13 @@ def _wait(host: str,port: int,timeout: float=12.0)->bool:
 def main()->None:
     from surveysync.router import config_store as ss_config_store
     from surveysync.session_recovery import begin_session, end_session, set_project
-    begin_session(ss_config_store.root)
     args_raw=[a for a in sys.argv[1:] if a.strip()]
     root=Path(sys.executable).resolve().parent if getattr(sys,"frozen",False) else Path(__file__).resolve().parent
     if "--register-fbs" in args_raw:
         register_fbs(root); return
     if "--unregister-fbs" in args_raw:
         unregister_fbs(); return
+    begin_session(ss_config_store.root)
     host="127.0.0.1";port=field_app._choose_port(host,8765)
     # Optional command-line open of an existing SurveySync project folder.
     args=[a.strip('"') for a in args_raw if a and not a.startswith('--')]
