@@ -115,8 +115,7 @@ def _pending_errors(limit: int = 100) -> list[dict[str, Any]]:
     return [
         item
         for item in _merged_errors(limit=limit)
-        if str((item.get("sync") or {}).get("status") or "local_only")
-        not in {"synced", "resolved"}
+        if str((item.get("sync") or {}).get("status") or "local_only") not in {"synced", "resolved"}
     ]
 
 
@@ -194,9 +193,7 @@ def schedule_auto_sync() -> dict[str, Any]:
             _AUTO_RUNNING = False
             _AUTO_LOCK.release()
 
-    threading.Thread(
-        target=worker, name="SurveySyncSupportSync", daemon=True
-    ).start()
+    threading.Thread(target=worker, name="SurveySyncSupportSync", daemon=True).start()
     return {"scheduled": True, "pending": len(pending)}
 
 
@@ -227,9 +224,7 @@ def _feedback_rows(limit: int = 100) -> list[dict[str, Any]]:
     return rows
 
 
-def _tracker_feedback_status(
-    endpoint: str, local_report_ids: list[str]
-) -> dict[str, Any]:
+def _tracker_feedback_status(endpoint: str, local_report_ids: list[str]) -> dict[str, Any]:
     payload = {
         "schema_version": 1,
         "application": "SurveySync",
@@ -261,7 +256,9 @@ def _tracker_feedback_status(
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise RuntimeError("Feedback tracker returned an invalid response.") from exc
     if not isinstance(data, dict) or data.get("ok") is False:
-        raise RuntimeError(str(data.get("error") if isinstance(data, dict) else "Tracker rejected status request."))
+        raise RuntimeError(
+            str(data.get("error") if isinstance(data, dict) else "Tracker rejected status request.")
+        )
     return data
 
 
@@ -326,8 +323,12 @@ def report_error(payload: ErrorReportIn) -> dict[str, Any]:
                 f"Component: {error.get('component')}. Message: {error.get('message')}"
             ),
             "app_version": __version__,
-            "importance": "High" if str(error.get("severity") or "").upper() in {"ERROR", "CRITICAL"} else "Normal",
-            "severity": "Major" if str(error.get("severity") or "").upper() in {"ERROR", "CRITICAL"} else "Minor",
+            "importance": "High"
+            if str(error.get("severity") or "").upper() in {"ERROR", "CRITICAL"}
+            else "Normal",
+            "severity": "Major"
+            if str(error.get("severity") or "").upper() in {"ERROR", "CRITICAL"}
+            else "Minor",
             "steps": "",
             "expected": "The operation completes without an application error.",
             "actual": str(error.get("detail") or error.get("message") or "")[-12000:],
@@ -416,9 +417,7 @@ def restore_latest(payload: RecoveryRestoreIn) -> dict[str, Any]:
     if context.current_project is None:
         raise HTTPException(409, "Open the interrupted SurveySync project first.")
     try:
-        result = restore_latest_recovery(
-            context.config_store.root, context.current_project
-        )
+        result = restore_latest_recovery(context.config_store.root, context.current_project)
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     return {"ok": True, "restored": result}
@@ -430,7 +429,5 @@ def dismiss_recovery() -> dict[str, Any]:
     dismiss_recovery_notice(context.config_store.root)
     return {
         "ok": True,
-        "recovery": recovery_summary(
-            context.config_store.root, context.current_project
-        ),
+        "recovery": recovery_summary(context.config_store.root, context.current_project),
     }
