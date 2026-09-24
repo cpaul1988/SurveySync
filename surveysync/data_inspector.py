@@ -411,7 +411,20 @@ def inspect_path(path_value: str, *, force_refresh: bool = False) -> dict[str, A
         except (OSError, json.JSONDecodeError, TypeError):
             cached = None
         if isinstance(cached, dict) and cached.get("cache_version") == CACHE_VERSION:
+            project = _project_context()
             cached["cached"] = True
+            cached["project_context"] = project
+            cached["crs_status"] = (
+                f"Current project CRS: {project['crs']}"
+                if project.get("crs")
+                else "CRS not verified"
+            )
+            cached["units_status"] = (
+                f"Current project units: {project['horizontal_units']} / {project['vertical_units']}"
+                if project.get("horizontal_units")
+                else "Units not verified"
+            )
+            cached["targets"] = _targets(cached)
             return cached
     if suffix in DELIMITED_SUFFIXES:
         detail = _read_delimited(path)
