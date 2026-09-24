@@ -93,17 +93,22 @@ function initGlobalThemeControls(){
   updateAppearanceControls();
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((document.documentElement.dataset.themeMode||'system')==='system')applyAppearance('system',false)});
-window.addEventListener('storage',e=>{if([SS_APPEARANCE_KEY,SS_PRODUCT_THEME_KEY,SS_ACCENT_KEY].includes(e.key)){
+window.addEventListener('storage',e=>{
+  if(![SS_APPEARANCE_KEY,SS_PRODUCT_THEME_KEY,SS_ACCENT_KEY].includes(e.key))return;
+  applyAppearance(localStorage.getItem(SS_APPEARANCE_KEY)||'system',false);
+  applyProductTheme(localStorage.getItem(SS_PRODUCT_THEME_KEY)||'classic',false);
+  applyAccent(localStorage.getItem(SS_ACCENT_KEY)||'default',false);
+});
+
 const SS_UPDATE_CHECK_KEY='surveysync-last-update-check';
 async function startupUpdateCheck(force=false){
   const last=Number(localStorage.getItem(SS_UPDATE_CHECK_KEY)||0),now=Date.now();
   if(!force&&last&&now-last<12*60*60*1000){if($('#startupUpdateBadge'))$('#startupUpdateBadge').textContent='Automatic check enabled';return}
   try{const d=await api('/api/v9/update/check');localStorage.setItem(SS_UPDATE_CHECK_KEY,String(now));if($('#startupUpdateBadge'))$('#startupUpdateBadge').textContent=d.update_available?`v${d.version} available`:'Up to date';if($('#startupUpdateMsg'))$('#startupUpdateMsg').textContent=d.update_available?`SurveySync ${d.version} is available on the ${d.channel} channel. Click Check & Update when ready.`:`SurveySync ${d.current_version} is current on the ${d.channel} channel.`}catch(e){if($('#startupUpdateBadge'))$('#startupUpdateBadge').textContent='Offline';if($('#startupUpdateMsg'))$('#startupUpdateMsg').textContent=`Update check unavailable: ${e.message}`}
 }
-if($('#homeFeedback'))$('#homeFeedback').onclick=()=>openGlobalFeedbackWizard();if($('#homeCheckUpdate'))$('#homeCheckUpdate').onclick=()=>{$('#checkUpdate')?.click();switchView('settings')};
+if($('#homeFeedback'))$('#homeFeedback').onclick=()=>openGlobalFeedbackWizard();
+if($('#homeCheckUpdate'))$('#homeCheckUpdate').onclick=()=>{$('#checkUpdate')?.click();switchView('settings')};
 setTimeout(()=>startupUpdateCheck(false),900);
-
-applyAppearance(localStorage.getItem(SS_APPEARANCE_KEY)||'system',false);applyProductTheme(localStorage.getItem(SS_PRODUCT_THEME_KEY)||'classic',false);applyAccent(localStorage.getItem(SS_ACCENT_KEY)||'default',false)}});
 
 const modules={
  Home:{desc:'Project-wide workspace and shared foundation.',nav:[['PROJECT','Overview','dashboard','⌂'],['PROJECT','Project & CRS','project','▣'],['DATA','Project Data Manager','projectData','▦'],['DATA','Survey Data Inspector','dataInspector','⌕'],['PROJECT','Audit Trail','audit','↶'],['QUALITY','Project Health','qa','✓'],['QUALITY','Review & Operations','operations','◆'],['SYSTEM','Support Center','supportCenter','!'],['SYSTEM','Settings','settings','⚙']]},
