@@ -105,8 +105,7 @@ def _coordinate_outliers(values: list[tuple[str, float, float]]) -> list[str]:
     median_n = statistics.median(ns)
     median_e = statistics.median(es)
     deviations = [
-        math.hypot(northing - median_n, easting - median_e)
-        for _, northing, easting in sample
+        math.hypot(northing - median_n, easting - median_e) for _, northing, easting in sample
     ]
     median_distance = statistics.median(deviations)
     mad = statistics.median([abs(value - median_distance) for value in deviations])
@@ -118,9 +117,7 @@ def _coordinate_outliers(values: list[tuple[str, float, float]]) -> list[str]:
     else:
         threshold = median_distance + 12.0 * mad
     return [
-        point_id
-        for (point_id, _, _), distance in zip(sample, deviations)
-        if distance > threshold
+        point_id for (point_id, _, _), distance in zip(sample, deviations) if distance > threshold
     ][:50]
 
 
@@ -269,9 +266,7 @@ def _read_delimited(path: Path) -> dict[str, Any]:
     }
 
 
-def _write_normalized_trimble(
-    digest: str, points: list[dict[str, Any]]
-) -> Path:
+def _write_normalized_trimble(digest: str, points: list[dict[str, Any]]) -> Path:
     output = _cache_root() / f"{digest}_trimble_points.csv"
     with output.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -347,9 +342,9 @@ def _read_trimble(path: Path, digest: str) -> dict[str, Any]:
         "numeric_point_id_count": len(numeric_ids),
         "numeric_point_id_min": min(numeric_ids) if numeric_ids else None,
         "numeric_point_id_max": max(numeric_ids) if numeric_ids else None,
-        "duplicate_point_ids": sorted(
-            set(metadata.get("duplicate_point_ids") or []) | duplicates
-        )[:100],
+        "duplicate_point_ids": sorted(set(metadata.get("duplicate_point_ids") or []) | duplicates)[
+            :100
+        ],
         "missing_elevation_count": missing_elevation,
         "invalid_coordinate_count": max(
             0, int(metadata.get("point_count") or len(points)) - len(coordinates)
@@ -443,9 +438,7 @@ def inspect_path(path_value: str, *, force_refresh: bool = False) -> dict[str, A
         **detail,
         "project_context": project,
         "crs_status": (
-            f"Current project CRS: {project['crs']}"
-            if project.get("crs")
-            else "CRS not verified"
+            f"Current project CRS: {project['crs']}" if project.get("crs") else "CRS not verified"
         ),
         "units_status": (
             f"Current project units: {project['horizontal_units']} / {project['vertical_units']}"
