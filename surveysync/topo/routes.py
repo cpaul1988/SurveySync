@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import statistics
 import tempfile
 from pathlib import Path
 from typing import Literal
@@ -18,7 +19,8 @@ from .codes import CodeRule, default_rules
 from .detection import DetectionSettings, analyze
 from .exports import candidate_report_csv, reviewed_copy_csv
 from .imports import parse_code_file, parse_points, survey_preview
-from .storage import load_record, save_record, workspace
+from .profiles import delete_profile, list_profiles, save_profile
+from .storage import list_records, load_record, save_record, workspace
 
 router = APIRouter(prefix="/api/v9/topo", tags=["TopoSync"])
 MAX_BYTES = 30 * 1024 * 1024
@@ -35,6 +37,25 @@ class CorrectedCopyIn(BaseModel):
     candidate_ids: list[str] = Field(min_length=1, max_length=5000)
     review_reason: str = Field(min_length=3, max_length=2000)
     confirmed: bool = False
+
+
+class PathPreviewIn(BaseModel):
+    file_path: str = Field(min_length=1, max_length=4096)
+    header: Literal["auto", "yes", "no"] = "auto"
+
+
+class ProfileIn(BaseModel):
+    profile_id: str = ""
+    name: str = Field(min_length=1, max_length=120)
+    description: str = Field(default="", max_length=500)
+    settings: DetectionSettings = Field(default_factory=DetectionSettings)
+    rules: list[CodeRule] = Field(default_factory=list, max_length=5000)
+
+
+class ReviewDecisionIn(BaseModel):
+    candidate_id: str = Field(min_length=1, max_length=80)
+    decision: Literal["confirmed_bust", "not_bust", "needs_review"]
+    reason: str = Field(min_length=3, max_length=2000)
 
 
 async def _file_bytes(file: UploadFile) -> bytes:
@@ -90,6 +111,36 @@ async def import_code_rules(file: UploadFile = File(...)) -> dict:
         raise HTTPException(400, str(exc)) from exc
 
 
+def _preview_bytes(data: bytes, filename: str, header: Literal["auto", "yes", "no"]) -> dict:
+    text = data.decode("utf-8-sig")
+    scan = survey_preview(text, None if header == "auto" else header == "yes")
+    root, project = workspace()
+    digest = hashlib.sha256(data).hexdigest()
+    source_id = save_record(
+        root,
+        {
+            "kind": "source",
+            "source_name": Path(filename or "survey.csv").name,
+            "source_sha256": digest,
+            "original_bytes_base64": base64.b64encode(data).decode("ascii"),
+            "source_text": text,
+            "scan": scan,
+        },
+    )
+    if project:
+        project.db.audit(
+            "TopoSync",
+            "ROD_QC_SOURCE_LOADED",
+            object_id=source_id,
+            details={"sha256": digest, "rows": scan["row_count"]},
+        )
+    return {
+        **{k: v for k, v in scan.items() if k != "rows"},
+        "source_id": source_id,
+        "project": project.manifest.get("name") if project else None,
+    }
+
+
 @router.post("/survey/preview")
 async def preview_survey(
     file: UploadFile = File(...), header: Literal["auto", "yes", "no"] = Form("auto")
@@ -98,32 +149,22 @@ async def preview_survey(
         raise HTTPException(400, "Upload a delimited CSV/TXT/TSV/PNEZD survey export.")
     data = await _file_bytes(file)
     try:
-        text = data.decode("utf-8-sig")
-        scan = survey_preview(text, None if header == "auto" else header == "yes")
-        root, project = workspace()
-        source_id = save_record(
-            root,
-            {
-                "kind": "source",
-                "source_name": Path(file.filename or "survey.csv").name,
-                "source_sha256": hashlib.sha256(data).hexdigest(),
-                "original_bytes_base64": base64.b64encode(data).decode("ascii"),
-                "source_text": text,
-                "scan": scan,
-            },
-        )
-        if project:
-            project.db.audit(
-                "TopoSync",
-                "ROD_QC_SOURCE_LOADED",
-                object_id=source_id,
-                details={"sha256": hashlib.sha256(data).hexdigest(), "rows": scan["row_count"]},
-            )
-        return {
-            **{k: v for k, v in scan.items() if k != "rows"},
-            "source_id": source_id,
-            "project": project.manifest.get("name") if project else None,
-        }
+        return _preview_bytes(data, file.filename or "survey.csv", header)
+    except (ValueError, UnicodeError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/survey/preview-path")
+def preview_survey_path(payload: PathPreviewIn) -> dict:
+    path = Path(payload.file_path).expanduser().resolve()
+    if path.suffix.lower() not in {".csv", ".txt", ".tsv", ".pnezd", ".asc"}:
+        raise HTTPException(400, "Inspector handoff must be a normalized delimited survey file.")
+    try:
+        if not path.is_file():
+            raise ValueError(f"Survey file was not found: {path}")
+        if path.stat().st_size > MAX_BYTES:
+            raise ValueError("File exceeds the 30 MiB TopoSync review limit.")
+        return _preview_bytes(path.read_bytes(), path.name, payload.header)
     except (ValueError, UnicodeError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
 
@@ -272,3 +313,128 @@ def save_export(run_id: str, payload: SavedExportIn) -> dict:
         return {"path": str(path), "folder": str(folder), "source_modified": False}
     except (ValueError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/profiles")
+def qc_profiles() -> dict:
+    return {"profiles": list_profiles()}
+
+
+@router.post("/profiles")
+def qc_profile_save(payload: ProfileIn) -> dict:
+    try:
+        profile = save_profile(
+            profile_id=payload.profile_id,
+            name=payload.name,
+            description=payload.description,
+            settings=payload.settings.model_dump(),
+            rules=[rule.model_dump() for rule in payload.rules],
+        )
+        return {"profile": profile}
+    except (ValueError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.delete("/profiles/{profile_id}")
+def qc_profile_delete(profile_id: str) -> dict:
+    try:
+        return delete_profile(profile_id)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/runs")
+def run_history(limit: int = 50) -> dict:
+    root, _ = workspace()
+    rows = []
+    for report in list_records(root, "analysis", limit=limit):
+        result = report.get("result") or {}
+        rows.append(
+            {
+                "run_id": report.get("record_id"),
+                "created_utc": report.get("created_utc"),
+                "source_name": report.get("source_name"),
+                "source_sha256": report.get("source_sha256"),
+                "algorithm_version": report.get("algorithm_version"),
+                "point_count": result.get("point_count", 0),
+                "candidate_count": len(result.get("candidates") or []),
+                "probable_count": result.get("probable_count", 0),
+                "suppressed_count": result.get("suppressed_count", 0),
+                "settings": result.get("settings") or {},
+            }
+        )
+    return {"runs": rows}
+
+
+@router.post("/runs/{run_id}/review")
+def save_review_decision(run_id: str, payload: ReviewDecisionIn) -> dict:
+    try:
+        root, project = workspace()
+        report = load_record(root, run_id, "analysis")
+        candidates = report.get("result", {}).get("candidates") or []
+        candidate = next(
+            (item for item in candidates if item.get("candidate_id") == payload.candidate_id),
+            None,
+        )
+        if candidate is None:
+            raise ValueError("Candidate was not found in this TopoSync run.")
+        review_id = save_record(
+            root,
+            {
+                "kind": "review",
+                "run_id": run_id,
+                "candidate_id": payload.candidate_id,
+                "decision": payload.decision,
+                "reason": payload.reason,
+                "candidate": {
+                    "start_point": candidate.get("start_point"),
+                    "end_point": candidate.get("end_point"),
+                    "estimated_rod_bust": candidate.get("estimated_rod_bust"),
+                    "offset_std_dev": candidate.get("offset_std_dev"),
+                    "confidence": candidate.get("confidence"),
+                    "supporting_features": candidate.get("supporting_features") or [],
+                },
+            },
+        )
+        if project:
+            project.db.audit(
+                "TopoSync",
+                "ROD_QC_CANDIDATE_REVIEWED",
+                object_id=run_id,
+                details={
+                    "review_id": review_id,
+                    "candidate_id": payload.candidate_id,
+                    "decision": payload.decision,
+                    "reason": payload.reason,
+                },
+            )
+        return {"review_id": review_id, "decision": payload.decision, "advisory_only": True}
+    except (ValueError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/reviews/calibration")
+def review_calibration() -> dict:
+    root, _ = workspace()
+    reviews = list_records(root, "review", limit=500)
+    confirmed = [item for item in reviews if item.get("decision") == "confirmed_bust"]
+    rejected = [item for item in reviews if item.get("decision") == "not_bust"]
+    scatters = [
+        float((item.get("candidate") or {}).get("offset_std_dev"))
+        for item in confirmed
+        if isinstance((item.get("candidate") or {}).get("offset_std_dev"), (int, float))
+    ]
+    suggestion = None
+    if scatters:
+        median_scatter = statistics.median(scatters)
+        suggestion = round(max(0.05, min(0.25, median_scatter * 2.0)), 3)
+    return {
+        "review_count": len(reviews),
+        "confirmed_bust_count": len(confirmed),
+        "not_bust_count": len(rejected),
+        "needs_review_count": sum(1 for item in reviews if item.get("decision") == "needs_review"),
+        "median_confirmed_scatter": round(statistics.median(scatters), 4) if scatters else None,
+        "suggested_consistency_ft": suggestion,
+        "advisory_only": True,
+        "message": "Review history can suggest a tolerance, but SurveySync never changes QC settings or elevations automatically.",
+    }
