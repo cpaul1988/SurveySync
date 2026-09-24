@@ -1,3 +1,7 @@
+# 9.3.1 — Reliability, support, and review hardening
+
+Adds the integrated Support Center, explicit interrupted-session recovery, Survey Data Inspector with SHA-256 caching and downstream handoff, TopoSync QC profiles/run history/review decisions, and advisory calibration summaries. Fixes startup-update event wiring, false recovery state from file-association maintenance, and stale project/CRS/unit context on Inspector cache hits. See `RELEASE_NOTES_v9_3_1.md`.
+
 # 9.3.0 — Engineering hardening
 
 Shared fail-closed build gates, exact hashed dependencies, gradual lint/types/coverage, domain extraction, visible diagnostic fallbacks and standalone TopoSync rod-height range QC with reviewable correction exports. The supplied SurveySync logo is integrated. See RELEASE_NOTES_v9_3_0.md.
