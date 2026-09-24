@@ -106,9 +106,7 @@ def dismiss_recovery_notice(config_root: str | Path) -> dict[str, Any]:
     return state
 
 
-def recovery_summary(
-    config_root: str | Path, project: SurveyProject | None
-) -> dict[str, Any]:
+def recovery_summary(config_root: str | Path, project: SurveyProject | None) -> dict[str, Any]:
     state = _read(config_root)
     prior = state.get("previous_unclean")
     prior = dict(prior) if isinstance(prior, dict) else None
@@ -137,9 +135,7 @@ def recovery_summary(
     }
 
 
-def restore_latest_recovery(
-    config_root: str | Path, project: SurveyProject
-) -> dict[str, Any]:
+def restore_latest_recovery(config_root: str | Path, project: SurveyProject) -> dict[str, Any]:
     summary = recovery_summary(config_root, project)
     if not summary["restore_available"]:
         raise ValueError(
