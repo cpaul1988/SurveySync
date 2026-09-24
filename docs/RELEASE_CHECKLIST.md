@@ -77,3 +77,17 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ### 9.3.0 TopoSync range QC
 
 Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.
+
+## v9.3.1 additional Beta checks
+
+- Confirm the live Feedback Tracker has no Intake item newer than the recorded build-manifest item and check both Errors and Retry Queue immediately before packaging.
+- Verify normal clean exit, forced/interrupted exit, matching-project recovery availability, explicit restore confirmation, and recovery-notice dismissal.
+- Run `--register-fbs` / `--unregister-fbs` maintenance paths and confirm they do not create a false interrupted-session notice.
+- Inspect headered/headerless delimited data and representative JXL/JOB data. Confirm duplicate IDs, missing elevations, invalid coordinates, point range, code count, CRS and units are correct.
+- Switch projects and re-open a cached inspection; active project/CRS/unit context must update even though the source SHA-256 cache is reused.
+- Validate Inspector handoff to each offered downstream workflow without modifying the original source.
+- Save/reload/delete a TopoSync QC profile; record Confirmed/Not Bust/Needs Review decisions and verify the audit/history display.
+- Treat calibration output as advisory only. No review history may silently change QC thresholds or survey elevations.
+- Re-smoke 9.3.0 TopoSync corrected-copy safeguards, ControlSync, FieldBookSync, feedback, diagnostics and update consent.
+- Build fresh native launchers and the Inno installer; verify all visible version surfaces and the SHA-256 output are 9.3.1.
+
