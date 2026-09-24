@@ -419,11 +419,11 @@ def review_calibration() -> dict:
     reviews = list_records(root, "review", limit=500)
     confirmed = [item for item in reviews if item.get("decision") == "confirmed_bust"]
     rejected = [item for item in reviews if item.get("decision") == "not_bust"]
-    scatters = [
-        float((item.get("candidate") or {}).get("offset_std_dev"))
-        for item in confirmed
-        if isinstance((item.get("candidate") or {}).get("offset_std_dev"), (int, float))
-    ]
+    scatters: list[float] = []
+    for item in confirmed:
+        scatter = (item.get("candidate") or {}).get("offset_std_dev")
+        if isinstance(scatter, (int, float)):
+            scatters.append(float(scatter))
     suggestion = None
     if scatters:
         median_scatter = statistics.median(scatters)
