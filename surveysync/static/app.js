@@ -433,16 +433,6 @@ function runCommand(cmd){closeMenus();const map={home:()=>switchModule('Home'),'
 $$('[data-command]').forEach(b=>b.onclick=()=>runCommand(b.dataset.command));
 window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='n'){e.preventDefault();showProjectDialog('new')}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='o'){e.preventDefault();showProjectManager()}else if(e.ctrlKey&&e.key.toLowerCase()==='o'){e.preventDefault();showProjectDialog('open')}if(e.key==='F11'){e.preventDefault();runCommand('fullscreen')}});
 
-
-const SS_UPDATE_CHECK_KEY='surveysync-last-update-check';
-async function startupUpdateCheck(force=false){
-  const last=Number(localStorage.getItem(SS_UPDATE_CHECK_KEY)||0),now=Date.now();
-  if(!force&&last&&now-last<12*60*60*1000){if($('#startupUpdateBadge'))$('#startupUpdateBadge').textContent='Automatic check enabled';return}
-  try{const d=await api('/api/v9/update/check');localStorage.setItem(SS_UPDATE_CHECK_KEY,String(now));if($('#startupUpdateBadge'))$('#startupUpdateBadge').textContent=d.update_available?`v${d.version} available`:'Up to date';if($('#startupUpdateMsg'))$('#startupUpdateMsg').textContent=d.update_available?`SurveySync ${d.version} is available on the ${d.channel} channel. Click Check & Update when ready.`:`SurveySync ${d.current_version} is current on the ${d.channel} channel.`}catch(e){if($('#startupUpdateBadge'))$('#startupUpdateBadge').textContent='Offline';if($('#startupUpdateMsg'))$('#startupUpdateMsg').textContent=`Update check unavailable: ${e.message}`}
-}
-if($('#homeFeedback'))$('#homeFeedback').onclick=()=>openGlobalFeedbackWizard();if($('#homeCheckUpdate'))$('#homeCheckUpdate').onclick=()=>{$('#checkUpdate')?.click();switchView('settings')};
-setTimeout(()=>startupUpdateCheck(false),900);
-
 installPathBrowsers();
 applyAppearance(localStorage.getItem(SS_APPEARANCE_KEY)||localStorage.getItem('fbs-theme')||'system',false);applyProductTheme(localStorage.getItem(SS_PRODUCT_THEME_KEY)||localStorage.getItem('fbs-product-theme')||'classic',false);applyAccent(localStorage.getItem(SS_ACCENT_KEY)||localStorage.getItem('fbs-accent')||'default',false);initGlobalThemeControls();const startupParams=new URLSearchParams(location.search),initial=startupParams.get('module');if(initial&&modules[initial])activeModule=initial;renderModuleNav();loadSharedUiPrefs().finally(()=>refresh().then(async()=>{switchModule(activeModule);await loadReleaseNotes(true);if(startupParams.get('manage_projects')==='1')showProjectManager()}).catch(e=>toast(e.message)));
 
