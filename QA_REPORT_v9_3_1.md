@@ -1,6 +1,6 @@
 # SurveySync 9.3.1 QA report
 
-Status: **BetaCandidate source hardening in progress; Windows quality workflow required before compile-ready signoff.**
+Status: **Windows source quality gate passed; SurveySync 9.3.1 is compile-ready. Installer compilation and installed Windows acceptance remain required before Beta/Stable promotion.**
 
 ## Scope reviewed
 
@@ -24,6 +24,18 @@ The connected feedback tracker was checked on September 24, 2026 before candidat
 - No feedback/tracker item was marked Released as part of this source-preparation step.
 
 ## Automated validation
+
+Windows GitHub Actions quality run **36074103291** passed against the 9.3.1 candidate source.
+
+- Documentation gate: passed — 13 living docs, 31 indexed features.
+- Static-quality gate: passed — zero blind broad handlers; broad-exception ceilings unchanged.
+- Ruff checks and formatting: passed.
+- Mypy: passed across 12 checked source files.
+- Python compileall: passed.
+- JavaScript syntax checks: passed.
+- Regression suite: **286 passed, 1 skipped, 0 failed**.
+- Line coverage: **56.25%**, above the 54% release floor.
+- Dependency audit: **102 exact pins audited; 0 known vulnerabilities found**.
 
 The repository's shared `scripts/release_gate.py` is the authoritative automated gate. It checks release documentation, static safety, Ruff errors/undefined names, formatting, gradual mypy coverage, Python compilation, JavaScript syntax, the maintained pytest suites with a 54% whole-application coverage floor, and locked dependency vulnerability auditing.
 
