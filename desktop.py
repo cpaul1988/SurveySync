@@ -15,7 +15,7 @@ from fieldbook_sync import app as field_app
 from fieldbook_sync.app import load_project_path_into_runtime
 from file_association import register as register_fbs, unregister as unregister_fbs
 
-APP_NAME = "SurveySync v9.3.0"
+APP_NAME = "SurveySync v9.3.1"
 
 
 class NativeBridge:
@@ -88,6 +88,9 @@ def _wait(host: str,port: int,timeout: float=12.0)->bool:
 
 
 def main()->None:
+    from surveysync.router import config_store as ss_config_store
+    from surveysync.session_recovery import begin_session, end_session, set_project
+    begin_session(ss_config_store.root)
     args_raw=[a for a in sys.argv[1:] if a.strip()]
     root=Path(sys.executable).resolve().parent if getattr(sys,"frozen",False) else Path(__file__).resolve().parent
     if "--register-fbs" in args_raw:
@@ -106,6 +109,7 @@ def main()->None:
             from surveysync.project import SurveyProject
             from surveysync.router import _set_current
             _set_current(SurveyProject(p))
+            set_project(ss_config_store.root, p)
         elif p.is_file() and p.suffix.lower()==".fbs":
             # Backward-compatible direct open; users can migrate this legacy state into a chosen v9 project from Project.
             load_project_path_into_runtime(p)
@@ -123,6 +127,7 @@ def main()->None:
             if shutdown_started:return
             shutdown_started=True
         field_app.request_application_shutdown("SurveySync window closed.");server.should_exit=True
+        end_session(ss_config_store.root)
         if close_window:
             try:window.destroy()
             except Exception:pass
