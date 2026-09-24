@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.3.0",
+  "version": "9.3.1",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -556,6 +556,60 @@
       "documentation": [
         "docs/TOPO_ROD_HEIGHT_QC.md",
         "RELEASE_NOTES_v9_3_0.md"
+      ]
+    },
+    "v931_support_and_recovery": {
+      "introduced": "9.3.1",
+      "implementation": [
+        "surveysync/session_recovery.py",
+        "surveysync/support_center.py",
+        "surveysync/static/support_center.js",
+        "surveysync/static/index.html",
+        "desktop.py"
+      ],
+      "tests": [
+        "tests/test_v931_release_candidate.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_3_1.md",
+        "QA_REPORT_v9_3_1.md",
+        "docs/API_REFERENCE.md",
+        "docs/RELEASE_CHECKLIST.md"
+      ]
+    },
+    "v931_survey_data_inspector": {
+      "introduced": "9.3.1",
+      "implementation": [
+        "surveysync/data_inspector.py",
+        "surveysync/static/data_inspector.js",
+        "surveysync/static/index.html"
+      ],
+      "tests": [
+        "tests/test_v931_release_candidate.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_3_1.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v931_toposync_review_profiles": {
+      "introduced": "9.3.1",
+      "implementation": [
+        "surveysync/topo/profiles.py",
+        "surveysync/topo/storage.py",
+        "surveysync/topo/routes.py",
+        "surveysync/static/topo_qc.js"
+      ],
+      "tests": [
+        "tests/test_v931_release_candidate.py",
+        "tests/test_topo_rod_ranges.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_3_1.md",
+        "docs/TOPO_ROD_HEIGHT_QC.md",
+        "docs/FEATURE_MATRIX.md",
+        "docs/TEST_COVERAGE.md"
       ]
     }
   }
