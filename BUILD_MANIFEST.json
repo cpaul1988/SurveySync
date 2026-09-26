@@ -2,7 +2,7 @@
   "product": "SurveySync",
   "version": "9.3.2",
   "build_type": "beta.2-candidate-open-source-integration-runtime-fix",
-  "generated_utc": "2026-09-26T19:45:00Z",
+  "generated_utc": "2026-09-26T20:34:00Z",
   "baseline": "SurveySync 9.3.1 stable",
   "feedback": {
     "checked_before_build": true,
@@ -18,7 +18,7 @@
     "pre_version_bump_quality_run_number": 80,
     "pre_version_bump_evidence_commit": "ddcc87bd0bb636949aee01f44a1bbe72492b8f54",
     "release_gate_status": "passed_before_version_bump; rerun required by beta workflow",
-    "tests_passed": 321,
+    "tests_passed": 323,
     "tests_skipped": 1,
     "tests_failed": 0,
     "line_coverage_percent": 58.08,
@@ -38,7 +38,12 @@
     "beta1_failure_root_cause": "defusedxml missing from production requirements.lock while present in requirements-dev.lock",
     "beta1_promotable": false,
     "beta2_runtime_dependency_fix_committed": true,
-    "beta2_quality_gate_status": "pending"
+    "beta2_quality_gate_status": "passed_windows_ci",
+    "beta2_quality_workflow_run": 36269796279,
+    "beta2_quality_workflow_run_number": 98,
+    "beta2_evidence_commit": "e31cda38f65ae219031850b113c843f469447107",
+    "production_runtime_dependency_regression": true,
+    "installer_startup_import_smoke_test": true
   },
   "release_constraints": [
     "Beta workflow must rerun the shared Windows release gate after the 9.3.2 version bump",
