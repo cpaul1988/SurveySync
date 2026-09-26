@@ -120,6 +120,32 @@ class CogoCurveStakeIn(BaseModel):
     start_station: float = 0.0
 
 
+class NetworkPointIn(BaseModel):
+    point_id: str = Field(min_length=1, max_length=80)
+    northing: float
+    easting: float
+    fixed: bool = False
+
+
+class NetworkObservationIn(BaseModel):
+    kind: str
+    from_id: str = Field(min_length=1, max_length=80)
+    to_id: str = Field(min_length=1, max_length=80)
+    target2_id: str | None = None
+    value: float
+    sigma: float = Field(gt=0)
+
+
+class ControlNetworkAdjustmentIn(BaseModel):
+    points: list[NetworkPointIn] = Field(min_length=2)
+    observations: list[NetworkObservationIn] = Field(min_length=1)
+    max_iterations: int = Field(default=20, ge=1, le=100)
+    tolerance: float = Field(default=1e-7, gt=0)
+    robust: bool = False
+    huber_k: float = Field(default=1.5, gt=0)
+    review_threshold: float = Field(default=3.0, gt=0)
+
+
 class CrsInspectIn(BaseModel):
     crs: str
 

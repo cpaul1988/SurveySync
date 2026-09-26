@@ -660,6 +660,25 @@
       "documentation": [
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md"
       ]
+    },
+    "v932_network_adjustment": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/network_adjustment.py",
+        "surveysync/network_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v932_network_adjustment.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
     }
   }
 }

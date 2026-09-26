@@ -293,11 +293,12 @@ deferred because it would impose materially different distribution obligations.
 - polyline alignment station/offset with LEFT-positive convention
 - simple horizontal-curve station staking
 
-### Phase C
-- general least-squares network adjustment
-- residual/redundancy/error-ellipse reports
-- independent numerical cross-validation fixtures from pySurveying/Cogokit
-- weighted leveling network
+### Phase C — partially implemented
+- **general least-squares network adjustment** — implemented as a separate ControlSync workflow supporting distance, azimuth, direction, and horizontal-angle observations.
+- **residual/redundancy/error-ellipse reports** — implemented with observation redundancy, standardized-residual review flags, optional Huber robust weighting, covariance, and 95% point error ellipses.
+- **independent numerical cross-validation** — pySurveying's MIT-licensed distance-network fixture is adapted into SurveySync regression coverage without copying the upstream adjustment engine.
+- weighted leveling network — next.
+- additional Cogokit/independent mixed-network fixtures — next.
 
 ### Phase D
 - LandXML import/export expansion

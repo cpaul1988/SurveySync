@@ -60,10 +60,13 @@ See the upstream Apache-2.0 LICENSE for the complete terms.
 - Copyright: Copyright (c) 2026 Jinghao Hu
 - License: MIT
 - Current SurveySync usage:
-  - Reference/validation target only; no pySurveying source code is copied in
-    this integration branch.
-  - Planned use is independent validation of least-squares control networks,
-    residual statistics, redundancy numbers, data snooping, and error ellipses.
+  - Reference/validation target only; no pySurveying adjustment source code is
+    copied into SurveySync.
+  - The MIT-licensed distance-control-network fixture is adapted into
+    `tests/test_v932_network_adjustment.py` as an independent numerical
+    cross-check of SurveySync's native least-squares engine.
+  - pySurveying remains a reference for residual statistics, redundancy numbers,
+    data snooping, robust adjustment, and error-ellipse expectations.
 
 ## jxl2txt
 

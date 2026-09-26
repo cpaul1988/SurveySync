@@ -204,6 +204,30 @@
 
             <div class="card-sub"><div class="card-title"><div><h4>Misnumber Review</h4><p class="muted">SurveySync preserves the original shot label and shows spatially suspected misnumbers for human confirmation, rejection, or reassignment.</p></div><span id="controlMisnumberBadge" class="brand-badge">0 REVIEW</span></div><div id="controlMisnumberReview"></div></div>
 
+            <details class="card-sub"><summary><b>Network Least-Squares Adjustment (9.3.2 Beta)</b></summary>
+              <p class="muted">Separate conventional-network workflow. Ronald's best-three control method is unchanged. Enter approximate/fixed coordinates and weighted distance/angle observations; SurveySync reports adjusted coordinates, residuals, redundancy, and 95% error ellipses.</p>
+              <div class="notice"><b>Observation sigma units:</b> distance = project linear units; azimuth/direction/angle = degrees. Residuals marked REVIEW are advisory and are never deleted automatically.</div>
+              <div class="grid2">
+                <label>Points: ID,N,E,FIXED<textarea id="networkPoints" rows="8">A,0,0,true
+B,0,100,true
+C,100,0,true
+P,31,39,false</textarea></label>
+                <label>Observations<textarea id="networkObservations" rows="8">distance,A,P,50,0.01
+distance,B,P,67.082039325,0.01
+distance,C,P,80.622577483,0.01</textarea></label>
+              </div>
+              <p class="muted">Distance / azimuth / direction syntax: kind,from,to,value,sigma. Angle syntax: angle,station,backsight,foresight,value,sigma.</p>
+              <div class="formgrid">
+                <label>Max iterations<input id="networkMaxIterations" type="number" min="1" max="100" value="20"></label>
+                <label>Convergence tolerance<input id="networkTolerance" type="number" step="any" value="0.0000001"></label>
+                <label>Review threshold<input id="networkReviewThreshold" type="number" step="0.1" value="3"></label>
+                <label>Huber k<input id="networkHuberK" type="number" step="0.1" value="1.5"></label>
+              </div>
+              <label class="check-row"><input id="networkRobust" type="checkbox"> Use Huber robust weighting (advisory outlier resistance)</label>
+              <button id="runNetworkAdjustment" class="primary">Adjust Network</button>
+              <div id="networkAdjustResult"></div>
+            </details>
+
             <details class="card-sub"><summary><b>Advanced / Manual Control Tools</b></summary><p class="muted">Legacy/special-purpose tools remain available for solving a single Control ID or reproducing the exact 3 Point Control Averaged Template.xlsx workflow.</p><div class="formgrid"><label>Control ID<input id="controlId"></label><label>Method<select id="controlMethod"><option value="arithmetic">Arithmetic mean</option><option value="weighted">Weighted by sigma</option><option value="ron_spreadsheet">Ron 3-point workbook profile</option></select></label></div><button id="controlSolve" class="secondary">Solve Selected Control</button><hr><h4>Average 3 existing survey points</h4><div class="formgrid"><label>Final control ID<input id="ronControlFinalId" placeholder="CP-1"></label><label>Shot A PointID<input id="ronControlA"></label><label>Shot B PointID<input id="ronControlB"></label><label>Shot C PointID<input id="ronControlC"></label></div><button id="ronControlSolve" class="secondary">Average 3 Project Points</button></details>
             <pre id="controlResult"></pre>
             <details class="card-sub"><summary><b>Solution Revision History</b></summary><div class="card-title"><div><p class="muted">Every solve is immutable. Restoring a revision only makes that stored solution active.</p></div><span id="controlActiveRevisionBadge" class="brand-badge">No active revision</span></div><div class="formgrid"><label>Restore revision<select id="controlRevisionRestore"></select></label><label>Compare from<select id="controlRevisionA"></select></label><label>Compare to<select id="controlRevisionB"></select></label></div><div class="row"><button id="controlHistoryRefresh" class="secondary">Refresh History</button><button id="controlCompare" class="secondary">Compare Revisions</button><button id="controlRestore" class="primary">Restore Selected as Active</button></div><div id="controlHistory"></div><pre id="controlCompareResult"></pre></details>
