@@ -254,7 +254,9 @@ def test_network_api_includes_independent_validation_and_audits_status(
 
     audits = survey_router.current_project.db.recent_audit(20)
     network_event = next(row for row in audits if row["action"] == "NETWORK_ADJUSTMENT")
-    assert "independent_validation" in network_event["details_json"]
+    summary = network_event["details"]["result_summary"]
+    assert summary["independent_validation"] == "PASS"
+    assert summary["max_reference_coordinate_delta"] < 1e-4
 
 
 def test_pysurveying_attribution_and_validator_documentation_present():
