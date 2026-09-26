@@ -23,3 +23,12 @@ def test_installer_uses_production_lock_not_dev_lock():
 
     assert '$Req = Join-Path $InstallDir "requirements.lock"' in provisioner
     assert "requirements-dev.lock" not in provisioner
+
+
+def test_installer_excludes_ci_runtime_and_repo_metadata():
+    installer = (ROOT / "installer" / "SurveySync.iss").read_text(encoding="utf-8")
+    assert ".prod-verify\\*" in installer
+    assert ".git\\*" in installer
+    assert ".github\\*" in installer
+    assert "RUNNER_TEMP" in (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    assert "RUNNER_TEMP" in (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
