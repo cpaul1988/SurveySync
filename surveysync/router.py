@@ -160,26 +160,13 @@ project_lock = RLock()
 current_project: SurveyProject | None = None
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.3.1: adds the Support Center, Survey Data Inspector, interrupted-session recovery and production-focused TopoSync review tooling.",
-    "Survey Data Inspector caches survey sources by SHA-256, detects common point schemas and normalizes Trimble JOB/JXL data for reuse across SurveySync.",
-    "Coordinate sanity now keeps Northing/Easting/PointID row-aligned, excludes non-finite pairs explicitly, and reports the correct point when a remote coordinate is flagged.",
-    "SurveySync core persistence/configuration fallbacks now log diagnostic context instead of silently swallowing broad exceptions; FieldBook state persistence received the same treatment.",
-    "A new static-quality build gate blocks new blind broad-exception passes, dangerous eval/exec or shell=True use, committed key patterns, duplicate routes/functions, mutable defaults, and further growth of the two pre-9.3 API monoliths.",
-    "Each SurveySync project now owns an independent versioned SQLite database bootstrapped from the SurveySync master project template.",
-    "New Project templates can seed module availability and QA defaults for Standard, EDSI Engineering/Topo, Boundary, Sewer/Utility, Control Network, and Construction Staking workflows.",
-    "Project Data Manager provides a survey-friendly table browser with search, controlled edits, edit history, and read-only protection for immutable/system records.",
-    "Controlled survey-data edits create a safety snapshot, require a reason, write field-level audit history, and mark dependent calculations stale for review.",
-    "Database Health reports integrity, foreign-key status, schema version, stale results and database size; maintenance creates a safety snapshot before WAL checkpoint/optimization.",
-    "ControlSync now provides a TBC-inspired Control Survey workspace: choose the project CRS/local-site ground settings, load all observations, view them spatially, and run Ronald's best-three QC across the complete database.",
-    "Control QC evaluates every valid three-shot combination at project tolerances (0.045 ft H/V by default), preserves candidate provenance, exports accepted control plus reshoot lists, and proposes the next unused shot labels.",
-    "ControlSync custom exports can select output fields and default to the active project/local-site coordinate system or deliberately transform to WGS84/another CRS.",
-    "Every SurveySync file/folder path field now has a native Browse control, including multi-file batch paths; users no longer need to type Windows paths manually.",
-    "Project Health Check now runs project-wide preflight for duplicate PointIDs, missing coordinates/elevations, CRS/units, control/level QC, source integrity, attachments, stale outputs, failed tasks, and coordinate sanity.",
-    "Central QA rules make tolerances and guardrails reusable across SurveySync instead of hard-coding review logic separately in each module.",
-    "Import Staging previews survey point files, detects/learns column mappings, identifies conflicts before commit, and never overwrites an existing PointID silently.",
-    "Project Timeline, automatic crash-recovery snapshots, manual snapshots, snapshot comparison/restore, and file comparison improve traceability and recovery.",
-    "Smart export profiles and the Deliverable Package Builder create repeatable point exports plus checksum-backed ZIP manifests.",
-    "Background task queue, batch staging/comparison, unified Review Center, project visual-QC map, and Why? explanations make outstanding work easier to find and understand.",
+    "9.3.2: expands COGOSync and ControlSync with production-oriented open-source integrations while preserving SurveySync's existing validated workflows.",
+    "COGOSync now includes continuous tangent/circular-curve alignments, station/offset stake-point calculations, vertical curves, cross-section cut/fill, earthwork, and 2D slope-catch tools.",
+    "LandXML 1.2 import/export supports CgPoints, parcel line geometry, and tangent/circular-curve alignments; imported LandXML is preserved as immutable SHA-256 project source evidence.",
+    "ControlSync adds a separate weighted least-squares 2D network adjustment with covariance, redundancy, standardized residuals, 95% error ellipses, and optional Huber robust weighting.",
+    "Leveling adds a separate weighted benchmark-network adjustment without changing Ronald's validated three-wire workbook workflow.",
+    "Project audit history is now project-bound and tamper-evident with SHA-256 chaining, Project Health verification, and deliverable-manifest audit heads.",
+    "The release pipeline now separates tested Beta candidates from exact-artifact Stable promotion to prevent branch/version ambiguity.",
 ]
 
 
