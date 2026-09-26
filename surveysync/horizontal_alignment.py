@@ -10,14 +10,14 @@ import math
 from typing import Any
 
 
-def _finite(name: str, value: float) -> float:
+def _finite(name: str, value: Any) -> float:
     number = float(value)
     if not math.isfinite(number):
         raise ValueError(f"{name} must be finite.")
     return number
 
 
-def _positive(name: str, value: float) -> float:
+def _positive(name: str, value: Any) -> float:
     number = _finite(name, value)
     if number <= 0:
         raise ValueError(f"{name} must be positive.")
