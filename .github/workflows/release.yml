@@ -9,7 +9,10 @@ on:
         description: Publish Beta or promote the exact tested Beta artifact
         required: true
         type: choice
-        options: [publish_beta, promote_stable]
+        options: [publish_beta, repair_beta_tag, promote_stable]
+      candidate_sha:
+        description: Exact tested candidate SHA (required only for repair_beta_tag)
+        required: false
 permissions:
   contents: write
 concurrency:
@@ -67,7 +70,7 @@ jobs:
         run: |
           $tag="v$env:RELEASE_VERSION-beta"
           $p="installer/output/SurveySync_Setup_$env:RELEASE_VERSION.exe"
-          gh release create $tag $p "$p.sha256" $env:RELEASE_NOTES --title "SurveySync $env:RELEASE_VERSION [beta]" --notes-file $env:RELEASE_NOTES --prerelease
+          gh release create $tag $p "$p.sha256" $env:RELEASE_NOTES --target "$env:GITHUB_SHA" --title "SurveySync $env:RELEASE_VERSION [beta]" --notes-file $env:RELEASE_NOTES --prerelease
           if ($LASTEXITCODE -ne 0) { throw 'Beta publication failed.' }
           $url="https://github.com/$env:RELEASE_REPO/releases/download/$tag/SurveySync_Setup_$env:RELEASE_VERSION.exe"
           python scripts/update_manifest.py --channel beta --version $env:RELEASE_VERSION --installer $p --installer-url $url --release-tag $tag --release-notes-file $env:RELEASE_NOTES
@@ -79,6 +82,33 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Manifest commit failed.' }
           git push
           if ($LASTEXITCODE -ne 0) { throw 'Manifest push failed.' }
+  repair_beta_tag:
+    if: ${{ inputs.action == 'repair_beta_tag' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repair Beta tag to exact tested candidate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$CANDIDATE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "candidate_sha must be the exact 40-character tested candidate commit SHA."
+            exit 1
+          fi
+          tag="v$RELEASE_VERSION-beta"
+          gh api "repos/$RELEASE_REPO/releases/tags/$tag" >/dev/null
+          gh api --method DELETE "repos/$RELEASE_REPO/git/refs/tags/$tag"
+          gh api --method POST "repos/$RELEASE_REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$CANDIDATE_SHA" >/dev/null
+          actual="$(gh api "repos/$RELEASE_REPO/git/ref/tags/$tag" --jq '.object.sha')"
+          if [[ "$actual" != "$CANDIDATE_SHA" ]]; then
+            echo "Tag repair verification failed: expected $CANDIDATE_SHA got $actual"
+            exit 1
+          fi
+          echo "Repaired $tag -> $actual"
+
   promote:
     if: ${{ inputs.action == 'promote_stable' }}
     runs-on: windows-latest
