@@ -432,3 +432,128 @@ def stake_horizontal_curve(
         "stake_count": len(stakes),
         "stakes": stakes,
     }
+
+
+def vertical_curve_elevation(
+    *,
+    bvc_elevation: float,
+    grade_in_percent: float,
+    grade_out_percent: float,
+    length: float,
+    distance_from_bvc: float,
+) -> float:
+    """Elevation on an equal-tangent parabolic vertical curve."""
+
+    bvc = _finite_number("BVC elevation", bvc_elevation)
+    g1 = _finite_number("Grade in", grade_in_percent) / 100.0
+    g2 = _finite_number("Grade out", grade_out_percent) / 100.0
+    curve_length = _finite_positive("Curve length", length)
+    x = _finite_number("Distance from BVC", distance_from_bvc)
+    if x < -1e-12 or x > curve_length + 1e-12:
+        raise ValueError("Distance from BVC must fall within the vertical curve.")
+    return bvc + g1 * x + ((g2 - g1) / (2.0 * curve_length)) * x * x
+
+
+def solve_vertical_curve(
+    *,
+    pvi_station: float,
+    pvi_elevation: float,
+    grade_in_percent: float,
+    grade_out_percent: float,
+    length: float,
+    sample_interval: float | None = None,
+    max_points: int = 5000,
+) -> dict[str, object]:
+    """Solve an equal-tangent parabolic vertical curve.
+
+    Adapted from Cogokit's MIT-licensed vertical-curve equations. Grades are
+    supplied as percent values at the SurveySync API boundary.
+    """
+
+    pvi_sta = _finite_number("PVI station", pvi_station)
+    pvi_elev = _finite_number("PVI elevation", pvi_elevation)
+    g1_percent = _finite_number("Grade in", grade_in_percent)
+    g2_percent = _finite_number("Grade out", grade_out_percent)
+    curve_length = _finite_positive("Curve length", length)
+    if abs(g2_percent - g1_percent) <= 1e-12:
+        raise ValueError("Grade in and grade out must differ.")
+    if int(max_points) < 2:
+        raise ValueError("max_points must be at least 2.")
+
+    g1 = g1_percent / 100.0
+    g2 = g2_percent / 100.0
+    half = curve_length / 2.0
+    bvc_station = pvi_sta - half
+    evc_station = pvi_sta + half
+    bvc_elevation = pvi_elev - g1 * half
+    evc_elevation = pvi_elev + g2 * half
+    grade_change_percent = g2_percent - g1_percent
+    k_value = curve_length / abs(grade_change_percent)
+
+    x_high_low = -g1 * curve_length / (g2 - g1)
+    if 0.0 < x_high_low < curve_length:
+        high_low_station = bvc_station + x_high_low
+        high_low_elevation = vertical_curve_elevation(
+            bvc_elevation=bvc_elevation,
+            grade_in_percent=g1_percent,
+            grade_out_percent=g2_percent,
+            length=curve_length,
+            distance_from_bvc=x_high_low,
+        )
+        high_low_type = "HIGH" if g2 < g1 else "LOW"
+    else:
+        high_low_station = None
+        high_low_elevation = None
+        high_low_type = None
+
+    samples: list[dict[str, float]] = []
+    if sample_interval is not None:
+        interval = _finite_positive("Sample interval", sample_interval)
+        distances = [0.0]
+        next_station = (math.floor(bvc_station / interval) + 1.0) * interval
+        while next_station < evc_station - 1e-10:
+            distances.append(next_station - bvc_station)
+            if len(distances) >= int(max_points) - 1:
+                raise ValueError(f"Sample interval produces more than {int(max_points)} points.")
+            next_station += interval
+        distances.append(curve_length)
+        for x in distances:
+            station = bvc_station + x
+            elevation = vertical_curve_elevation(
+                bvc_elevation=bvc_elevation,
+                grade_in_percent=g1_percent,
+                grade_out_percent=g2_percent,
+                length=curve_length,
+                distance_from_bvc=x,
+            )
+            instantaneous_grade_percent = (
+                g1 + (g2 - g1) * x / curve_length
+            ) * 100.0
+            samples.append(
+                {
+                    "station": station,
+                    "elevation": elevation,
+                    "grade_percent": instantaneous_grade_percent,
+                    "distance_from_bvc": x,
+                }
+            )
+
+    return {
+        "pvi_station": pvi_sta,
+        "pvi_elevation": pvi_elev,
+        "bvc_station": bvc_station,
+        "bvc_elevation": bvc_elevation,
+        "evc_station": evc_station,
+        "evc_elevation": evc_elevation,
+        "grade_in_percent": g1_percent,
+        "grade_out_percent": g2_percent,
+        "grade_change_percent": grade_change_percent,
+        "length": curve_length,
+        "k_value": k_value,
+        "high_low_type": high_low_type,
+        "high_low_station": high_low_station,
+        "high_low_elevation": high_low_elevation,
+        "sample_interval": sample_interval,
+        "sample_count": len(samples),
+        "samples": samples,
+    }
