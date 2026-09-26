@@ -221,9 +221,9 @@ class LandXmlImportIn(BaseModel):
 
 class LandXmlExportIn(BaseModel):
     output_path: str = ""
-    points: list[LandXmlPointIn] = []
-    parcels: list[LandXmlParcelIn] = []
-    alignments: list[LandXmlAlignmentIn] = []
+    points: list[LandXmlPointIn] = Field(default_factory=list)
+    parcels: list[LandXmlParcelIn] = Field(default_factory=list)
+    alignments: list[LandXmlAlignmentIn] = Field(default_factory=list)
 
 
 class NetworkPointIn(BaseModel):
