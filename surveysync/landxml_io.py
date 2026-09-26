@@ -10,8 +10,12 @@ from __future__ import annotations
 import math
 import xml.etree.ElementTree as ET
 
-from defusedxml import ElementTree as SafeET
 from pathlib import Path
+
+try:
+    from defusedxml import ElementTree as SafeET
+except ImportError:  # optional hardening dependency; guarded stdlib fallback below
+    SafeET = None
 from typing import Any
 
 from .horizontal_alignment import build_horizontal_alignment
@@ -43,10 +47,17 @@ def import_landxml(path: Path) -> dict[str, Any]:
     if not source.is_file():
         raise ValueError("LandXML file does not exist.")
     try:
-        tree = SafeET.parse(source)
+        if SafeET is not None:
+            tree = SafeET.parse(source)
+            root = tree.getroot()
+        else:
+            raw = source.read_bytes()
+            upper = raw.upper()
+            if b"<!DOCTYPE" in upper or b"<!ENTITY" in upper:
+                raise ValueError("Unsafe XML declarations are not allowed in LandXML input.")
+            root = ET.fromstring(raw)
     except ET.ParseError as exc:
         raise ValueError(f"Invalid LandXML/XML: {exc}") from exc
-    root = tree.getroot()
     namespace = root.tag.split("}", 1)[0].lstrip("{") if "}" in root.tag else ""
     prefix = f"{{{namespace}}}" if namespace else ""
 
