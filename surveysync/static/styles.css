@@ -157,3 +157,13 @@ html[data-product-theme][data-theme]{--heading:var(--text)}
 
 /* SurveySync 9.4 brand system ------------------------------------------------ */
 .brand-lockup{display:flex;align-items:center;gap:12px;margin-bottom:14px}.brand-lockup-icon{width:52px;height:52px;display:block;object-fit:contain}.brand-lockup-name{font-family:"Playfair Display","DM Serif Display",Georgia,serif;font-size:27px;font-weight:700;line-height:1;color:var(--navy);letter-spacing:-.02em}.brand-lockup-tagline{margin-top:5px;font-size:8.5px;font-weight:750;letter-spacing:.23em;color:var(--gold);font-family:Inter,Barlow,Helvetica,Arial,sans-serif}.module-tab{display:flex;align-items:center;gap:7px}.module-tab-icon{width:22px;height:22px;display:block;object-fit:contain;flex:0 0 auto}.module-nav-btn .nav-workflow-icon{width:21px;height:21px;display:block;object-fit:contain;margin:auto}.foundation-icon{overflow:hidden}.foundation-icon img{width:46px;height:46px;display:block;object-fit:contain}.about-brand{display:flex;align-items:center;gap:15px;margin-bottom:18px;padding:16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,#fff,var(--ivory))}.about-brand .brand-lockup-icon{width:64px;height:64px}.release-dialog .brand-lockup{justify-content:center;margin:2px auto 18px}.release-dialog .brand-lockup-name{font-size:25px}.release-dialog .brand-lockup-icon{width:58px;height:58px}
+
+/* Non-blocking SurveySync product splash ------------------------------------- */
+.product-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#0F203C;opacity:1;visibility:visible;transition:opacity .24s ease,visibility .24s ease;pointer-events:none}
+.product-splash.dismissed{opacity:0;visibility:hidden}
+.product-splash-card{text-align:center;min-width:280px;padding:28px 34px}
+.product-splash-icon{width:92px;height:92px;display:block;object-fit:contain;margin:0 auto 18px}
+.product-splash-name{font-family:"Playfair Display","DM Serif Display",Georgia,serif;font-size:36px;font-weight:700;letter-spacing:-.02em;color:#F6F4EE}
+.product-splash-tagline{margin-top:8px;font-family:Inter,Barlow,Helvetica,Arial,sans-serif;font-size:10px;font-weight:750;letter-spacing:.27em;color:#C19D65}
+.product-splash-rule{width:150px;height:2px;margin:20px auto 0;background:linear-gradient(90deg,transparent,#C19D65,transparent)}
+@media(prefers-reduced-motion:reduce){.product-splash{transition:none}}
