@@ -8,6 +8,7 @@ MIT-licensed pySurveying reference fixtures, but no pySurveying source is copied
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import numpy as np
 
@@ -51,14 +52,14 @@ def _huber_weights(residuals: np.ndarray, k: float) -> np.ndarray:
 
 def adjust_control_network(
     *,
-    points: list[dict[str, object]],
-    observations: list[dict[str, object]],
+    points: list[dict[str, Any]],
+    observations: list[dict[str, Any]],
     max_iterations: int = 20,
     tolerance: float = 1e-7,
     robust: bool = False,
     huber_k: float = 1.5,
     review_threshold: float = 3.0,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Adjust a constrained 2D network using weighted nonlinear least squares.
 
     Supported observation kinds are distance, azimuth, direction, and angle.
@@ -82,7 +83,7 @@ def adjust_control_network(
     if review_value <= 0:
         raise ValueError("Review threshold must be positive.")
 
-    point_map: dict[str, dict[str, object]] = {}
+    point_map: dict[str, dict[str, Any]] = {}
     point_order: list[str] = []
     for index, row in enumerate(points, start=1):
         point_id = str(row.get("point_id") or "").strip()
@@ -101,7 +102,7 @@ def adjust_control_network(
     if not any(bool(point_map[name]["fixed"]) for name in point_order):
         raise ValueError("At least one fixed control point is required.")
 
-    normalized_observations: list[dict[str, object]] = []
+    normalized_observations: list[dict[str, Any]] = []
     supported = {"distance", "azimuth", "direction", "angle"}
     for index, row in enumerate(observations, start=1):
         kind = str(row.get("kind") or "").strip().lower()
@@ -272,7 +273,7 @@ def adjust_control_network(
     redundancy = np.clip(np.diag(qvv @ weight_matrix), 0.0, 1.0)
 
     calculated = calculated_values(current)
-    observation_rows: list[dict[str, object]] = []
+    observation_rows: list[dict[str, Any]] = []
     review_count = 0
     for index, (row, calc, normalized_residual, red, robust_weight) in enumerate(
         zip(
@@ -316,7 +317,7 @@ def adjust_control_network(
             }
         )
 
-    adjusted_points: list[dict[str, object]] = []
+    adjusted_points: list[dict[str, Any]] = []
     for name in point_order:
         initial_n = float(point_map[name]["northing"])
         initial_e = float(point_map[name]["easting"])
