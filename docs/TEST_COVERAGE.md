@@ -74,3 +74,9 @@ Standalone point import, editable code classifications, feature-chain range dete
 
 The shared release gate also runs the existing TopoSync range detector, diagnostics/feedback, updater, project database, ControlSync, FieldBookSync, and legacy regression suites. A successful automated gate still does not prove installed Windows/WebView behavior, official Trimble JOB converter interoperability, OCR/local-AI behavior, or production rod-height accuracy on field-verified data.
 
+## v9.3.2 open-source integration coverage
+
+`tests/test_v932_open_source_integrations.py` covers the attributed Cogokit-derived horizontal-curve reference case, explicit rejection of the 100-foot-arc degree-of-curve convention in meter projects, wrong-element-count validation, three-point circle geometry, COGOSync API/audit wiring, audit-chain tamper detection, v5 audit-history backfill into schema 6, Project Health blocking on a broken audit chain, deliverable-manifest audit-head capture, release branch guards, and third-party attribution files.
+
+These tests validate SurveySync's adaptations; they do not substitute for field/software comparison of newly imported surveying algorithms before Stable promotion.
+

@@ -59,3 +59,11 @@ Inspector caches are workstation-local derived artifacts keyed by source SHA-256
 
 TopoSync QC profiles and review records remain project/workspace scoped and separate from raw survey evidence. Review/calibration state is advisory and cannot silently mutate observations.
 
+## v9.3.2 open-source integration foundation
+
+Project database schema 6 adds a tamper-evident `audit_chain` alongside `audit_events`. Each event is canonically hashed with SHA-256 and linked to the previous event hash. Existing audit history is deterministically backfilled during the v5→v6 migration. New audit writes use an immediate SQLite transaction so the event row and chain row are committed atomically and concurrent background tasks cannot select the same sequence number.
+
+Project Health verifies the chain without modifying it. Deliverable-package manifests include the verified pre-package audit head hash, event count, and hash version so an issued package can be tied to a concrete project-audit state.
+
+COGOSync keeps its existing small native inverse/forward/intersection functions and adds an attributed extended curve module rather than importing another project's database or application architecture. CRS transformation authority remains pyproj/PROJ.
+

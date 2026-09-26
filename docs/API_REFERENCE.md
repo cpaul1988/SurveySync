@@ -146,3 +146,11 @@ Standalone point import, editable code classifications, feature-chain range dete
 - `POST /api/v9/topo/runs/{run_id}/review` — records an explicit candidate decision and review reason.
 - `GET /api/v9/topo/reviews/calibration` — summarizes review history and may suggest an offset-consistency tolerance; it never applies that suggestion automatically.
 
+## v9.3.2 open-source integration APIs
+
+- `POST /api/v9/cogo/curve` — solve a simple circular horizontal curve from exactly two independent elements. Supported elements include radius, central angle, tangent, arc length, long chord, external, middle ordinate, and the explicitly named 100-foot-arc degree of curve. The degree-of-curve input is rejected for meter projects.
+- `POST /api/v9/cogo/three-point-curve` — compute the center and radius of the unique circular curve through three Northing/Easting points; collinear points are rejected.
+- `GET /api/v9/audit/verify` — verify the active project's SHA-256 audit chain and return event count, chain count, broken sequence/reason when invalid, and the current audit head hash when valid.
+
+The extended curve engine is adapted from the MIT-licensed Cogokit project and is attributed in `THIRD_PARTY_NOTICES.md`. The audit-chain design is inspired by Block's Apache-2.0 Buzz audit architecture but implemented natively for SurveySync SQLite projects.
+

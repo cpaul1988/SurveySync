@@ -28,3 +28,10 @@ Project database schema 4 adds `observed_time_provided`, `epoch_count`, `duratio
 ## 9.3.0 engineering hardening
 
 See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared release gates, dependency locks, domain extraction, diagnostics and standalone TopoSync rod-height range QC. Windows acceptance and distribution signing remain outstanding.
+
+## v9.3.2 audit-chain schema v6
+
+Project database schema 6 adds a SHA-256 chained `audit_chain` table keyed by monotonically increasing sequence number. Existing `audit_events` remain the human-readable audit records; the chain is an integrity layer over those records, not a replacement. Opening an older user project still creates the normal pre-migration database backup before the chain is backfilled. Newly created projects migrate the copied master template to the current schema before first open so a brand-new project does not create a meaningless migration backup.
+
+Direct database edits to historical audit rows are detectable by `verify_audit_chain()` and become a blocking Project Health finding. The current chain head is also included in deliverable-package manifests.
+
