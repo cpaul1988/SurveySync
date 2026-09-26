@@ -119,6 +119,7 @@ def main()->None:
     if not _wait(host,port):server.should_exit=True;raise RuntimeError("SurveySync could not start its local application service.")
     bridge=NativeBridge();window=webview.create_window(APP_NAME,f"http://{host}:{port}",width=1500,height=940,min_size=(1050,680),background_color="#0f172a",text_select=True)
     bridge._window=window
+    window_icon = root / "branding" / "SurveySync.ico"
     window.expose(bridge.exit_app,bridge.choose_folder,bridge.choose_file,bridge.choose_files,bridge.choose_save_file,bridge.choose_arcgis_project,bridge.choose_aprx,bridge.reveal_folder)
     shutdown_lock=threading.Lock();shutdown_started=False
     def shutdown(close_window=True):
@@ -133,7 +134,11 @@ def main()->None:
             except Exception:pass
     bridge._shutdown_callback=shutdown
     window.events.closed += lambda: shutdown(False)
-    webview.start(gui="edgechromium" if sys.platform=="win32" else None,debug=False)
+    webview.start(
+        gui="edgechromium" if sys.platform=="win32" else None,
+        debug=False,
+        icon=str(window_icon) if window_icon.exists() else None,
+    )
     shutdown(False);thread.join(timeout=8);field_app.finalize_application_shutdown()
 
 if __name__=="__main__":main()
