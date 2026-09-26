@@ -1,6 +1,6 @@
 :root{
   --font:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,sans-serif;
-  --radius:16px;--radius-sm:11px;--sidebar:258px;--topbar:68px;--survey-menubar-bg:#082b52;--survey-menubar-text:#f9f5e8;
+  --radius:16px;--radius-sm:11px;--sidebar:258px;--topbar:68px;--survey-menubar-bg:#0F203C;--survey-menubar-text:#F6F4EE;
   --accent:#007dc5;--accent-2:#26aea1;--accent-soft:rgba(0,125,197,.12);
   --good:#18845b;--warn:#d6a800;--bad:#d84a4a;--info:#0099dc;
   --good-soft:color-mix(in srgb,var(--good) 10%,transparent);--good-border:color-mix(in srgb,var(--good) 32%,transparent);
