@@ -153,6 +153,18 @@ const modules={
  QASync:{desc:'Cross-module rules, issues and project quality checks.',nav:[['WORKSPACE','QA Dashboard','foundation','⌂'],['QUALITY','Project Health','qa','✓'],['QUALITY','Review Center','operations','!'],['OPERATIONS','Snapshots / Staging / Batch','operations','◆'],['CONFIGURE','QA Rules','operations','⚙']]},
  CrewSync:{desc:'Point allocation, pickup/completion maps, stakeout packages and return-data reconciliation.',nav:[['WORKSPACE','Crew Dashboard','foundation','⌂'],['PREP','Point Allocation','reports','№'],['PREP','Utility Pickup Map','utilityAdvanced','⌖'],['PREP','Stakeout Packages','foundation','⌖'],['RETURN','Return Data','foundation','⇧']]}
 };
+const MODULE_BRAND_ICONS={
+ Home:'/surveysync-static/workflow-icons/01-job-setup.svg',
+ ControlSync:'/surveysync-static/workflow-icons/03-total-station.svg',
+ UtilitySync:'/surveysync-static/workflow-icons/05-feature-codes.svg',
+ TopoSync:'/surveysync-static/workflow-icons/09-surfaces-contours.svg',
+ COGOSync:'/surveysync-static/workflow-icons/08-traverse.svg',
+ BoundarySync:'/surveysync-static/workflow-icons/10-boundary-parcels.svg',
+ GISSync:'/surveysync-static/workflow-icons/07-point-database.svg',
+ ReportSync:'/surveysync-static/workflow-icons/12-reports-export.svg',
+ QASync:'/surveysync-static/workflow-icons/06-stakeout.svg',
+ CrewSync:'/surveysync-static/workflow-icons/02-gnss-rtk.svg'
+};
 const foundationCopy={
  ControlSync:['ControlSync','Shared point/control objects and audit services are active. Advanced control/network tools can build on this foundation.',['Observation Registry','Control Solutions','Residual Review','Audit History']],
  UtilitySync:['UtilitySync','General utility survey workflows will extend the existing FieldBookSync structure/dip engine without copying project data.',['Structures','Pipes & Connections','Dips / Inverts','Completion QA']],
