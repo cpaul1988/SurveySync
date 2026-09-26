@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 from contextlib import contextmanager
@@ -7,11 +8,58 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-CURRENT_SCHEMA_VERSION = 5
+CURRENT_SCHEMA_VERSION = 6
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+AUDIT_HASH_VERSION = 1
+AUDIT_GENESIS_HASH = "0" * 64
+
+
+def _audit_hash(
+    *,
+    seq: int,
+    event_id: str,
+    ts_utc: str,
+    actor: str,
+    module: str,
+    action: str,
+    object_type: str,
+    object_id: str,
+    revision: int,
+    details_json: str,
+    prev_hash: str,
+) -> str:
+    """Compute a canonical SHA-256 chain hash for one project audit event.
+
+    The design is inspired by Block's Apache-2.0 Buzz tamper-evident audit
+    chain, adapted here for SurveySync's local SQLite project database.
+    """
+
+    payload = {
+        "hash_version": AUDIT_HASH_VERSION,
+        "seq": int(seq),
+        "event_id": str(event_id),
+        "ts_utc": str(ts_utc),
+        "actor": str(actor),
+        "module": str(module),
+        "action": str(action),
+        "object_type": str(object_type or ""),
+        "object_id": str(object_id or ""),
+        "revision": int(revision or 0),
+        "details_json": str(details_json or "{}"),
+        "prev_hash": str(prev_hash or AUDIT_GENESIS_HASH),
+    }
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 SCHEMA = """
@@ -30,6 +78,16 @@ CREATE TABLE IF NOT EXISTS audit_events (
 );
 CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_events(ts_utc DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_module ON audit_events(module, ts_utc DESC);
+
+CREATE TABLE IF NOT EXISTS audit_chain (
+    seq INTEGER PRIMARY KEY,
+    event_id TEXT NOT NULL UNIQUE,
+    hash_version INTEGER NOT NULL DEFAULT 1,
+    prev_hash TEXT NOT NULL,
+    event_hash TEXT NOT NULL,
+    FOREIGN KEY(event_id) REFERENCES audit_events(event_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_audit_chain_event ON audit_chain(event_id);
 
 CREATE TABLE IF NOT EXISTS source_registry (
     source_id TEXT PRIMARY KEY,
@@ -529,6 +587,17 @@ CREATE INDEX IF NOT EXISTS idx_control_point_id ON control_observations(point_id
 CREATE INDEX IF NOT EXISTS idx_control_xy ON control_observations(northing, easting);
 CREATE INDEX IF NOT EXISTS idx_control_observed_time ON control_observations(observed_utc);
 """,
+    6: """
+CREATE TABLE IF NOT EXISTS audit_chain (
+    seq INTEGER PRIMARY KEY,
+    event_id TEXT NOT NULL UNIQUE,
+    hash_version INTEGER NOT NULL DEFAULT 1,
+    prev_hash TEXT NOT NULL,
+    event_hash TEXT NOT NULL,
+    FOREIGN KEY(event_id) REFERENCES audit_events(event_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_audit_chain_event ON audit_chain(event_id);
+""",
 }
 
 
@@ -591,8 +660,41 @@ class AuditDB:
             script = MIGRATIONS.get(version)
             if script:
                 conn.executescript(script)
+            if version == 6:
+                self._backfill_audit_chain(conn)
             conn.execute(f"PRAGMA user_version={version}")
         conn.commit()
+
+    def _backfill_audit_chain(self, conn: sqlite3.Connection) -> None:
+        rows = conn.execute(
+            """SELECT event_id,ts_utc,actor,module,action,object_type,object_id,
+                      revision,details_json
+               FROM audit_events
+               ORDER BY ts_utc ASC, rowid ASC"""
+        ).fetchall()
+        conn.execute("DELETE FROM audit_chain")
+        prev_hash = AUDIT_GENESIS_HASH
+        for seq, row in enumerate(rows, start=1):
+            event_hash = _audit_hash(
+                seq=seq,
+                event_id=row["event_id"],
+                ts_utc=row["ts_utc"],
+                actor=row["actor"],
+                module=row["module"],
+                action=row["action"],
+                object_type=row["object_type"] or "",
+                object_id=row["object_id"] or "",
+                revision=int(row["revision"] or 0),
+                details_json=row["details_json"] or "{}",
+                prev_hash=prev_hash,
+            )
+            conn.execute(
+                """INSERT INTO audit_chain(
+                       seq,event_id,hash_version,prev_hash,event_hash
+                   ) VALUES(?,?,?,?,?)""",
+                (seq, row["event_id"], AUDIT_HASH_VERSION, prev_hash, event_hash),
+            )
+            prev_hash = event_hash
 
     def schema_version(self) -> int:
         with self.connect() as conn:
@@ -610,12 +712,108 @@ class AuditDB:
 
     def audit(self, module: str, action: str, *, actor: str = "local-user", object_type: str = "", object_id: str = "", revision: int = 0, details: dict | None = None) -> str:
         event_id = uuid4().hex
+        ts_utc = utc_now()
+        details_json = json.dumps(details or {}, ensure_ascii=False, sort_keys=True)
         with self.connect() as conn:
+            head = conn.execute(
+                "SELECT seq,event_hash FROM audit_chain ORDER BY seq DESC LIMIT 1"
+            ).fetchone()
+            seq = int(head["seq"]) + 1 if head else 1
+            prev_hash = str(head["event_hash"]) if head else AUDIT_GENESIS_HASH
+            event_hash = _audit_hash(
+                seq=seq,
+                event_id=event_id,
+                ts_utc=ts_utc,
+                actor=actor,
+                module=module,
+                action=action,
+                object_type=object_type,
+                object_id=object_id,
+                revision=revision,
+                details_json=details_json,
+                prev_hash=prev_hash,
+            )
             conn.execute(
                 "INSERT INTO audit_events(event_id,ts_utc,actor,module,action,object_type,object_id,revision,details_json) VALUES(?,?,?,?,?,?,?,?,?)",
-                (event_id, utc_now(), actor, module, action, object_type, object_id, revision, json.dumps(details or {}, ensure_ascii=False, sort_keys=True)),
+                (event_id, ts_utc, actor, module, action, object_type, object_id, revision, details_json),
+            )
+            conn.execute(
+                "INSERT INTO audit_chain(seq,event_id,hash_version,prev_hash,event_hash) VALUES(?,?,?,?,?)",
+                (seq, event_id, AUDIT_HASH_VERSION, prev_hash, event_hash),
             )
         return event_id
+
+    def verify_audit_chain(self) -> dict:
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT c.seq,c.event_id,c.hash_version,c.prev_hash,c.event_hash,
+                          e.ts_utc,e.actor,e.module,e.action,e.object_type,e.object_id,
+                          e.revision,e.details_json
+                   FROM audit_chain c
+                   JOIN audit_events e ON e.event_id=c.event_id
+                   ORDER BY c.seq ASC"""
+            ).fetchall()
+            event_count = int(conn.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0])
+
+        if len(rows) != event_count:
+            return {
+                "ok": False,
+                "event_count": event_count,
+                "chain_count": len(rows),
+                "broken_seq": None,
+                "reason": "Audit event count does not match chained event count.",
+            }
+
+        expected_prev = AUDIT_GENESIS_HASH
+        for row in rows:
+            seq = int(row["seq"])
+            if int(row["hash_version"]) != AUDIT_HASH_VERSION:
+                return {
+                    "ok": False,
+                    "event_count": event_count,
+                    "chain_count": len(rows),
+                    "broken_seq": seq,
+                    "reason": f"Unsupported audit hash version at sequence {seq}.",
+                }
+            if str(row["prev_hash"]) != expected_prev:
+                return {
+                    "ok": False,
+                    "event_count": event_count,
+                    "chain_count": len(rows),
+                    "broken_seq": seq,
+                    "reason": f"Previous-hash link mismatch at sequence {seq}.",
+                }
+            computed = _audit_hash(
+                seq=seq,
+                event_id=row["event_id"],
+                ts_utc=row["ts_utc"],
+                actor=row["actor"],
+                module=row["module"],
+                action=row["action"],
+                object_type=row["object_type"] or "",
+                object_id=row["object_id"] or "",
+                revision=int(row["revision"] or 0),
+                details_json=row["details_json"] or "{}",
+                prev_hash=expected_prev,
+            )
+            if computed != str(row["event_hash"]):
+                return {
+                    "ok": False,
+                    "event_count": event_count,
+                    "chain_count": len(rows),
+                    "broken_seq": seq,
+                    "reason": f"Audit event hash mismatch at sequence {seq}.",
+                }
+            expected_prev = computed
+
+        return {
+            "ok": True,
+            "event_count": event_count,
+            "chain_count": len(rows),
+            "broken_seq": None,
+            "head_hash": expected_prev if rows else AUDIT_GENESIS_HASH,
+            "hash_version": AUDIT_HASH_VERSION,
+        }
 
     def recent_audit(self, limit: int = 100) -> list[dict]:
         with self.connect() as conn:
