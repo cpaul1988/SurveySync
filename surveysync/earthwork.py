@@ -149,7 +149,7 @@ def average_end_area_earthwork(*, sections: list[dict[str, Any]]) -> dict[str, A
     intervals: list[dict[str, float]] = []
     cumulative_cut = 0.0
     cumulative_fill = 0.0
-    for first, second in zip(cleaned, cleaned[1:], strict=True):
+    for first, second in zip(cleaned, cleaned[1:]):
         distance = second["station"] - first["station"]
         cut_volume = (first["cut_area"] + second["cut_area"]) * 0.5 * distance
         fill_volume = (first["fill_area"] + second["fill_area"]) * 0.5 * distance
@@ -214,7 +214,7 @@ def slope_catch_2d(
     outer_offset = outer[0]
     outer_elevation = design_cl + outer[1]
 
-    ground_segments = list(zip(ground, ground[1:], strict=True))
+    ground_segments = list(zip(ground, ground[1:]))
     if side_text == "LEFT":
         ground_segments = list(reversed(ground_segments))
 
