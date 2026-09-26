@@ -67,3 +67,4 @@ Project Health verifies the chain without modifying it. Deliverable-package mani
 
 COGOSync keeps its existing small native inverse/forward/intersection functions and adds an attributed extended curve module rather than importing another project's database or application architecture. CRS transformation authority remains pyproj/PROJ.
 
+Each project stores a persistent random chain identity in `audit_chain_meta`; that identity is included in every canonical audit hash so a valid audit/event chain copied from another project database will not verify in the destination project.

@@ -315,3 +315,5 @@ project has tests. Before a SurveySync Stable release it must have:
 - comparison against known-good survey software/workbooks where available
 - clear output provenance naming the method/version
 - human-review behavior for ambiguous or professional-judgment cases
+
+- Audit hashes are bound to a persistent project chain identity, following Buzz's tenant-binding principle without importing Buzz's relay/database stack.

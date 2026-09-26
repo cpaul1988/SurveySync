@@ -35,3 +35,4 @@ Project database schema 6 adds a SHA-256 chained `audit_chain` table keyed by mo
 
 Direct database edits to historical audit rows are detectable by `verify_audit_chain()` and become a blocking Project Health finding. The current chain head is also included in deliverable-package manifests.
 
+The chain is bound to a persistent per-project `chain_id`, preventing a valid chain from another SurveySync project from being transplanted and accepted as local history.

@@ -80,3 +80,4 @@ The shared release gate also runs the existing TopoSync range detector, diagnost
 
 These tests validate SurveySync's adaptations; they do not substitute for field/software comparison of newly imported surveying algorithms before Stable promotion.
 
+Coverage also includes a cross-project transplant regression: a cryptographically valid source-project chain is copied into a second project while the destination keeps its own chain identity, and verification must fail.
