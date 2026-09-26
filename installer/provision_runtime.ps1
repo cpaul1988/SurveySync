@@ -273,7 +273,7 @@ if (Test-Path $WindowsAiReq) {
 }
 
 Write-Log "Verifying required imports"
-$verify = "import fastapi,uvicorn,requests,fitz,PIL,pydantic,webview,numpy,cv2,shapefile,openpyxl,defusedxml; print('SurveySync runtime READY')"
+$verify = "import fastapi,uvicorn,requests,fitz,PIL,pydantic,webview,numpy,cv2,shapefile,openpyxl,defusedxml; import surveysync.router,fieldbook_sync.app; print('SurveySync production startup imports READY')"
 & $VenvPy -c $verify *>> $Log
 if ($LASTEXITCODE -ne 0) { Fail "Runtime verification failed. See $Log" }
 
