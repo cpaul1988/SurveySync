@@ -159,6 +159,73 @@ class CogoSlopeCatchIn(CogoCrossSectionIn):
     side: str
 
 
+class CogoAlignmentElementIn(BaseModel):
+    kind: str
+    length: float | None = Field(default=None, gt=0)
+    radius: float | None = Field(default=None, gt=0)
+    delta_deg: float | None = Field(default=None, gt=0)
+    direction: str | None = None
+
+
+class CogoAlignmentDefinitionIn(BaseModel):
+    start_northing: float
+    start_easting: float
+    start_azimuth_deg: float
+    start_station: float = 0.0
+    elements: list[CogoAlignmentElementIn] = Field(min_length=1)
+
+
+class CogoAlignmentStationIn(BaseModel):
+    alignment: CogoAlignmentDefinitionIn
+    station: float
+
+
+class CogoAlignmentStationOffsetIn(BaseModel):
+    alignment: CogoAlignmentDefinitionIn
+    point_northing: float
+    point_easting: float
+
+
+class CogoAlignmentStakePointIn(BaseModel):
+    alignment: CogoAlignmentDefinitionIn
+    station: float
+    offset: float = 0.0
+
+
+class LandXmlPointIn(BaseModel):
+    point_id: str = Field(min_length=1, max_length=120)
+    northing: float
+    easting: float
+    elevation: float | None = None
+    description: str = ""
+
+
+class LandXmlParcelVertexIn(BaseModel):
+    northing: float
+    easting: float
+
+
+class LandXmlParcelIn(BaseModel):
+    name: str = ""
+    vertices: list[LandXmlParcelVertexIn] = Field(min_length=3)
+
+
+class LandXmlAlignmentIn(BaseModel):
+    name: str = ""
+    alignment: CogoAlignmentDefinitionIn
+
+
+class LandXmlImportIn(BaseModel):
+    file_path: str = Field(min_length=1)
+
+
+class LandXmlExportIn(BaseModel):
+    output_path: str = ""
+    points: list[LandXmlPointIn] = []
+    parcels: list[LandXmlParcelIn] = []
+    alignments: list[LandXmlAlignmentIn] = []
+
+
 class NetworkPointIn(BaseModel):
     point_id: str = Field(min_length=1, max_length=80)
     northing: float
