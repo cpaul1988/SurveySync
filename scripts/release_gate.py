@@ -28,6 +28,7 @@ FORMATTED = [
     "surveysync/session_recovery.py",
     "surveysync/support_center.py",
     "surveysync/data_inspector.py",
+    "surveysync/cogo_extended.py",
 ]
 TESTS = [
     "tests",
