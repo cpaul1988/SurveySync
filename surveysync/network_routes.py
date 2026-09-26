@@ -85,9 +85,7 @@ def control_network_adjust(payload: ControlNetworkAdjustmentIn):
                 "sigma0": result["sigma0"],
                 "review_count": result["review_count"],
                 "independent_validation": validation.get("status"),
-                "max_reference_coordinate_delta": validation.get(
-                    "max_coordinate_delta"
-                ),
+                "max_reference_coordinate_delta": validation.get("max_coordinate_delta"),
             },
         },
     )
