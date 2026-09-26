@@ -734,6 +734,27 @@
         "docs/API_REFERENCE.md",
         "THIRD_PARTY_NOTICES.md"
       ]
+    },
+    "v932_alignment_landxml": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/horizontal_alignment.py",
+        "surveysync/landxml_io.py",
+        "surveysync/alignment_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v932_landxml_alignment.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
     }
   }
 }
