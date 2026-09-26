@@ -755,6 +755,24 @@
         "docs/TEST_COVERAGE.md",
         "THIRD_PARTY_NOTICES.md"
       ]
+    },
+    "v932_installed_runtime_parity": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "requirements.in",
+        "requirements.lock",
+        "installer/provision_runtime.ps1",
+        ".github/workflows/release.yml"
+      ],
+      "tests": [
+        "tests/test_v932_installer_runtime.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_3_2.md",
+        "QA_REPORT_v9_3_2.md",
+        "docs/TEST_COVERAGE.md",
+        "CHANGELOG.md"
+      ]
     }
   }
 }
