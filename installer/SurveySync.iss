@@ -100,5 +100,5 @@ begin
   if not Exec(PowerShell, Args, ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     RaiseException('Could not start the SurveySync runtime provisioner.')
   else if ResultCode <> 0 then
-    RaiseException('SurveySync dependency setup failed. See %LOCALAPPDATA%\SurveySync\logs\setup_runtime.log for details.');
+    RaiseException('SurveySync dependency setup failed (exit code ' + IntToStr(ResultCode) + '). Log: ' + ExpandConstant('{localappdata}\SurveySync\logs\setup_runtime.log'));
 end;
