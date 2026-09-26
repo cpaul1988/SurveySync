@@ -1,7 +1,7 @@
 {
   "product": "SurveySync",
   "version": "9.3.2",
-  "build_type": "beta.3-candidate-open-source-integration-installer-hardening",
+  "build_type": "beta.4-candidate-open-source-integration-clean-package",
   "generated_utc": "2026-09-26T20:34:00Z",
   "baseline": "SurveySync 9.3.1 stable",
   "feedback": {
@@ -54,7 +54,21 @@
       "retry_pending": 0
     },
     "beta3_clean_production_venv_gate": true,
-    "beta3_quality_gate_status": "pending"
+    "beta3_quality_gate_status": "pending",
+    "beta3_release_workflow": "passed",
+    "beta3_packaging_acceptance": "rejected_before_install",
+    "beta3_installer_size_bytes": 67431440,
+    "beta3_promotable": false,
+    "beta4_tracker_check": {
+      "date": "2026-09-26",
+      "latest_feedback": "FBR-0016",
+      "total_errors": 0,
+      "open_errors": 0,
+      "retry_pending": 0
+    },
+    "beta4_quality_gate_status": "pending",
+    "beta4_ci_venv_outside_source": true,
+    "beta4_installer_excludes_ci_metadata": true
   },
   "release_constraints": [
     "Beta workflow must rerun the shared Windows release gate after the 9.3.2 version bump",
@@ -67,7 +81,10 @@
     "Beta tag must be pre-created by an authenticated maintainer at the exact candidate SHA before the release workflow",
     "Do not promote v9.3.2-beta.2; installed runtime provisioning acceptance failed",
     "Publish and install-test v9.3.2-beta.3 or later",
-    "Quality and release gates must pass clean production requirements.lock environment verification"
+    "Quality and release gates must pass clean production requirements.lock environment verification",
+    "Do not install or promote v9.3.2-beta.3; CI verification venv was accidentally packaged",
+    "Publish and install-test v9.3.2-beta.4 or later",
+    "Installer must exclude CI verification environments and repository metadata"
   ],
   "dependency_locks": [
     "requirements.lock",
