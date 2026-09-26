@@ -74,6 +74,26 @@ class CogoIntersectIn(BaseModel):
     az2: float
 
 
+class CogoCurveIn(BaseModel):
+    radius: float | None = None
+    delta_deg: float | None = None
+    tangent: float | None = None
+    arc_length: float | None = None
+    long_chord: float | None = None
+    external: float | None = None
+    middle_ordinate: float | None = None
+    degree_of_curve: float | None = None
+
+
+class CogoThreePointCurveIn(BaseModel):
+    n1: float
+    e1: float
+    n2: float
+    e2: float
+    n3: float
+    e3: float
+
+
 class CrsInspectIn(BaseModel):
     crs: str
 
