@@ -33,6 +33,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23.x'
+      - name: Require Beta candidate branch
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -eq 'refs/heads/main') {
+            throw 'Beta publication must run from a tested development/candidate branch, not main. Merge only after Beta validation.'
+          }
       - name: Validate version and notes
         shell: pwsh
         run: |
@@ -81,6 +87,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Require Stable promotion from main
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -ne 'refs/heads/main') {
+            throw "Stable promotion must run from main after the tested Beta candidate has been merged. Current ref: $env:GITHUB_REF"
+          }
       - name: Promote exact Beta artifact
         shell: pwsh
         env:
