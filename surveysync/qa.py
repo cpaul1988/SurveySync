@@ -43,6 +43,19 @@ def run_project_qa(project: SurveyProject) -> dict:
     add("HEALTH_HORIZONTAL_UNITS", "horizontal_units", "PASS" if m.get("horizontal_units") else "ERROR", f"Horizontal units: {m.get('horizontal_units')}" if m.get("horizontal_units") else "Horizontal units are missing.", rule_key="require_horizontal_units")
     add("HEALTH_VERTICAL_UNITS", "vertical_units", "PASS" if m.get("vertical_units") else "WARN", f"Vertical units: {m.get('vertical_units')}" if m.get("vertical_units") else "Vertical units are missing.", rule_key="require_vertical_units")
 
+    audit_integrity = project.db.verify_audit_chain()
+    add(
+        "HEALTH_AUDIT_CHAIN",
+        "audit_chain_integrity",
+        "PASS" if audit_integrity.get("ok") else "ERROR",
+        (
+            f"Audit chain verified through {audit_integrity.get('chain_count', 0)} event(s)."
+            if audit_integrity.get("ok")
+            else f"Audit chain integrity failure: {audit_integrity.get('reason', 'unknown error')}"
+        ),
+        details=audit_integrity,
+    )
+
     # Immutable source evidence.
     for src in project.sources():
         p = project.paths.root / src["stored_path"]
