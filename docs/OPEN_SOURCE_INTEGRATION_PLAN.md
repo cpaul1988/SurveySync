@@ -53,8 +53,8 @@ Decision:
 Next:
 - **vertical parabolic curve geometry — implemented** with percent-grade inputs, BVC/PVI/EVC, K-value, high/low point, and station/elevation sampling.
 - horizontal alignment geometry expansion
-- slope staking
-- cross sections/earthwork
+- **slope staking foundation — implemented** as deterministic 2D ground/design catch-point intersection; full 3D alignment-based slope staking remains future work.
+- **cross sections / earthwork — implemented** with cut/fill areas, average-end-area volumes, cumulative quantities, and mass-haul ordinates.
 
 ### ControlSync
 
