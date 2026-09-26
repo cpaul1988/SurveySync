@@ -393,3 +393,6 @@ input[type="checkbox"],input[type="radio"]{accent-color:var(--accent)}.control:f
 
 /* SurveySync 9.4 module icon system ----------------------------------------- */
 .module-tab{display:flex;align-items:center;gap:7px}.module-tab-icon{width:21px;height:21px;display:block;object-fit:contain;flex:0 0 auto}.product-brand .brand-globe{width:23px;height:23px;object-fit:contain}.brand-mark img{object-fit:contain}
+
+/* SurveySync 9.4 product-brand alignment */
+.product-brand .brand-globe,.surveysync-brand-globe{object-fit:contain}.brand-mark img{object-fit:contain}.startup-splash-logo{object-fit:contain;background:#F6F4EE}.brand-tagline{color:#C19D65}
