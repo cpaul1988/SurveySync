@@ -132,6 +132,7 @@ from .data_inspector import router as data_inspector_router
 from .cogo_routes import router as cogo_extended_router
 from .network_routes import router as network_adjustment_router
 from .level_network_routes import router as level_network_adjustment_router
+from .alignment_routes import router as alignment_landxml_router
 from .diagnostics import (
     build_diagnostic_bundle,
     error_log_path,
@@ -150,6 +151,7 @@ for subrouter in (
     cogo_extended_router,
     network_adjustment_router,
     level_network_adjustment_router,
+    alignment_landxml_router,
 ):
     router.include_router(subrouter)
 config_store = ConfigStore()
