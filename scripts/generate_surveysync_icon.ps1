@@ -86,7 +86,7 @@ function New-BrandPng([int]$Size) {
 }
 
 $sizes = @(16,24,32,48,64,128,256)
-$images = foreach($s in $sizes){ [PSCustomObject]@{ Size=$s; Bytes=(New-BrandPng $s) } }
+$images = foreach($s in $sizes){ [PSCustomObject]@{ Size=$s; Bytes=[byte[]](New-BrandPng $s) } }
 
 $dir = Split-Path -Parent $OutputPath
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
@@ -102,8 +102,12 @@ try {
         $bw.Write([UInt32]$img.Bytes.Length); $bw.Write([UInt32]$offset)
         $offset += $img.Bytes.Length
     }
-    foreach($img in $images){ $bw.Write($img.Bytes) }
+    foreach($img in $images){
+        [byte[]]$payload = $img.Bytes
+        $bw.Write($payload,0,$payload.Length)
+    }
 }
 finally { $bw.Dispose(); $fs.Dispose() }
 
-Write-Host "Generated SurveySync 9.4 brand icon: $OutputPath"
+$final = Get-Item $OutputPath
+Write-Host "Generated SurveySync 9.4 brand icon: $OutputPath ($($final.Length) bytes, $($images.Count) frames)"
