@@ -129,6 +129,36 @@ class CogoVerticalCurveIn(BaseModel):
     sample_interval: float | None = Field(default=None, gt=0)
 
 
+class CogoGroundProfilePointIn(BaseModel):
+    offset: float
+    elevation: float
+
+
+class CogoDesignProfilePointIn(BaseModel):
+    offset: float
+    relative_elevation: float
+
+
+class CogoCrossSectionIn(BaseModel):
+    ground_points: list[CogoGroundProfilePointIn] = Field(min_length=2)
+    design_points: list[CogoDesignProfilePointIn] = Field(min_length=2)
+    design_centerline_elevation: float
+
+
+class CogoEarthworkSectionIn(BaseModel):
+    station: float
+    cut_area: float = Field(ge=0)
+    fill_area: float = Field(ge=0)
+
+
+class CogoEarthworkIn(BaseModel):
+    sections: list[CogoEarthworkSectionIn] = Field(min_length=2)
+
+
+class CogoSlopeCatchIn(CogoCrossSectionIn):
+    side: str
+
+
 class NetworkPointIn(BaseModel):
     point_id: str = Field(min_length=1, max_length=80)
     northing: float
