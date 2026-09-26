@@ -1,3 +1,11 @@
+# 9.3.2 — Open-source integration foundation (Unreleased)
+
+- Added attributed MIT-derived horizontal and three-point curve calculations to COGOSync, with explicit 100-foot-arc degree-of-curve handling and project-unit safety.
+- Added a Buzz-inspired, SHA-256 chained project audit ledger with migration/backfill, tamper verification, Project Health enforcement, and audit-head inclusion in deliverable manifests.
+- Added release workflow guards so Beta publication cannot run from main and Stable promotion cannot run before the tested candidate reaches main.
+- Added THIRD_PARTY_NOTICES.md and a maintained open-source integration plan covering Cogokit, pySurveying, jxl2txt, Buzz, and major geospatial dependencies.
+- Stable 9.3.1 remains unchanged while this work is validated on the v9.3.2-open-source-integration branch.
+
 # 9.3.1 — Reliability, support, and review hardening
 
 Adds the integrated Support Center, explicit interrupted-session recovery, Survey Data Inspector with SHA-256 caching and downstream handoff, TopoSync QC profiles/run history/review decisions, and advisory calibration summaries. Fixes startup-update event wiring, false recovery state from file-association maintenance, and stale project/CRS/unit context on Inspector cache hits. See `RELEASE_NOTES_v9_3_1.md`.
