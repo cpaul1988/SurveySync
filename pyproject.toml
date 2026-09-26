@@ -7,7 +7,7 @@ select = ["E9", "F821", "F822", "F823"]
 
 [tool.mypy]
 python_version = "3.12"
-files = ["surveysync/topo", "surveysync/control_math.py", "surveysync/api_models.py", "fieldbook_sync/api_models.py", "fieldbook_sync/rod_height_qc.py"]
+files = ["surveysync/topo", "surveysync/control_math.py", "surveysync/cogo_extended.py", "surveysync/api_models.py", "fieldbook_sync/api_models.py", "fieldbook_sync/rod_height_qc.py"]
 follow_imports = "silent"
 ignore_missing_imports = true
 check_untyped_defs = true
