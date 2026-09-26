@@ -145,6 +145,21 @@ Additional prevention added for Beta.3:
 
 Pre-Beta.3 tracker check on September 26, 2026: latest feedback remains FBR-0016; SurveySync Error Log Dashboard reports 0 total/open errors and Retry Queue is empty.
 
+## Beta.3 Packaging Acceptance Result
+
+**REJECTED BEFORE INSTALL — packaging contamination**
+
+The Beta.3 release workflow and clean production-runtime gate passed, but the published installer was **67,431,440 bytes**, far larger than the roughly 7 MB prior candidates. Review of `installer/SurveySync.iss` showed the recursive source packaging rule did not exclude the newly created repository-local `.prod-verify` virtual environment. The installer therefore bundled CI verification files that must not ship.
+
+Beta.4 correction:
+
+- Quality and Release CI create the production-verification venv under `RUNNER_TEMP`, outside the source tree.
+- Setup explicitly excludes `.prod-verify`, `.git`, and `.github` as packaging backstops.
+- Regression coverage asserts those exclusions and external temp-venv placement.
+- Beta.3 must not be installed or promoted.
+
+Pre-Beta.4 tracker check on September 26, 2026: latest feedback remains FBR-0016; SurveySync Error Log Dashboard reports 0 total/open errors and Retry Queue is empty.
+
 ## Required Beta publication gate
 
 The GitHub **SurveySync Release** workflow must:
