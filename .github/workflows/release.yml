@@ -99,10 +99,10 @@ jobs:
             exit 1
           fi
           tag="v$RELEASE_VERSION-beta"
-          gh api "repos/$RELEASE_REPO/releases/tags/$tag" >/dev/null
-          gh api --method DELETE "repos/$RELEASE_REPO/git/refs/tags/$tag"
-          gh api --method POST "repos/$RELEASE_REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$CANDIDATE_SHA" >/dev/null
-          actual="$(gh api "repos/$RELEASE_REPO/git/ref/tags/$tag" --jq '.object.sha')"
+          git fetch --no-tags origin "$CANDIDATE_SHA" --depth=1
+          git tag -f "$tag" "$CANDIDATE_SHA"
+          git push origin "refs/tags/$tag" --force
+          actual="$(git ls-remote origin "refs/tags/$tag" | awk '{print $1}')"
           if [[ "$actual" != "$CANDIDATE_SHA" ]]; then
             echo "Tag repair verification failed: expected $CANDIDATE_SHA got $actual"
             exit 1
