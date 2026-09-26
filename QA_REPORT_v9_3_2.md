@@ -109,6 +109,24 @@ Corrective action for Beta.2:
 
 Beta.1 is rejected for Stable promotion.
 
+## Beta.2 Candidate Quality Evidence
+
+SurveySync Quality run **#98** passed on the corrected Beta.2 candidate after the production-runtime fix:
+
+- **323 passed**
+- **1 skipped**
+- **0 failed**
+- **58.08% line coverage** against a 54% floor
+- documentation gate: PASS
+- static-quality gate: PASS
+- Ruff checks/format: PASS
+- mypy: PASS
+- Python compile checks: PASS
+- JavaScript syntax: PASS
+- dependency lock audit: PASS
+
+The additional regression coverage verifies that LandXML's `defusedxml` dependency exists in the production requirements input/lock used by Setup and that Setup smoke-tests actual SurveySync startup imports before reporting success.
+
 ## Required Beta publication gate
 
 The GitHub **SurveySync Release** workflow must:
