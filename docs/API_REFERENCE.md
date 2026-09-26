@@ -88,6 +88,7 @@ This is a developer-oriented index, not a complete OpenAPI dump.
 - `GET /api/v9/control/export-profiles` — list project-scoped custom ControlSync exporter profiles.
 - `POST /api/v9/control/qc-export` — accepted-control CSV/TXT using selected fields and project/geographic/alternate projected CRS output.
 - `POST /api/v9/control/network-adjust` — separate constrained 2D weighted least-squares workflow for conventional control networks. Supports distance, azimuth, direction, and horizontal-angle observations; returns adjusted coordinates, residuals, redundancy numbers, standardized-residual review flags, covariance-derived 95% error ellipses, and optional Huber robust weights. Ronald's best-three workflow is not modified.
+- `POST /api/v9/level/network-adjust` — separate weighted least-squares benchmark-network adjustment using elevation-difference observations and fixed benchmarks. Returns adjusted elevations, uncertainty, redundancy and standardized-residual review flags, with optional Huber robust weighting. The Ron three-wire workbook profile is not modified.
 
 `coordinate_mode=geographic` emits Latitude/Longitude fields. `coordinate_mode=target` requires a projected target CRS when output fields are Northing/Easting.
 
