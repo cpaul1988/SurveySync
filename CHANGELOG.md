@@ -1,3 +1,15 @@
+# 9.4.0 — Brand system refresh (Development)
+
+- Adopted the new SurveySync **Surveying Navy / Topographic Gold / Canvas Cream** product identity and **UNIFYING GLOBAL DATA** tagline across the main SurveySync shell.
+- Replaced Windows installer, shortcut, favicon and file-association icon surfaces with the new topographic globe artwork.
+- Wired pywebview's native Windows icon support to the installed SurveySync ICO so the running desktop window/taskbar uses the product icon.
+- Refreshed Inno Setup wizard graphics with the new globe and palette.
+- Added the supplied 12-icon survey workflow library and mapped the icons into SurveySync module navigation and FieldBookSync module tabs.
+- Replaced the legacy release-note logo image with the new lockup treatment and added a branded About panel.
+- Updated FieldBookSync's global SurveySync ribbon and non-EDSI theme icons while preserving official EDSI branding profiles.
+- Added permanent branding regression coverage for installer/native icon wiring, workflow assets, shell integration and palette tokens.
+- Kept the application release stamp at 9.3.2 during the 9.4 development phase; the complete 9.4 version bump will occur when the 9.4 feature set is prepared for build.
+
 # 9.3.2 — Open-source integration foundation (Unreleased)
 
 - Added attributed MIT-derived horizontal and three-point curve calculations to COGOSync, with explicit 100-foot-arc degree-of-curve handling and project-unit safety.
