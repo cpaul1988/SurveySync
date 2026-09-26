@@ -13,6 +13,7 @@ def test_installed_runtime_declares_landxml_startup_dependency():
     assert "defusedxml>=0.7,<1" in requirements_in
     assert "defusedxml==0.7.1" in requirements_lock
     assert "openpyxl,defusedxml" in provisioner
+    assert "import surveysync.router,fieldbook_sync.app" in provisioner
 
 
 def test_installer_uses_production_lock_not_dev_lock():
