@@ -105,6 +105,7 @@ def test_audit_chain_detects_tampering(tmp_path):
     healthy = db.verify_audit_chain()
     assert healthy["ok"] is True
     assert healthy["event_count"] == 2
+    assert len(healthy["chain_id"]) == 32
     assert len(healthy["head_hash"]) == 64
 
     with db.connect() as conn:
@@ -117,6 +118,31 @@ def test_audit_chain_detects_tampering(tmp_path):
     assert broken["ok"] is False
     assert broken["broken_seq"] == 1
     assert "hash mismatch" in broken["reason"].lower()
+
+
+def test_audit_chain_identity_prevents_cross_project_transplant(tmp_path):
+    source = AuditDB(tmp_path / "source.sqlite")
+    target = AuditDB(tmp_path / "target.sqlite")
+    source.audit("Core", "SOURCE_EVENT", details={"project": "source"})
+    target.audit("Core", "TARGET_EVENT", details={"project": "target"})
+
+    with source.connect() as src, target.connect() as dst:
+        event = src.execute("SELECT * FROM audit_events ORDER BY rowid LIMIT 1").fetchone()
+        chain = src.execute("SELECT * FROM audit_chain ORDER BY seq LIMIT 1").fetchone()
+        dst.execute("DELETE FROM audit_chain")
+        dst.execute("DELETE FROM audit_events")
+        dst.execute(
+            "INSERT INTO audit_events(event_id,ts_utc,actor,module,action,object_type,object_id,revision,details_json) VALUES(?,?,?,?,?,?,?,?,?)",
+            tuple(event),
+        )
+        dst.execute(
+            "INSERT INTO audit_chain(seq,event_id,hash_version,prev_hash,event_hash) VALUES(?,?,?,?,?)",
+            tuple(chain),
+        )
+
+    result = target.verify_audit_chain()
+    assert result["ok"] is False
+    assert "hash mismatch" in result["reason"].lower()
 
 
 def test_v5_project_audit_events_are_backfilled_into_chain(tmp_path):
@@ -177,6 +203,7 @@ def test_deliverable_manifest_contains_verified_audit_head(tmp_path):
     audit = manifest["audit_chain"]
     assert audit["verified"] is True
     assert audit["event_count"] >= 1
+    assert len(audit["chain_id"]) == 32
     assert len(audit["head_hash"]) == 64
 
 
