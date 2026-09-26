@@ -718,32 +718,36 @@ class AuditDB:
             # Serialize chain appends across SurveySync background threads. A deferred
             # read transaction could otherwise let two writers choose the same seq.
             conn.execute("BEGIN IMMEDIATE")
-            head = conn.execute(
-                "SELECT seq,event_hash FROM audit_chain ORDER BY seq DESC LIMIT 1"
-            ).fetchone()
-            seq = int(head["seq"]) + 1 if head else 1
-            prev_hash = str(head["event_hash"]) if head else AUDIT_GENESIS_HASH
-            event_hash = _audit_hash(
-                seq=seq,
-                event_id=event_id,
-                ts_utc=ts_utc,
-                actor=actor,
-                module=module,
-                action=action,
-                object_type=object_type,
-                object_id=object_id,
-                revision=revision,
-                details_json=details_json,
-                prev_hash=prev_hash,
-            )
-            conn.execute(
-                "INSERT INTO audit_events(event_id,ts_utc,actor,module,action,object_type,object_id,revision,details_json) VALUES(?,?,?,?,?,?,?,?,?)",
-                (event_id, ts_utc, actor, module, action, object_type, object_id, revision, details_json),
-            )
-            conn.execute(
-                "INSERT INTO audit_chain(seq,event_id,hash_version,prev_hash,event_hash) VALUES(?,?,?,?,?)",
-                (seq, event_id, AUDIT_HASH_VERSION, prev_hash, event_hash),
-            )
+            try:
+                head = conn.execute(
+                    "SELECT seq,event_hash FROM audit_chain ORDER BY seq DESC LIMIT 1"
+                ).fetchone()
+                seq = int(head["seq"]) + 1 if head else 1
+                prev_hash = str(head["event_hash"]) if head else AUDIT_GENESIS_HASH
+                event_hash = _audit_hash(
+                    seq=seq,
+                    event_id=event_id,
+                    ts_utc=ts_utc,
+                    actor=actor,
+                    module=module,
+                    action=action,
+                    object_type=object_type,
+                    object_id=object_id,
+                    revision=revision,
+                    details_json=details_json,
+                    prev_hash=prev_hash,
+                )
+                conn.execute(
+                    "INSERT INTO audit_events(event_id,ts_utc,actor,module,action,object_type,object_id,revision,details_json) VALUES(?,?,?,?,?,?,?,?,?)",
+                    (event_id, ts_utc, actor, module, action, object_type, object_id, revision, details_json),
+                )
+                conn.execute(
+                    "INSERT INTO audit_chain(seq,event_id,hash_version,prev_hash,event_hash) VALUES(?,?,?,?,?)",
+                    (seq, event_id, AUDIT_HASH_VERSION, prev_hash, event_hash),
+                )
+            except sqlite3.Error:
+                conn.rollback()
+                raise
         return event_id
 
     def verify_audit_chain(self) -> dict:
