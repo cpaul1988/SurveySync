@@ -122,7 +122,8 @@ def test_fieldbook_height_header_and_shared_range_algorithm():
 
 def test_export_provenance_uses_current_surveysync_version():
     from fieldbook_sync.exporter import EXPORT_PROVENANCE
-    assert 'SurveySync v9.3.0' in EXPORT_PROVENANCE
+    from surveysync import __version__
+    assert f'SurveySync v{__version__}' in EXPORT_PROVENANCE
     assert 'v8.0.0' not in EXPORT_PROVENANCE
 
 

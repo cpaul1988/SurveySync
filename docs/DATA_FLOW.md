@@ -63,3 +63,12 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ### 9.3.0 TopoSync range QC
 
 Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.
+
+## v9.3.1 Inspector and support flows
+
+**Survey Data Inspector:** selected local source → SHA-256 → format/schema parse → QC summary/cache → refresh current project CRS/unit context → optional handoff to a compatible workflow. Trimble JOB/JXL sources are converted/parsed into a separate normalized cache artifact before handoff; the source file is unchanged.
+
+**Interrupted recovery:** desktop launch → mark session active → active project path recorded → normal close marks session clean. A later launch that sees an active prior session exposes a recovery notice. Restore is offered only for a matching open project with an available automatic recovery snapshot and requires explicit confirmation.
+
+**Support diagnostics:** local diagnostic JSONL → Support Center merged sync state → optional retry to Error Log endpoint or explicit “Report This Error” Feedback Wizard report. Diagnostic/support submission is designed to exclude raw survey source files unless a separate workflow explicitly attaches them.
+

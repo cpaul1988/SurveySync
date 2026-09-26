@@ -107,4 +107,5 @@ def test_v924_api_project_templates_and_data_manager(tmp_path, monkeypatch):
     assert health.status_code == 200 and health.json()["integrity_ok"] is True
     shell = client.get("/").text
     assert "Project Data Manager" in shell
-    assert "SurveySync v9.3.0" in shell
+    from surveysync import __version__
+    assert f"SurveySync v{__version__}" in shell

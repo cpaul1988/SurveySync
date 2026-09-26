@@ -25,6 +25,9 @@ FORMATTED = [
     "scripts/audit_locks.py",
     "scripts/verify_native.py",
     "surveysync/control_exports.py",
+    "surveysync/session_recovery.py",
+    "surveysync/support_center.py",
+    "surveysync/data_inspector.py",
 ]
 TESTS = [
     "tests",

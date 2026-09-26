@@ -90,3 +90,15 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ### 9.3.0 TopoSync range QC
 
 Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.
+
+## v9.3.1 additions
+
+| Area | Feature | Status | Primary implementation | Tests |
+| --- | --- | --- | --- | --- |
+| Support | Unified Support Center with local diagnostic status, retry/sync, Report This Error, feedback-status refresh and redacted diagnostic export | Implemented | `surveysync/support_center.py`, `surveysync/static/support_center.js` | `test_v931_release_candidate.py` + existing diagnostics/feedback regressions |
+| Core | Clean/interrupted session tracking and explicit matching-project recovery restore | Implemented | `surveysync/session_recovery.py`, `desktop.py`, Support Center | `test_v931_release_candidate.py` |
+| Data | Survey Data Inspector for delimited and Trimble survey sources with SHA-256 cache and workflow handoff | Implemented | `surveysync/data_inspector.py`, `surveysync/static/data_inspector.js` | `test_v931_release_candidate.py` |
+| TopoSync | Reusable rod-height QC profiles | Implemented | `surveysync/topo/profiles.py`, `routes.py` | `test_v931_release_candidate.py` |
+| TopoSync | Run history, explicit candidate review decisions, advisory calibration summary | Implemented | `surveysync/topo/storage.py`, `routes.py`, `topo_qc.js` | `test_v931_release_candidate.py`, `test_topo_rod_ranges.py` |
+| Shell | Normal-start update check and corrected cross-tab appearance event wiring | Fixed v9.3.1 | `surveysync/static/app.js` | `test_v931_release_candidate.py` |
+

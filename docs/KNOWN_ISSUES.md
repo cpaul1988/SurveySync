@@ -52,3 +52,14 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ### 9.3.0 TopoSync range QC
 
 Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.
+
+## v9.3.1 validation boundaries
+
+- Survey Data Inspector is a preflight/normalization aid, not a coordinate-transformation engine. A displayed project CRS/units label is context, not proof that an external source was authored in that CRS.
+- Inspector remote-coordinate outliers are heuristic review flags. They are not proof of a survey blunder and do not alter source data.
+- Binary Trimble `.job` inspection still depends on the official Trimble conversion component; JXL/JobXML can be parsed directly.
+- Interrupted-session recovery only offers automatic restore when the interrupted project's path matches the currently open project and a recovery snapshot exists. Restore remains an explicit human action.
+- Support Center automatic error retry is bounded/backed off and depends on a configured reachable tracker endpoint. Local diagnostic records remain available when sync fails.
+- TopoSync review-history calibration is advisory. It does not self-train the rod-height detector, change thresholds automatically, or make a statistical probability claim.
+- Real field-verified positive and negative rod-height datasets are still required to validate production false-positive/false-negative behavior.
+

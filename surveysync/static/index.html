@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#082b52">
-  <title>SurveySync v9.3.0</title>
-  <link rel="icon" href="/surveysync-static/favicon.ico?v=9.3.0">
+  <title>SurveySync v9.3.1</title>
+  <link rel="icon" href="/surveysync-static/favicon.ico?v=9.3.1">
   <script>
     try {
       const appearance=localStorage.getItem('surveysync-appearance')||localStorage.getItem('fbs-theme')||'system';
@@ -18,7 +18,7 @@
       document.documentElement.dataset.accent=accent;
     } catch(_) {}
   </script>
-  <link rel="stylesheet" href="/surveysync-static/styles.css?v=9.3.0">
+  <link rel="stylesheet" href="/surveysync-static/styles.css?v=9.3.1">
 </head>
 <body>
 <div id="envBar" class="env-strip"></div>
@@ -74,6 +74,7 @@
   </div>
   <div id="dataMenu" class="desktop-menu hidden">
     <button data-command="project-data">Project Data Manager…</button>
+    <button data-command="data-inspector">Survey Data Inspector…</button>
     <div class="menu-sep"></div>
     <button data-command="control-import">Import Control Observations…</button>
     <button data-command="point-ranges">Point Range Report…</button>
@@ -90,6 +91,7 @@
   <div id="helpMenu" class="desktop-menu hidden">
     <button data-command="about">About SurveySync</button>
     <button data-command="feedback">Send Feedback</button>
+    <button data-command="support-center">Support Center</button>
     <button data-command="check-update">Check & Update</button>
   </div>
 
@@ -122,7 +124,7 @@
       <nav id="moduleNav" class="module-nav" aria-label="Current module tools"></nav>
       <div class="sidebar-bottom">
         <div class="shared-foundation"><b>Shared foundation</b><span>One project · one point database · one CRS · one audit trail</span></div>
-        <span>SurveySync v9.3.0</span>
+        <span>SurveySync v9.3.1</span>
       </div>
     </aside>
 
@@ -135,7 +137,7 @@
       <div class="content-area">
         <section id="dashboard" class="view active">
           <div class="hero"><div><span class="eyebrow">SURVEYSYNC v9 FOUNDATION</span><h2>One project. Every survey workflow.</h2><p>Modules share project identity, points, coordinate reference system, units, audit history and QA/QC without becoming separate programs.</p></div><button class="btn secondary" data-jump-module="FieldBookSync">Open FieldBookSync</button></div>
-          <div id="whatsNewCard" class="card whats-new-card"><div class="card-title"><div><span class="eyebrow">LATEST UPDATE</span><h3 id="whatsNewTitle">What's new in SurveySync</h3></div><span id="whatsNewVersion" class="brand-badge">v9.3.0</span></div><ul id="whatsNewList" class="release-list"><li>Loading release notes...</li></ul><div class="row"><button id="openReleaseNotes" class="secondary">View Release Notes</button><button id="openFeedbackWizardHome" class="secondary">Send Feedback</button></div></div>
+          <div id="whatsNewCard" class="card whats-new-card"><div class="card-title"><div><span class="eyebrow">LATEST UPDATE</span><h3 id="whatsNewTitle">What's new in SurveySync</h3></div><span id="whatsNewVersion" class="brand-badge">v9.3.1</span></div><ul id="whatsNewList" class="release-list"><li>Loading release notes...</li></ul><div class="row"><button id="openReleaseNotes" class="secondary">View Release Notes</button><button id="openFeedbackWizardHome" class="secondary">Send Feedback</button></div></div>
           <div class="card"><div class="card-title"><div><span class="eyebrow">SUPPORT & UPDATES</span><h3>Release infrastructure</h3></div><span id="startupUpdateBadge" class="brand-badge">Checking…</span></div><p class="muted">SurveySync checks for updates quietly and keeps feedback available even when no project is open.</p><div class="row"><button id="homeCheckUpdate" class="primary">Check & Update</button><button id="homeFeedback" class="secondary">Send Feedback / Report Problem</button></div><div id="startupUpdateMsg" class="muted"></div></div>
           <div id="metrics" class="metrics"></div>
           <div class="grid2"><div class="card"><div class="card-title"><h3>Current project</h3><button class="link-btn" data-command="project-info">Details</button></div><div id="projectSummary" class="muted">Create or open a SurveySync project.</div></div><div class="card"><h3>v9 shared foundation</h3><div class="checks"><div>✓ User-selected project folders</div><div>✓ Immutable source registry</div><div>✓ Shared point/control database</div><div>✓ CRS + horizontal/vertical units</div><div>✓ Project-wide audit + QA</div><div>✓ Developer / Beta / Production</div><div>✓ FieldBookSync migration</div><div>✓ SurveySync-owned updater</div></div></div></div>
@@ -215,9 +217,9 @@
 <section id="rodQc" class="view">
 <div class="card"><span class="eyebrow">TOPOSYNC / SURVEY QC</span><h3>Rod Height Bust Detection</h3><p>Find consistent elevation shifts across roadway feature chains. Review the affected point IDs and supporting evidence before exporting a corrected copy.</p><p class="muted">The evidence score is not a statistical probability. Source elevations remain unchanged. <a href="/fieldbook?rod_height_qc=1">Open the legacy FieldBook point check</a></p><div id="topoMessage" role="status" aria-live="polite">Load a survey export to begin.</div></div>
 <div class="card"><h3>1. Load survey points</h3><div class="topo-controls"><label>Survey file<input id="topoFile" type="file" accept=".csv,.txt,.tsv,.pnezd,.asc"></label><label>Header row<select id="topoHeader"><option value="auto">Detect automatically</option><option value="yes">Yes</option><option value="no">No — show columns</option></select></label><button id="topoLoad">Load preview</button></div><div id="topoSource"></div><div id="topoMapping" class="topo-controls"></div><div id="topoPreview" class="topo-scroll"></div></div>
-<div class="card"><h3>2. Review code classifications</h3><p>Explicit code assignments take priority over the 600–639 structure fallback, including ground code 604 and breakline code 607. Curbs and gutters require care: only compare the same physical surface within a chain.</p><div class="topo-controls"><label>Code list (code, description, optional role)<input id="topoCodesFile" type="file" accept=".csv,.txt,.tsv,.xlsx"></label><button id="topoImportCodes">Import code list</button><button id="topoAddCode">Add code</button><button id="topoSaveCodes">Save code list</button></div><details><summary>Edit classifications</summary><div class="topo-scroll topo-codes"><table><thead><tr><th>Code</th><th>Description</th><th>Role</th><th></th></tr></thead><tbody id="topoRules"></tbody></table></div></details><label><input id="topoCodesReviewed" type="checkbox"> I reviewed the code classifications for this survey.</label></div>
+<div class="card"><h3>2. Review code classifications</h3><div class="topo-controls"><label>QC profile<select id="topoProfile"><option value="">Current workspace</option></select></label><label>Profile name<input id="topoProfileName" placeholder="EDSI Roadway Topo"></label><button id="topoLoadProfile" class="secondary">Load Profile</button><button id="topoSaveProfile" class="secondary">Save Current Profile</button></div><p>Explicit code assignments take priority over the 600–639 structure fallback, including ground code 604 and breakline code 607. Curbs and gutters require care: only compare the same physical surface within a chain.</p><div class="topo-controls"><label>Code list (code, description, optional role)<input id="topoCodesFile" type="file" accept=".csv,.txt,.tsv,.xlsx"></label><button id="topoImportCodes">Import code list</button><button id="topoAddCode">Add code</button><button id="topoSaveCodes">Save code list</button></div><details><summary>Edit classifications</summary><div class="topo-scroll topo-codes"><table><thead><tr><th>Code</th><th>Description</th><th>Role</th><th></th></tr></thead><tbody id="topoRules"></tbody></table></div></details><label><input id="topoCodesReviewed" type="checkbox"> I reviewed the code classifications for this survey.</label></div>
 <div class="card"><h3>3. Confirm units, order and tolerances</h3><div class="topo-controls"><label>Horizontal units<select id="topoHorizontal"><option value="us_survey_feet">US survey feet</option><option value="international_feet">International feet</option><option value="meters">Meters</option></select></label><label>Elevation units<select id="topoVertical"><option value="us_survey_feet">US survey feet</option><option value="international_feet">International feet</option><option value="meters">Meters</option></select></label><label>Acquisition order<select id="topoOrder"><option value="file">Source file order</option><option value="point_id">Numeric PointID order</option></select></label></div><p><label><input id="topoUnitsReviewed" type="checkbox"> I confirmed the source coordinate and elevation units.</label></p><p><label><input id="topoOrderReviewed" type="checkbox"> I confirmed that the selected order represents acquisition chronology.</label></p><details><summary>Detection tolerances</summary><p>Thresholds below are in international feet; the detector converts them to the selected source units.</p><div id="topoSettings" class="topo-controls"></div></details><button id="topoAnalyze" class="primary" disabled>Analyze rod-height shifts</button></div>
-<div class="card"><h3>4. Review ranges and export</h3><div id="topoSummary">No analysis yet.</div><div id="topoResults"></div><div class="topo-controls"><button id="topoCsv" disabled>Export report CSV</button><button id="topoJson" disabled>Export evidence JSON</button></div><label>Review reason<textarea id="topoReason" rows="2" placeholder="Record the field notes or independent checks supporting this correction."></textarea></label><p><label><input id="topoCorrectionConfirmed" type="checkbox"> I reviewed the selected point IDs and correction signs against the survey evidence.</label></p><button id="topoCorrected" disabled>Export selected corrections to a new copy</button><p id="topoExportPath" class="muted"></p></div>
+<div class="card"><h3>4. Review ranges and export</h3><div id="topoSummary">No analysis yet.</div><div id="topoCalibration" class="muted"></div><div id="topoResults"></div><div class="topo-controls"><button id="topoCsv" disabled>Export report CSV</button><button id="topoJson" disabled>Export evidence JSON</button></div><label>Review reason<textarea id="topoReason" rows="2" placeholder="Record the field notes or independent checks supporting this correction."></textarea></label><p><label><input id="topoCorrectionConfirmed" type="checkbox"> I reviewed the selected point IDs and correction signs against the survey evidence.</label></p><button id="topoCorrected" disabled>Export selected corrections to a new copy</button><p id="topoExportPath" class="muted"></p><details><summary><b>QC Run History</b></summary><button id="topoHistoryRefresh" class="secondary">Refresh History</button><div id="topoHistory"></div></details></div>
 </section>
 
 <section id="qa" class="view"><div class="card"><span class="eyebrow">QASYNC</span><h3>Project Health Check / Preflight</h3><p>Run centralized rules across project identity, immutable sources, points, coordinates/units, control/level QC, attachments, deliverables and background processing.</p><div class="row"><button id="qaRun" class="primary">Run Project Health Check</button><button id="openOperationsFromQa" class="secondary">Open Review & Operations Center</button></div><div id="qaResult"></div></div></section>
@@ -271,6 +273,20 @@
           <div class="grid2"><div class="card"><span class="eyebrow">REPORTSYNC</span><h3>Professional Survey Report PDF</h3><div class="formgrid"><label>Title<input id="reportTitle" value="Survey Report"></label><label>Prepared by<input id="reportPrepared"></label><label>Project number<input id="reportNumber"></label><label>Client<input id="reportClient"></label></div><label>Scope<textarea id="reportScope" rows="3"></textarea></label><label>Methodology<textarea id="reportMethod" rows="3"></textarea></label><label>Findings / QA summary<textarea id="reportFindings" rows="3"></textarea></label><div class="row"><button id="reportBuild" class="primary">Create Survey Report PDF</button><button id="controlReportBuild" class="secondary">Create Control / Level / Traverse Report</button></div><pre id="reportResult"></pre></div><div class="card"><span class="eyebrow">FIELDBOOKSYNC</span><h3>Annotated Field Book PDF</h3><p class="muted">Rebuilds field-book pages with structure, dip, calculated invert, pipe, azimuth, connection and QC notes.</p><button id="annotatedPdf" class="primary">Export Annotated Field Book PDF</button><pre id="annotatedResult"></pre><hr><h3>Stakeholder notification</h3><p class="muted">SMTP password is session-only or read from SURVEYSYNC_SMTP_PASSWORD; it is not stored in the project.</p><label>Deliverable ID<input id="notifyDeliverable"></label><label>Recipients (comma separated)<input id="notifyRecipients"></label><div class="formgrid"><label>SMTP host<input id="smtpHost"></label><label>Port<input id="smtpPort" type="number" value="587"></label><label>SMTP user<input id="smtpUser"></label><label>From<input id="smtpFrom"></label></div><label>Session password<input id="smtpPassword" type="password" autocomplete="off"></label><div class="row"><label style="display:flex;align-items:center;gap:8px"><input id="notifyAuto" type="checkbox"> Auto-notify on finalized deliverables</label><button id="notifySavePolicy" class="secondary">Save Auto-Notify Policy</button><button id="notifySend" class="secondary">Send Test / Current Notice</button></div><pre id="notifyResult"></pre></div></div>
         </section>
 
+
+        <section id="dataInspector" class="view">
+          <div class="card"><div class="card-title"><div><span class="eyebrow">SHARED DATA</span><h3>Survey Data Inspector</h3></div><span class="brand-badge">LOAD ONCE</span></div><p class="muted">Inspect a survey source once, verify its structure, and hand the normalized dataset to compatible SurveySync workflows. Originals are never modified.</p><div class="row"><input id="inspectorPath" class="grow" placeholder="CSV / TXT / PNEZD / Trimble JOB / JXL"><button id="inspectorBrowse" class="secondary">Browse…</button><button id="inspectorRun" class="primary">Inspect</button><button id="inspectorRefresh" class="secondary">Reinspect</button></div><div id="inspectorStatus" class="muted">Choose a survey source to begin.</div></div>
+          <div class="card"><div id="inspectorResult"></div><div id="inspectorTargets" class="row"></div><div id="inspectorPreview"></div></div>
+          <div class="card"><div class="card-title"><div><span class="eyebrow">CACHE</span><h3>Recent inspected sources</h3></div><button id="inspectorClearCache" class="secondary">Clear Cache</button></div><p class="muted">Cache entries are keyed by SHA-256. Clearing the cache never deletes the original survey file.</p><div id="inspectorRecent"></div></div>
+        </section>
+
+        <section id="supportCenter" class="view">
+          <div class="card"><div class="card-title"><div><span class="eyebrow">SUPPORT & RELIABILITY</span><h3>SurveySync Support Center</h3></div><span class="brand-badge">LOCAL FIRST</span></div><p class="muted">Review local errors, sync diagnostics, track submitted feedback, and recover from an interrupted session without attaching survey source files automatically.</p><div class="row"><button id="supportRefresh" class="secondary">Refresh</button><button id="supportSyncAll" class="primary">Sync Pending Errors</button><button id="supportDiagnostics" class="secondary">Export Diagnostics</button><button id="supportOpenFeedback" class="secondary">New Feedback</button></div><div id="supportStatus" class="muted"></div><div id="supportMetrics" class="metrics"></div></div>
+          <div class="card"><div class="card-title"><div><span class="eyebrow">RECOVERY</span><h3>Session Recovery</h3></div></div><div id="supportRecovery"></div></div>
+          <div class="card"><div class="card-title"><div><span class="eyebrow">ERROR LOG</span><h3>Diagnostics</h3></div></div><div id="supportErrors"></div></div>
+          <div class="card"><div class="card-title"><div><span class="eyebrow">FEEDBACK LOOP</span><h3>Submitted Feedback</h3></div><button id="supportRefreshFeedback" class="secondary">Refresh Tracker Status</button></div><p class="muted">Tracker states are read-only here. Submission compatibility remains unchanged for older SurveySync/FieldBookSync builds.</p><div id="supportFeedback"></div></div>
+        </section>
+
         <section id="foundation" class="view"><div class="foundation-hero"><div id="foundationIcon" class="foundation-icon">S</div><div><span id="foundationKicker" class="eyebrow">MODULE FOUNDATION</span><h2 id="foundationTitle">Module</h2><p id="foundationText">This module is connected to the shared SurveySync project foundation.</p></div></div><div id="foundationCards" class="module-card-grid"></div></section>
 
         <section id="settings" class="view">
@@ -287,7 +303,9 @@
 
 <div id="modal" class="modal hidden"><div class="dialog"><button id="modalClose" class="x">×</button><div id="modalBody"></div></div></div>
 <div id="toast" class="toast hidden"></div>
-<script src="/surveysync-static/app.js?v=9.3.0"></script>
-<script src="/surveysync-static/topo_qc.js?v=9.3.0"></script>
+<script src="/surveysync-static/app.js?v=9.3.1"></script>
+<script src="/surveysync-static/support_center.js?v=9.3.1"></script>
+<script src="/surveysync-static/data_inspector.js?v=9.3.1"></script>
+<script src="/surveysync-static/topo_qc.js?v=9.3.1"></script>
 </body>
 </html>

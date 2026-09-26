@@ -51,3 +51,29 @@ def load_record(root: Path, record_id: str, kind: str) -> dict:
     if result.get("kind") != kind:
         raise ValueError("Wrong TopoSync record type.")
     return result
+
+
+def list_records(root: Path, kind: str, limit: int = 100) -> list[dict]:
+    items: list[dict] = []
+    for path in sorted(root.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+        try:
+            item = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(item, dict) and item.get("kind") == kind:
+            items.append(item)
+        if len(items) >= max(1, min(int(limit), 500)):
+            break
+    return items
+
+
+def replace_record(root: Path, record_id: str, kind: str, data: dict) -> dict:
+    path = record_path(root, record_id)
+    current = load_record(root, record_id, kind)
+    updated = {**current, **data, "record_id": record_id, "kind": kind}
+    temp = path.with_suffix(".tmp")
+    temp.write_text(
+        json.dumps(updated, ensure_ascii=False, allow_nan=False, indent=2), encoding="utf-8"
+    )
+    temp.replace(path)
+    return updated

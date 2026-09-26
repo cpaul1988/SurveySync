@@ -123,3 +123,26 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ### 9.3.0 TopoSync range QC
 
 Standalone point import, editable code classifications, feature-chain range detection, evidence reports and reviewed-copy exports are implemented in `surveysync/topo` and `surveysync/static/topo_qc.js`. See [TopoSync workflow and limits](TOPO_ROD_HEIGHT_QC.md). Synthetic regression coverage is in `tests/test_topo_rod_ranges.py`; real field and Windows acceptance remain pending. Supplied branding replaces the product globe/installer assets.
+
+## v9.3.1 Support Center, recovery, and data inspection
+
+### Support Center
+
+- `GET /api/v9/support/summary` — returns merged local diagnostic/sync state, locally stored feedback summaries, automatic retry state, and interrupted-session recovery availability.
+- `POST /api/v9/support/errors/sync` — retries selected local diagnostic errors, or all pending errors when no IDs are supplied. Survey source files are not attached.
+- `POST /api/v9/support/errors/report` — creates a project-independent Feedback Wizard bug report from one recorded SurveySync error and attempts Intake synchronization.
+- `POST /api/v9/support/feedback/refresh` — requests tracker status for locally stored feedback report IDs.
+- `POST /api/v9/support/recovery/restore-latest` — restores the latest matching recovery snapshot only when `confirmed=true` and the interrupted project matches the currently open project.
+- `POST /api/v9/support/recovery/dismiss` — dismisses the current interrupted-session notice without restoring data.
+
+### Survey Data Inspector
+
+- `POST /api/v9/data-inspector/inspect` — inspects a local CSV/TXT/TSV/PNEZD/ASC/JOB/JXL/JobXML source, caches the result by source SHA-256, and returns detected schema/QC information plus compatible downstream targets.
+- `GET /api/v9/data-inspector/recent` — lists recent cached source inspections.
+- `POST /api/v9/data-inspector/cache/clear` — removes only Inspector cache artifacts; original survey sources are untouched.
+- `POST /api/v9/topo/survey/preview-path` — accepts an Inspector-produced delimited path for TopoSync preview without altering the source.
+- `GET /api/v9/topo/profiles`, `POST /api/v9/topo/profiles`, and `DELETE /api/v9/topo/profiles/{profile_id}` — manage reusable advisory rod-height QC profiles.
+- `GET /api/v9/topo/runs` — lists recent TopoSync rod-height analyses in the active workspace.
+- `POST /api/v9/topo/runs/{run_id}/review` — records an explicit candidate decision and review reason.
+- `GET /api/v9/topo/reviews/calibration` — summarizes review history and may suggest an offset-consistency tolerance; it never applies that suggestion automatically.
+

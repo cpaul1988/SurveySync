@@ -50,3 +50,12 @@ Spatial candidate discovery uses a tolerance-sized in-memory grid/hash rather th
 ## 9.3.0 engineering hardening
 
 See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared release gates, dependency locks, domain extraction, diagnostics and standalone TopoSync rod-height range QC. Windows acceptance and distribution signing remain outstanding.
+
+## v9.3.1 support and inspection services
+
+The 9.3.1 shell keeps support/recovery and data inspection outside the main `surveysync/router.py` orchestration module. `session_recovery.py` owns workstation session-state persistence, `support_center.py` owns support/retry/recovery routes, and `data_inspector.py` owns immutable-source inspection/cache behavior. All are included as subrouters by the shared SurveySync router.
+
+Inspector caches are workstation-local derived artifacts keyed by source SHA-256. Project identity/CRS/units are refreshed at read time so the cache does not become an accidental project-state authority. Trimble normalization produces a separate derived CSV; the original source is never overwritten.
+
+TopoSync QC profiles and review records remain project/workspace scoped and separate from raw survey evidence. Review/calibration state is advisory and cannot silently mutate observations.
+
