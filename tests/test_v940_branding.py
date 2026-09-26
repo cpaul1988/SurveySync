@@ -16,6 +16,8 @@ def test_v940_brand_assets_are_wired_into_both_shells():
 
     assert "/surveysync-static/favicon.ico" in main_html
     assert "UNIFYING GLOBAL DATA" in main_html
+    assert 'id="productSplash"' in main_html
+    assert "setTimeout(dismissProductSplash,700)" in main_js
     assert "MODULE_WORKFLOW_ICONS" in main_js
     assert "surveysync_logo.jpg" not in main_js
     assert "openAboutSurveySync" in main_js
