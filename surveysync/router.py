@@ -498,6 +498,10 @@ def migrate_fieldbook(file_path: str):
 @router.get("/api/v9/audit")
 def audit(limit: int=100): return require_project().db.recent_audit(limit)
 
+@router.get("/api/v9/audit/verify")
+def audit_verify():
+    return require_project().db.verify_audit_chain()
+
 
 @router.post("/api/v9/crs/inspect")
 def crs_inspect(payload: CrsInspectIn):
