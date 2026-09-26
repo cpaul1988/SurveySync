@@ -3,7 +3,7 @@ param(
     [switch]$SkipTests
 )
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'`n`n& (Join-Path $PSScriptRoot 'scripts\generate_surveysync_icon.ps1')`nif ($LASTEXITCODE -ne 0) { throw 'SurveySync brand icon generation failed.' }
 if ($SkipLauncherBuild) { throw 'Release builds must rebuild both native launchers.' }
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Version = (Get-Content (Join-Path $Root 'VERSION.txt') -Raw).Trim()
