@@ -79,10 +79,12 @@ jobs:
       - name: Verify clean production runtime
         shell: pwsh
         run: |
-          python -m venv .prod-verify
-          .\.prod-verify\Scripts\python.exe -m pip install --disable-pip-version-check --require-hashes -r requirements.lock
+          $prodVenv = Join-Path $env:RUNNER_TEMP 'surveysync-prod-verify'
+          if (Test-Path $prodVenv) { Remove-Item -Recurse -Force $prodVenv }
+          python -m venv $prodVenv
+          & (Join-Path $prodVenv 'Scripts\python.exe') -m pip install --disable-pip-version-check --require-hashes -r requirements.lock
           if ($LASTEXITCODE -ne 0) { throw 'Production requirements.lock install failed.' }
-          .\.prod-verify\Scripts\python.exe -c "import surveysync.landxml_io,surveysync.router; print('SurveySync clean production runtime READY')"
+          & (Join-Path $prodVenv 'Scripts\python.exe') -c "import surveysync.landxml_io,surveysync.router; print('SurveySync clean production runtime READY')"
           if ($LASTEXITCODE -ne 0) { throw 'Production startup import smoke test failed.' }
 
       - name: Install Inno Setup
