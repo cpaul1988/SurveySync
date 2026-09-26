@@ -11,6 +11,8 @@ from .api_models import (
     CogoInverseIn as CogoInverseIn,
     CogoBDIn as CogoBDIn,
     CogoIntersectIn as CogoIntersectIn,
+    CogoCurveIn as CogoCurveIn,
+    CogoThreePointCurveIn as CogoThreePointCurveIn,
     CrsInspectIn as CrsInspectIn,
     CrsTransformIn as CrsTransformIn,
     RangeIn as RangeIn,
@@ -92,6 +94,7 @@ from .project import SurveyProject, safe_name
 from .project_templates import list_templates as list_project_templates
 from .data_manager import overview as data_overview, list_rows as data_rows, update_record as update_data_record, database_health, maintain_database
 from .cogo import inverse, bearing_distance, line_intersection
+from .cogo_extended import solve_horizontal_curve, three_point_curve
 from .reports import (
     parse_point_ids_file, available_ranges, ranges_csv, crew_range_recommendations,
     crew_ranges_csv, crew_ranges_txt, write_crew_ranges_xlsx,
@@ -126,6 +129,10 @@ from .control_workspace_routes import router as control_workspace_router
 from .topo.routes import router as topo_router
 from .support_center import router as support_center_router
 from .data_inspector import router as data_inspector_router
+from .cogo_routes import router as cogo_extended_router
+from .network_routes import router as network_adjustment_router
+from .level_network_routes import router as level_network_adjustment_router
+from .alignment_routes import router as alignment_landxml_router
 from .diagnostics import (
     build_diagnostic_bundle,
     error_log_path,
@@ -136,7 +143,16 @@ from .diagnostics import (
 
 STATIC = Path(__file__).resolve().parent / "static"
 router = APIRouter()
-for subrouter in (control_workspace_router, topo_router, support_center_router, data_inspector_router):
+for subrouter in (
+    control_workspace_router,
+    topo_router,
+    support_center_router,
+    data_inspector_router,
+    cogo_extended_router,
+    network_adjustment_router,
+    level_network_adjustment_router,
+    alignment_landxml_router,
+):
     router.include_router(subrouter)
 config_store = ConfigStore()
 core_logger = configure_core_logging(config_store.root / "logs")
@@ -144,26 +160,13 @@ project_lock = RLock()
 current_project: SurveyProject | None = None
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.3.1: adds the Support Center, Survey Data Inspector, interrupted-session recovery and production-focused TopoSync review tooling.",
-    "Survey Data Inspector caches survey sources by SHA-256, detects common point schemas and normalizes Trimble JOB/JXL data for reuse across SurveySync.",
-    "Coordinate sanity now keeps Northing/Easting/PointID row-aligned, excludes non-finite pairs explicitly, and reports the correct point when a remote coordinate is flagged.",
-    "SurveySync core persistence/configuration fallbacks now log diagnostic context instead of silently swallowing broad exceptions; FieldBook state persistence received the same treatment.",
-    "A new static-quality build gate blocks new blind broad-exception passes, dangerous eval/exec or shell=True use, committed key patterns, duplicate routes/functions, mutable defaults, and further growth of the two pre-9.3 API monoliths.",
-    "Each SurveySync project now owns an independent versioned SQLite database bootstrapped from the SurveySync master project template.",
-    "New Project templates can seed module availability and QA defaults for Standard, EDSI Engineering/Topo, Boundary, Sewer/Utility, Control Network, and Construction Staking workflows.",
-    "Project Data Manager provides a survey-friendly table browser with search, controlled edits, edit history, and read-only protection for immutable/system records.",
-    "Controlled survey-data edits create a safety snapshot, require a reason, write field-level audit history, and mark dependent calculations stale for review.",
-    "Database Health reports integrity, foreign-key status, schema version, stale results and database size; maintenance creates a safety snapshot before WAL checkpoint/optimization.",
-    "ControlSync now provides a TBC-inspired Control Survey workspace: choose the project CRS/local-site ground settings, load all observations, view them spatially, and run Ronald's best-three QC across the complete database.",
-    "Control QC evaluates every valid three-shot combination at project tolerances (0.045 ft H/V by default), preserves candidate provenance, exports accepted control plus reshoot lists, and proposes the next unused shot labels.",
-    "ControlSync custom exports can select output fields and default to the active project/local-site coordinate system or deliberately transform to WGS84/another CRS.",
-    "Every SurveySync file/folder path field now has a native Browse control, including multi-file batch paths; users no longer need to type Windows paths manually.",
-    "Project Health Check now runs project-wide preflight for duplicate PointIDs, missing coordinates/elevations, CRS/units, control/level QC, source integrity, attachments, stale outputs, failed tasks, and coordinate sanity.",
-    "Central QA rules make tolerances and guardrails reusable across SurveySync instead of hard-coding review logic separately in each module.",
-    "Import Staging previews survey point files, detects/learns column mappings, identifies conflicts before commit, and never overwrites an existing PointID silently.",
-    "Project Timeline, automatic crash-recovery snapshots, manual snapshots, snapshot comparison/restore, and file comparison improve traceability and recovery.",
-    "Smart export profiles and the Deliverable Package Builder create repeatable point exports plus checksum-backed ZIP manifests.",
-    "Background task queue, batch staging/comparison, unified Review Center, project visual-QC map, and Why? explanations make outstanding work easier to find and understand.",
+    "9.3.2: expands COGOSync and ControlSync with production-oriented open-source integrations while preserving SurveySync's existing validated workflows.",
+    "COGOSync now includes continuous tangent/circular-curve alignments, station/offset stake-point calculations, vertical curves, cross-section cut/fill, earthwork, and 2D slope-catch tools.",
+    "LandXML 1.2 import/export supports CgPoints, parcel line geometry, and tangent/circular-curve alignments; imported LandXML is preserved as immutable SHA-256 project source evidence.",
+    "ControlSync adds a separate weighted least-squares 2D network adjustment with covariance, redundancy, standardized residuals, 95% error ellipses, and optional Huber robust weighting.",
+    "Leveling adds a separate weighted benchmark-network adjustment without changing Ronald's validated three-wire workbook workflow.",
+    "Project audit history is now project-bound and tamper-evident with SHA-256 chaining, Project Health verification, and deliverable-manifest audit heads.",
+    "The release pipeline now separates tested Beta candidates from exact-artifact Stable promotion to prevent branch/version ambiguity.",
 ]
 
 
@@ -495,6 +498,10 @@ def migrate_fieldbook(file_path: str):
 @router.get("/api/v9/audit")
 def audit(limit: int=100): return require_project().db.recent_audit(limit)
 
+@router.get("/api/v9/audit/verify")
+def audit_verify():
+    return require_project().db.verify_audit_chain()
+
 
 @router.post("/api/v9/crs/inspect")
 def crs_inspect(payload: CrsInspectIn):
@@ -522,6 +529,29 @@ def cogo_intersection(payload: CogoIntersectIn):
     try: result=line_intersection(payload.n1,payload.e1,payload.az1,payload.n2,payload.e2,payload.az2)
     except ValueError as exc: raise HTTPException(400,str(exc))
     p.db.audit("COGOSync","LINE_INTERSECTION",details=payload.model_dump()|{"result":result}); return result
+
+@router.post("/api/v9/cogo/curve")
+def cogo_curve(payload: CogoCurveIn):
+    p=require_project()
+    try:
+        result=solve_horizontal_curve(
+            **payload.model_dump(),
+            linear_units=str(p.manifest.get("horizontal_units") or ""),
+        )
+    except ValueError as exc:
+        raise HTTPException(400,str(exc))
+    p.db.audit("COGOSync","HORIZONTAL_CURVE",details=payload.model_dump()|{"result":result})
+    return result
+
+@router.post("/api/v9/cogo/three-point-curve")
+def cogo_three_point_curve(payload: CogoThreePointCurveIn):
+    p=require_project()
+    try:
+        result=three_point_curve(**payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(400,str(exc))
+    p.db.audit("COGOSync","THREE_POINT_CURVE",details=payload.model_dump()|{"result":result})
+    return result
 
 def _project_numeric_point_ids(project: SurveyProject) -> tuple[list[int], int]:
     ids: list[int] = []

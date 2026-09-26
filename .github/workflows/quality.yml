@@ -20,6 +20,14 @@ jobs:
         with:
           node-version: '24'
       - run: python -m pip install --require-hashes -r requirements-dev.lock
+      - name: Verify clean production runtime
+        shell: pwsh
+        run: |
+          python -m venv .prod-verify
+          .\.prod-verify\Scripts\python.exe -m pip install --disable-pip-version-check --require-hashes -r requirements.lock
+          if ($LASTEXITCODE -ne 0) { throw 'Production requirements.lock install failed.' }
+          .\.prod-verify\Scripts\python.exe -c "import surveysync.landxml_io,surveysync.router; print('SurveySync clean production runtime READY')"
+          if ($LASTEXITCODE -ne 0) { throw 'Production startup import smoke test failed.' }
       - run: python scripts/release_gate.py
       - uses: actions/upload-artifact@v4
         if: always()

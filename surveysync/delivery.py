@@ -128,10 +128,19 @@ def build_deliverable_package(project: SurveyProject, *, profile_id: str = "clie
         except Exception: continue
         if p.is_file() and key not in seen:
             seen.add(key); unique.append(p)
+    audit_integrity = project.db.verify_audit_chain()
     manifest = {
         "product": "SurveySync", "project_id": project.manifest.get("project_id", ""), "project_name": project.manifest.get("name", ""),
         "created_utc": utc_now(), "profile": profile, "label": label, "crs": project.manifest.get("crs", ""),
         "horizontal_units": project.manifest.get("horizontal_units", ""), "vertical_units": project.manifest.get("vertical_units", ""), "files": [],
+        "audit_chain": {
+            "verified": bool(audit_integrity.get("ok")),
+            "hash_version": audit_integrity.get("hash_version"),
+            "chain_id": audit_integrity.get("chain_id", ""),
+            "event_count": audit_integrity.get("event_count", 0),
+            "head_hash": audit_integrity.get("head_hash", ""),
+            "scope": "Project audit state immediately before deliverable package creation",
+        },
     }
     with zipfile.ZipFile(package_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
         for p in unique:

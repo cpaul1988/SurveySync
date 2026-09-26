@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)][string]$InstallDir,
-    [string]$AppVersion = "9.3.0"
+    [string]$AppVersion = "9.3.2"
 )
 
 $ErrorActionPreference = "Stop"
@@ -273,7 +273,7 @@ if (Test-Path $WindowsAiReq) {
 }
 
 Write-Log "Verifying required imports"
-$verify = "import fastapi,uvicorn,requests,fitz,PIL,pydantic,webview,numpy,cv2,shapefile,openpyxl; print('SurveySync runtime READY')"
+$verify = "import fastapi,uvicorn,requests,fitz,PIL,pydantic,webview,numpy,cv2,shapefile,openpyxl; import surveysync.landxml_io,surveysync.router; print('SurveySync production startup imports READY')"
 & $VenvPy -c $verify *>> $Log
 if ($LASTEXITCODE -ne 0) { Fail "Runtime verification failed. See $Log" }
 

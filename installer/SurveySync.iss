@@ -1,5 +1,5 @@
 #define MyAppName "SurveySync"
-#define MyAppVersion "9.3.1"
+#define MyAppVersion "9.3.2"
 #define MyAppPublisher "Clever Bird Development"
 #define MyAppURL "https://github.com/cpaul1988/SurveySync"
 
@@ -20,7 +20,7 @@ PrivilegesRequiredOverridesAllowed=dialog
 MinVersion=10.0
 ArchitecturesAllowed=x64compatible
 OutputDir=output
-OutputBaseFilename=SurveySync_Setup_9.3.1
+OutputBaseFilename=SurveySync_Setup_9.3.2
 SetupIconFile=..\branding\SurveySync.ico
 UninstallDisplayIcon={app}\branding\SurveySync.ico
 WizardStyle=modern
@@ -33,12 +33,12 @@ RestartApplications=no
 ChangesAssociations=yes
 UsePreviousAppDir=yes
 UsePreviousTasks=yes
-VersionInfoVersion=9.3.1.0
-VersionInfoTextVersion=9.3.1
+VersionInfoVersion=9.3.2.0
+VersionInfoTextVersion=9.3.2
 VersionInfoCompany=Clever Bird Development
 VersionInfoDescription=SurveySync Windows Setup
 VersionInfoProductName=SurveySync
-VersionInfoProductVersion=9.3.1
+VersionInfoProductVersion=9.3.2
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -58,7 +58,7 @@ Name: "{autoprograms}\SurveySync (Browser Fallback)"; Filename: "{app}\.venv\Scr
 Name: "{autodesktop}\SurveySync"; Filename: "{app}\SurveySync.exe"; WorkingDir: "{app}"; IconFilename: "{app}\branding\SurveySync.ico"; Tasks: desktopicon
 
 [InstallDelete]
-; v9.3.1 is an in-place SurveySync feature update and retains the FieldBook Sync migration cleanup.
+; v9.3.2 is an in-place SurveySync feature update and retains the FieldBook Sync migration cleanup.
 ; Only legacy application binaries/shortcuts are removed. User data under
 ; %LOCALAPPDATA%\FieldBookSync and user-created .fbs files are intentionally untouched.
 Type: files; Name: "{app}\FieldBookSync.exe"
@@ -100,5 +100,5 @@ begin
   if not Exec(PowerShell, Args, ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     RaiseException('Could not start the SurveySync runtime provisioner.')
   else if ResultCode <> 0 then
-    RaiseException('SurveySync dependency setup failed. See %LOCALAPPDATA%\SurveySync\logs\setup_runtime.log for details.');
+    RaiseException('SurveySync dependency setup failed (exit code ' + IntToStr(ResultCode) + '). Log: ' + ExpandConstant('{localappdata}\SurveySync\logs\setup_runtime.log'));
 end;

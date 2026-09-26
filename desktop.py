@@ -15,7 +15,7 @@ from fieldbook_sync import app as field_app
 from fieldbook_sync.app import load_project_path_into_runtime
 from file_association import register as register_fbs, unregister as unregister_fbs
 
-APP_NAME = "SurveySync v9.3.1"
+APP_NAME = "SurveySync v9.3.2"
 
 
 class NativeBridge:

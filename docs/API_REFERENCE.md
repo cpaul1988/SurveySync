@@ -87,6 +87,8 @@ This is a developer-oriented index, not a complete OpenAPI dump.
 - `POST /api/v9/control/qc-deliverables?run_id=` — write accepted/reshoot CSV + QC XLSX.
 - `GET /api/v9/control/export-profiles` — list project-scoped custom ControlSync exporter profiles.
 - `POST /api/v9/control/qc-export` — accepted-control CSV/TXT using selected fields and project/geographic/alternate projected CRS output.
+- `POST /api/v9/control/network-adjust` — separate constrained 2D weighted least-squares workflow for conventional control networks. Supports distance, azimuth, direction, and horizontal-angle observations; returns adjusted coordinates, residuals, redundancy numbers, standardized-residual review flags, covariance-derived 95% error ellipses, and optional Huber robust weights. Ronald's best-three workflow is not modified.
+- `POST /api/v9/level/network-adjust` — separate weighted least-squares benchmark-network adjustment using elevation-difference observations and fixed benchmarks. Returns adjusted elevations, uncertainty, redundancy and standardized-residual review flags, with optional Huber robust weighting. The Ron three-wire workbook profile is not modified.
 
 `coordinate_mode=geographic` emits Latitude/Longitude fields. `coordinate_mode=target` requires a projected target CRS when output fields are Northing/Easting.
 
@@ -145,4 +147,25 @@ Standalone point import, editable code classifications, feature-chain range dete
 - `GET /api/v9/topo/runs` — lists recent TopoSync rod-height analyses in the active workspace.
 - `POST /api/v9/topo/runs/{run_id}/review` — records an explicit candidate decision and review reason.
 - `GET /api/v9/topo/reviews/calibration` — summarizes review history and may suggest an offset-consistency tolerance; it never applies that suggestion automatically.
+
+## v9.3.2 open-source integration APIs
+
+- `POST /api/v9/cogo/curve` — solve a simple circular horizontal curve from exactly two independent elements. Supported elements include radius, central angle, tangent, arc length, long chord, external, middle ordinate, and the explicitly named 100-foot-arc degree of curve. The degree-of-curve input is rejected for meter projects.
+- `POST /api/v9/cogo/three-point-curve` — compute the center and radius of the unique circular curve through three Northing/Easting points; collinear points are rejected.
+- `GET /api/v9/audit/verify` — verify the active project's SHA-256 audit chain and return event count, chain count, broken sequence/reason when invalid, and the current audit head hash when valid.
+- `POST /api/v9/cogo/polygon` — compute closed-polygon area, signed area/orientation, perimeter, and centroid from Northing/Easting vertices.
+- `POST /api/v9/cogo/station-offset` — project a point onto a polyline alignment and return station, nearest coordinate, segment azimuth, and signed offset. Positive offset is LEFT looking ahead.
+- `POST /api/v9/cogo/curve-stake` — generate PC/full-station/PT stake coordinates, chord/deflection data, and tangent azimuths for a simple LEFT or RIGHT circular curve.
+- `POST /api/v9/cogo/vertical-curve` — solve an equal-tangent parabolic vertical curve from PVI station/elevation, incoming/outgoing percent grades, and length. Returns BVC/EVC, K-value, high/low point, and optional station/elevation samples.
+- `POST /api/v9/cogo/cross-section` — compute cut/fill area between measured ground and a design template over their overlapping offsets.
+- `POST /api/v9/cogo/earthwork` — compute average-end-area cut/fill volumes, cumulative volumes, and mass-haul ordinates from ordered section areas.
+- `POST /api/v9/cogo/slope-catch` — extend the outer design-template slope and intersect it with a measured ground profile for a selected left/right catch point.
+- `POST /api/v9/cogo/alignment/build` — build continuous tangent/circular-curve alignment geometry from start coordinate/azimuth/station plus sequential elements.
+- `POST /api/v9/cogo/alignment/point` — evaluate Northing/Easting and forward tangent azimuth at a station.
+- `POST /api/v9/cogo/alignment/station-offset` — inverse a coordinate to nearest alignment station and LEFT-positive offset across tangents and circular curves.
+- `POST /api/v9/cogo/alignment/stake-point` — convert station plus LEFT-positive offset into a stake coordinate.
+- `POST /api/v9/landxml/import` — preserve the supplied LandXML as immutable project source evidence, then parse supported CgPoint, Parcel Line geometry, and tangent/circular-curve Alignment records for review.
+- `POST /api/v9/landxml/export` — write LandXML 1.2 CgPoints, parcels, and SurveySync tangent/circular-curve alignments; blank output path writes beneath the current project Exports/LandXML folder.
+
+The extended curve engine is adapted from the MIT-licensed Cogokit project and is attributed in `THIRD_PARTY_NOTICES.md`. The audit-chain design is inspired by Block's Apache-2.0 Buzz audit architecture but implemented natively for SurveySync SQLite projects.
 
