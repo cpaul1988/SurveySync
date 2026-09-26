@@ -151,11 +151,7 @@ def adjust_control_network(
     coordinate_parameter_count = len(values)
 
     direction_stations = sorted(
-        {
-            str(row["from_id"])
-            for row in normalized_observations
-            if row["kind"] == "direction"
-        }
+        {str(row["from_id"]) for row in normalized_observations if row["kind"] == "direction"}
     )
 
     def coordinates(current: np.ndarray, point_id: str) -> tuple[float, float]:
@@ -225,9 +221,7 @@ def adjust_control_network(
             minus = state.copy()
             plus[column] += step
             minus[column] -= step
-            matrix[:, column] = (
-                residual_vector(plus) - residual_vector(minus)
-            ) / (2.0 * step)
+            matrix[:, column] = (residual_vector(plus) - residual_vector(minus)) / (2.0 * step)
         return matrix
 
     converged = False
@@ -237,9 +231,7 @@ def adjust_control_network(
         residuals = residual_vector(current)
         jacobian = numerical_jacobian(current)
         final_weights = (
-            _huber_weights(residuals, huber_value)
-            if robust
-            else np.ones_like(residuals)
+            _huber_weights(residuals, huber_value) if robust else np.ones_like(residuals)
         )
         sqrt_weights = np.sqrt(final_weights)
         weighted_jacobian = jacobian * sqrt_weights[:, None]
@@ -255,9 +247,7 @@ def adjust_control_network(
 
     residuals = residual_vector(current)
     jacobian = numerical_jacobian(current)
-    final_weights = (
-        _huber_weights(residuals, huber_value) if robust else np.ones_like(residuals)
-    )
+    final_weights = _huber_weights(residuals, huber_value) if robust else np.ones_like(residuals)
     sqrt_weights = np.sqrt(final_weights)
     weighted_jacobian = jacobian * sqrt_weights[:, None]
     rank = int(np.linalg.matrix_rank(weighted_jacobian))
@@ -298,7 +288,7 @@ def adjust_control_network(
         sigma = float(row["sigma"])
         raw_residual = float(normalized_residual) * sigma
         if red > 1e-12:
-            scale = (sigma0 if sigma0 is not None and sigma0 > 1e-12 else 1.0)
+            scale = sigma0 if sigma0 is not None and sigma0 > 1e-12 else 1.0
             standardized = float(normalized_residual) / (scale * math.sqrt(float(red)))
         else:
             standardized = None
@@ -354,8 +344,7 @@ def adjust_control_network(
             semi_major = _ELLIPSE_95_SCALE * math.sqrt(major_value)
             semi_minor = _ELLIPSE_95_SCALE * math.sqrt(minor_value)
             ellipse_azimuth = (
-                math.degrees(math.atan2(float(major_vector[1]), float(major_vector[0])))
-                % 180.0
+                math.degrees(math.atan2(float(major_vector[1]), float(major_vector[0]))) % 180.0
             )
         adjusted_points.append(
             {
@@ -380,9 +369,7 @@ def adjust_control_network(
             }
         )
 
-    orientations = {
-        station: float(current[index]) for station, index in orientation_index.items()
-    }
+    orientations = {station: float(current[index]) for station, index in orientation_index.items()}
     condition_number = float(np.linalg.cond(weighted_jacobian))
     return {
         "converged": converged,
