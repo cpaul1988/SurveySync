@@ -715,6 +715,9 @@ class AuditDB:
         ts_utc = utc_now()
         details_json = json.dumps(details or {}, ensure_ascii=False, sort_keys=True)
         with self.connect() as conn:
+            # Serialize chain appends across SurveySync background threads. A deferred
+            # read transaction could otherwise let two writers choose the same seq.
+            conn.execute("BEGIN IMMEDIATE")
             head = conn.execute(
                 "SELECT seq,event_hash FROM audit_chain ORDER BY seq DESC LIMIT 1"
             ).fetchone()
