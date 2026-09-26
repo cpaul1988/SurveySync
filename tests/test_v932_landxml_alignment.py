@@ -131,3 +131,75 @@ def test_alignment_rejects_invalid_curve_direction():
     ]
     with pytest.raises(ValueError, match="LEFT or RIGHT"):
         build_horizontal_alignment(**definition)
+
+
+def test_alignment_landxml_api_preserves_source(tmp_path, monkeypatch):
+    monkeypatch.setenv("SURVEYSYNC_CONFIG_ROOT", str(tmp_path / "cfg"))
+    from fastapi.testclient import TestClient
+
+    from fieldbook_sync import app as field_app
+    from surveysync import router as survey_router
+
+    survey_router.config_store = survey_router.ConfigStore(tmp_path / "cfg")
+    survey_router.current_project = None
+    field_app.runtime = field_app.Runtime(tmp_path / "field_runtime")
+    client = TestClient(field_app.app)
+
+    created = client.post(
+        "/api/v9/project/create",
+        json={
+            "parent_folder": str(tmp_path / "projects"),
+            "name": "LandXML API",
+            "crs": "EPSG:2278",
+            "horizontal_units": "us_survey_feet",
+            "vertical_units": "us_survey_feet",
+        },
+    )
+    assert created.status_code == 200, created.text
+
+    definition = _alignment_definition()
+    built = client.post("/api/v9/cogo/alignment/build", json=definition)
+    assert built.status_code == 200, built.text
+    assert built.json()["element_count"] == 3
+
+    stake = client.post(
+        "/api/v9/cogo/alignment/stake-point",
+        json={"alignment": definition, "station": 1050.0, "offset": 10.0},
+    )
+    assert stake.status_code == 200, stake.text
+    assert stake.json()["easting"] == pytest.approx(-10.0)
+
+    output = tmp_path / "api_landxml.xml"
+    exported = client.post(
+        "/api/v9/landxml/export",
+        json={
+            "output_path": str(output),
+            "points": [
+                {
+                    "point_id": "101",
+                    "northing": 1000.0,
+                    "easting": 2000.0,
+                    "elevation": 25.5,
+                    "description": "CONTROL",
+                }
+            ],
+            "parcels": [],
+            "alignments": [{"name": "CL-API", "alignment": definition}],
+        },
+    )
+    assert exported.status_code == 200, exported.text
+    assert output.exists()
+
+    imported = client.post("/api/v9/landxml/import", json={"file_path": str(output)})
+    assert imported.status_code == 200, imported.text
+    body = imported.json()
+    assert body["point_count"] == 1
+    assert body["alignment_count"] == 1
+    assert body["source"]["sha256"]
+
+    actions = [row["action"] for row in survey_router.current_project.db.recent_audit(30)]
+    assert "ALIGNMENT_BUILD" in actions
+    assert "ALIGNMENT_STAKE_POINT" in actions
+    assert "LANDXML_EXPORTED" in actions
+    assert "SOURCE_IMPORTED" in actions
+    assert "LANDXML_IMPORTED" in actions
