@@ -611,6 +611,53 @@
         "docs/FEATURE_MATRIX.md",
         "docs/TEST_COVERAGE.md"
       ]
+    },
+    "v932_open_source_cogo": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/cogo_extended.py",
+        "surveysync/api_models.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "tests": [
+        "tests/test_v932_open_source_integrations.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_tamper_evident_audit": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/project.py",
+        "surveysync/qa.py",
+        "surveysync/delivery.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v932_open_source_integrations.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_release_branch_guards": {
+      "introduced": "9.3.2",
+      "implementation": [
+        ".github/workflows/release.yml"
+      ],
+      "tests": [
+        "tests/test_v932_open_source_integrations.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md"
+      ]
     }
   }
 }
