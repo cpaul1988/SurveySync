@@ -219,7 +219,9 @@ def _finite_number(name: str, value: float) -> float:
     return number
 
 
-def _normalized_points(points: list[dict[str, float]], *, minimum: int) -> list[tuple[float, float]]:
+def _normalized_points(
+    points: list[dict[str, float]], *, minimum: int
+) -> list[tuple[float, float]]:
     cleaned: list[tuple[float, float]] = []
     for index, point in enumerate(points, start=1):
         try:
