@@ -102,3 +102,15 @@ Standalone point import, editable code classifications, feature-chain range dete
 | TopoSync | Run history, explicit candidate review decisions, advisory calibration summary | Implemented | `surveysync/topo/storage.py`, `routes.py`, `topo_qc.js` | `test_v931_release_candidate.py`, `test_topo_rod_ranges.py` |
 | Shell | Normal-start update check and corrected cross-tab appearance event wiring | Fixed v9.3.1 | `surveysync/static/app.js` | `test_v931_release_candidate.py` |
 
+
+
+## v9.3.2 open-source integration additions
+
+| Area | Feature | Status | Primary implementation | Tests |
+| --- | --- | --- | --- | --- |
+| COGOSync | Horizontal tangent/circular-curve alignment with station evaluation, LEFT-positive inverse and station/offset stake points | Implemented Beta | `horizontal_alignment.py`, `alignment_routes.py`, COGOSync UI | `test_v932_landxml_alignment.py` |
+| COGOSync | LandXML 1.2 CgPoint / Parcel Line / tangent-curve Alignment import-export with immutable source preservation | Implemented Beta | `landxml_io.py`, `alignment_routes.py` | `test_v932_landxml_alignment.py` |
+| COGOSync | Vertical parabolic curves | Implemented Beta | `cogo_extended.py`, `cogo_routes.py` | `test_v932_vertical_curve.py` |
+| COGOSync | Cross-section cut/fill, average-end-area earthwork and 2D slope catch | Implemented Beta | `earthwork.py`, `cogo_routes.py` | `test_v932_earthwork.py` |
+| ControlSync | Conventional 2D weighted least-squares network adjustment | Implemented Beta | `network_adjustment.py`, `network_routes.py` | `test_v932_network_adjustment.py` |
+| ControlSync | Weighted benchmark-network leveling adjustment | Implemented Beta | `level_network.py`, `level_network_routes.py` | `test_v932_level_network.py` |
