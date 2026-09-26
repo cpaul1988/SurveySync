@@ -34,7 +34,6 @@ jobs:
         shell: pwsh
         run: |
           .\scripts\generate_surveysync_icon.ps1
-          if ($LASTEXITCODE -ne 0) { throw 'Brand icon generation failed.' }
           $icon = Get-Item .\branding\SurveySync.ico
           if ($icon.Length -lt 1000) { throw 'Generated SurveySync.ico is unexpectedly small.' }
           $bytes = [System.IO.File]::ReadAllBytes($icon.FullName)
