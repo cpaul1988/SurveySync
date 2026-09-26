@@ -283,9 +283,9 @@ deferred because it would impose materially different distribution obligations.
 - audit-chain verification endpoint
 - Beta/Stable release branch guards
 
-### Phase B
-- Project Health audit-chain check
-- include audit head in deliverable ZIP manifest
+### Phase B — partially implemented
+- ~~Project Health audit-chain check~~ — implemented on this branch.
+- ~~include audit head in deliverable ZIP manifest~~ — implemented on this branch.
 - polygon area/perimeter
 - alignment station/offset
 - curve staking
