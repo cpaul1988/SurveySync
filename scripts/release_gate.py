@@ -30,6 +30,7 @@ FORMATTED = [
     "surveysync/data_inspector.py",
     "surveysync/cogo_extended.py",
     "surveysync/network_adjustment.py",
+    "surveysync/level_network.py",
     "surveysync/network_routes.py",
 ]
 TESTS = [
