@@ -1,7 +1,7 @@
 {
   "product": "SurveySync",
   "version": "9.3.2",
-  "build_type": "beta-candidate-open-source-integration-alignment-landxml",
+  "build_type": "beta.2-candidate-open-source-integration-runtime-fix",
   "generated_utc": "2026-09-26T19:45:00Z",
   "baseline": "SurveySync 9.3.1 stable",
   "feedback": {
@@ -33,14 +33,22 @@
     "windows_runtime_field_test_completed": false,
     "native_launchers_built_for_9_3_2": false,
     "installer_compiled_for_9_3_2": false,
-    "installed_beta_acceptance_completed": false
+    "installed_beta_acceptance_completed": false,
+    "beta1_installed_acceptance": "failed_before_ui",
+    "beta1_failure_root_cause": "defusedxml missing from production requirements.lock while present in requirements-dev.lock",
+    "beta1_promotable": false,
+    "beta2_runtime_dependency_fix_committed": true,
+    "beta2_quality_gate_status": "pending"
   },
   "release_constraints": [
     "Beta workflow must rerun the shared Windows release gate after the 9.3.2 version bump",
     "Installed Windows/WebView and representative survey-data acceptance required before Stable promotion",
     "Stable promotion must use the exact tested v9.3.2-beta installer/hash",
     "Real field-positive and field-negative rod-height datasets remain required for production calibration",
-    "Authenticode and signed update-manifest signing are not configured"
+    "Authenticode and signed update-manifest signing are not configured",
+    "Do not promote v9.3.2-beta; installed startup acceptance failed",
+    "Publish and install-test a new numbered Beta candidate (v9.3.2-beta.2 or later)",
+    "Beta tag must be pre-created by an authenticated maintainer at the exact candidate SHA before the release workflow"
   ],
   "dependency_locks": [
     "requirements.lock",
