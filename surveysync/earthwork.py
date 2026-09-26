@@ -136,7 +136,9 @@ def average_end_area_earthwork(*, sections: list[dict[str, Any]]) -> dict[str, A
             {
                 "station": _finite(f"Section {index} station", section.get("station")),
                 "cut_area": max(0.0, _finite(f"Section {index} cut area", section.get("cut_area"))),
-                "fill_area": max(0.0, _finite(f"Section {index} fill area", section.get("fill_area"))),
+                "fill_area": max(
+                    0.0, _finite(f"Section {index} fill area", section.get("fill_area"))
+                ),
             }
         )
     cleaned.sort(key=lambda row: row["station"])
@@ -194,7 +196,11 @@ def slope_catch_2d(
     if side_text not in {"LEFT", "RIGHT"}:
         raise ValueError("Slope-catch side must be LEFT or RIGHT.")
 
-    candidates = [p for p in design if p[0] <= 0] if side_text == "LEFT" else [p for p in design if p[0] >= 0]
+    candidates = (
+        [p for p in design if p[0] <= 0]
+        if side_text == "LEFT"
+        else [p for p in design if p[0] >= 0]
+    )
     if len(candidates) < 2:
         raise ValueError(f"Design template needs at least two {side_text.lower()}-side points.")
     candidates.sort(key=lambda item: item[0])
@@ -223,9 +229,7 @@ def slope_catch_2d(
         denominator = slope - g_slope
         if abs(denominator) <= 1e-12:
             continue
-        offset = (
-            p0[1] - g_slope * p0[0] - outer_elevation + slope * outer_offset
-        ) / denominator
+        offset = (p0[1] - g_slope * p0[0] - outer_elevation + slope * outer_offset) / denominator
         if seg_min - 1e-9 <= offset <= seg_max + 1e-9:
             if side_text == "RIGHT" and offset < outer_offset - 1e-9:
                 continue
