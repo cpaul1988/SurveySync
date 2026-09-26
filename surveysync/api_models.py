@@ -82,7 +82,7 @@ class CogoCurveIn(BaseModel):
     long_chord: float | None = None
     external: float | None = None
     middle_ordinate: float | None = None
-    degree_of_curve: float | None = None
+    degree_of_curve_100ft_arc: float | None = None
 
 
 class CogoThreePointCurveIn(BaseModel):
