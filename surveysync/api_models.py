@@ -74,6 +74,206 @@ class CogoIntersectIn(BaseModel):
     az2: float
 
 
+class CogoCurveIn(BaseModel):
+    radius: float | None = None
+    delta_deg: float | None = None
+    tangent: float | None = None
+    arc_length: float | None = None
+    long_chord: float | None = None
+    external: float | None = None
+    middle_ordinate: float | None = None
+    degree_of_curve_100ft_arc: float | None = None
+
+
+class CogoThreePointCurveIn(BaseModel):
+    n1: float
+    e1: float
+    n2: float
+    e2: float
+    n3: float
+    e3: float
+
+
+class CogoPointIn(BaseModel):
+    northing: float
+    easting: float
+
+
+class CogoPolygonIn(BaseModel):
+    points: list[CogoPointIn] = Field(min_length=3)
+
+
+class CogoStationOffsetIn(BaseModel):
+    alignment: list[CogoPointIn] = Field(min_length=2)
+    point: CogoPointIn
+    start_station: float = 0.0
+
+
+class CogoCurveStakeIn(BaseModel):
+    pc_northing: float
+    pc_easting: float
+    tangent_azimuth_deg: float
+    radius: float
+    delta_deg: float
+    direction: str = "LEFT"
+    stake_interval: float
+    start_station: float = 0.0
+
+
+class CogoVerticalCurveIn(BaseModel):
+    pvi_station: float
+    pvi_elevation: float
+    grade_in_percent: float
+    grade_out_percent: float
+    length: float = Field(gt=0)
+    sample_interval: float | None = Field(default=None, gt=0)
+
+
+class CogoGroundProfilePointIn(BaseModel):
+    offset: float
+    elevation: float
+
+
+class CogoDesignProfilePointIn(BaseModel):
+    offset: float
+    relative_elevation: float
+
+
+class CogoCrossSectionIn(BaseModel):
+    ground_points: list[CogoGroundProfilePointIn] = Field(min_length=2)
+    design_points: list[CogoDesignProfilePointIn] = Field(min_length=2)
+    design_centerline_elevation: float
+
+
+class CogoEarthworkSectionIn(BaseModel):
+    station: float
+    cut_area: float = Field(ge=0)
+    fill_area: float = Field(ge=0)
+
+
+class CogoEarthworkIn(BaseModel):
+    sections: list[CogoEarthworkSectionIn] = Field(min_length=2)
+
+
+class CogoSlopeCatchIn(CogoCrossSectionIn):
+    side: str
+
+
+class CogoAlignmentElementIn(BaseModel):
+    kind: str
+    length: float | None = Field(default=None, gt=0)
+    radius: float | None = Field(default=None, gt=0)
+    delta_deg: float | None = Field(default=None, gt=0)
+    direction: str | None = None
+
+
+class CogoAlignmentDefinitionIn(BaseModel):
+    start_northing: float
+    start_easting: float
+    start_azimuth_deg: float
+    start_station: float = 0.0
+    elements: list[CogoAlignmentElementIn] = Field(min_length=1)
+
+
+class CogoAlignmentStationIn(BaseModel):
+    alignment: CogoAlignmentDefinitionIn
+    station: float
+
+
+class CogoAlignmentStationOffsetIn(BaseModel):
+    alignment: CogoAlignmentDefinitionIn
+    point_northing: float
+    point_easting: float
+
+
+class CogoAlignmentStakePointIn(BaseModel):
+    alignment: CogoAlignmentDefinitionIn
+    station: float
+    offset: float = 0.0
+
+
+class LandXmlPointIn(BaseModel):
+    point_id: str = Field(min_length=1, max_length=120)
+    northing: float
+    easting: float
+    elevation: float | None = None
+    description: str = ""
+
+
+class LandXmlParcelVertexIn(BaseModel):
+    northing: float
+    easting: float
+
+
+class LandXmlParcelIn(BaseModel):
+    name: str = ""
+    vertices: list[LandXmlParcelVertexIn] = Field(min_length=3)
+
+
+class LandXmlAlignmentIn(BaseModel):
+    name: str = ""
+    alignment: CogoAlignmentDefinitionIn
+
+
+class LandXmlImportIn(BaseModel):
+    file_path: str = Field(min_length=1)
+
+
+class LandXmlExportIn(BaseModel):
+    output_path: str = ""
+    points: list[LandXmlPointIn] = Field(default_factory=list)
+    parcels: list[LandXmlParcelIn] = Field(default_factory=list)
+    alignments: list[LandXmlAlignmentIn] = Field(default_factory=list)
+
+
+class NetworkPointIn(BaseModel):
+    point_id: str = Field(min_length=1, max_length=80)
+    northing: float
+    easting: float
+    fixed: bool = False
+
+
+class NetworkObservationIn(BaseModel):
+    kind: str
+    from_id: str = Field(min_length=1, max_length=80)
+    to_id: str = Field(min_length=1, max_length=80)
+    target2_id: str | None = None
+    value: float
+    sigma: float = Field(gt=0)
+
+
+class ControlNetworkAdjustmentIn(BaseModel):
+    points: list[NetworkPointIn] = Field(min_length=2)
+    observations: list[NetworkObservationIn] = Field(min_length=1)
+    max_iterations: int = Field(default=20, ge=1, le=100)
+    tolerance: float = Field(default=1e-7, gt=0)
+    robust: bool = False
+    huber_k: float = Field(default=1.5, gt=0)
+    review_threshold: float = Field(default=3.0, gt=0)
+
+
+class LevelNetworkPointIn(BaseModel):
+    point_id: str = Field(min_length=1, max_length=80)
+    elevation: float
+    fixed: bool = False
+
+
+class LevelNetworkObservationIn(BaseModel):
+    from_id: str = Field(min_length=1, max_length=80)
+    to_id: str = Field(min_length=1, max_length=80)
+    delta_elevation: float
+    sigma: float = Field(gt=0)
+
+
+class LevelNetworkAdjustmentIn(BaseModel):
+    points: list[LevelNetworkPointIn] = Field(min_length=2)
+    observations: list[LevelNetworkObservationIn] = Field(min_length=1)
+    robust: bool = False
+    huber_k: float = Field(default=1.5, gt=0)
+    review_threshold: float = Field(default=3.0, gt=0)
+    max_iterations: int = Field(default=20, ge=1, le=100)
+
+
 class CrsInspectIn(BaseModel):
     crs: str
 

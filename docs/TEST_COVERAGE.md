@@ -74,3 +74,39 @@ Standalone point import, editable code classifications, feature-chain range dete
 
 The shared release gate also runs the existing TopoSync range detector, diagnostics/feedback, updater, project database, ControlSync, FieldBookSync, and legacy regression suites. A successful automated gate still does not prove installed Windows/WebView behavior, official Trimble JOB converter interoperability, OCR/local-AI behavior, or production rod-height accuracy on field-verified data.
 
+## v9.3.2 open-source integration coverage
+
+`tests/test_v932_open_source_integrations.py` covers the attributed Cogokit-derived horizontal-curve reference case, explicit rejection of the 100-foot-arc degree-of-curve convention in meter projects, wrong-element-count validation, three-point circle geometry, COGOSync API/audit wiring, audit-chain tamper detection, v5 audit-history backfill into schema 6, Project Health blocking on a broken audit chain, deliverable-manifest audit-head capture, release branch guards, and third-party attribution files.
+
+These tests validate SurveySync's adaptations; they do not substitute for field/software comparison of newly imported surveying algorithms before Stable promotion.
+
+Coverage also includes a cross-project transplant regression: a cryptographically valid source-project chain is copied into a second project while the destination keeps its own chain identity, and verification must fail.
+
+## 9.3.2 network adjustment
+
+`tests/test_v932_network_adjustment.py` covers the separate ControlSync 2D weighted
+least-squares workflow, including an independently sourced pySurveying distance-network
+reference fixture, mixed linear/angular residual units, redundancy-sum behavior, 95%
+error-ellipse output, rank-deficiency rejection, and audited API execution. The tests do
+not replace field comparison against known survey software before Stable promotion.
+
+## 9.3.2 weighted leveling network
+
+- `tests/test_v932_level_network.py` checks a redundant fixed-datum benchmark network against a hand-verifiable least-squares reference, rank-deficient geometry rejection, and audited API integration.
+- The workflow is intentionally separate from Ronald's validated three-wire workbook path; regression coverage ensures the new solver does not replace that profile.
+
+## 9.3.2 vertical curve geometry
+
+- `tests/test_v932_vertical_curve.py` checks a symmetric crest-curve reference case, equal-grade rejection, station/elevation sampling, and audited API integration.
+
+## 9.3.2 cross sections, earthwork, and slope catch
+
+- `tests/test_v932_earthwork.py` checks flat-profile cut area, average-end-area volume/mass-haul, a simple slope/ground catch intersection, and non-overlapping profile rejection.
+
+## 9.3.2 horizontal alignment and LandXML
+
+- `tests/test_v932_landxml_alignment.py` checks tangent/curve continuity, circular-curve midpoint geometry, LEFT-positive station/offset round trips on tangent and curve elements, invalid-curve rejection, LandXML 1.2 CgPoint/Parcel/Alignment round trips, and audited API import/export with immutable source preservation.
+
+## 9.3.2 installed-runtime parity
+
+- `tests/test_v932_installer_runtime.py` verifies that LandXML's startup dependency `defusedxml` is declared in the production requirements input/lock used by Setup and is included in the installer's runtime import verification. It also asserts that Setup provisions from `requirements.lock`, not the developer lock.

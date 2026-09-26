@@ -59,3 +59,14 @@ Inspector caches are workstation-local derived artifacts keyed by source SHA-256
 
 TopoSync QC profiles and review records remain project/workspace scoped and separate from raw survey evidence. Review/calibration state is advisory and cannot silently mutate observations.
 
+## v9.3.2 open-source integration foundation
+
+Project database schema 6 adds a tamper-evident `audit_chain` alongside `audit_events`. Each event is canonically hashed with SHA-256 and linked to the previous event hash. Existing audit history is deterministically backfilled during the v5→v6 migration. New audit writes use an immediate SQLite transaction so the event row and chain row are committed atomically and concurrent background tasks cannot select the same sequence number.
+
+Project Health verifies the chain without modifying it. Deliverable-package manifests include the verified pre-package audit head hash, event count, and hash version so an issued package can be tied to a concrete project-audit state.
+
+COGOSync keeps its existing small native inverse/forward/intersection functions and adds an attributed extended curve module rather than importing another project's database or application architecture. CRS transformation authority remains pyproj/PROJ.
+
+SurveySync 9.3.2 also introduces a reusable horizontal-alignment domain layer in `surveysync/horizontal_alignment.py`. Tangents and circular curves are represented as one continuous station chain; LandXML import/export normalizes through that same model rather than maintaining separate geometry math. Imported LandXML is first copied into the project's immutable Source tree and registered by SHA-256. Spiral/profile/surface LandXML geometry is not silently approximated; unsupported records are surfaced for review.
+
+Each project stores a persistent random chain identity in `audit_chain_meta`; that identity is included in every canonical audit hash so a valid audit/event chain copied from another project database will not verify in the destination project.

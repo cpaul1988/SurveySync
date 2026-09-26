@@ -20,6 +20,8 @@ REQUIRED_DOCS = [
     "docs/RELEASE_HISTORY.md",
     "docs/RELEASE_CHECKLIST.md",
     "docs/FIELD_NOTE_PROFILE_TRAINER.md",
+    "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+    "THIRD_PARTY_NOTICES.md",
 ]
 
 

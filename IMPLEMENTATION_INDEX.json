@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.3.1",
+  "version": "9.3.2",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -610,6 +610,168 @@
         "docs/TOPO_ROD_HEIGHT_QC.md",
         "docs/FEATURE_MATRIX.md",
         "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v932_open_source_cogo": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/cogo_extended.py",
+        "surveysync/cogo_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "tests": [
+        "tests/test_v932_open_source_integrations.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_tamper_evident_audit": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/project.py",
+        "surveysync/qa.py",
+        "surveysync/delivery.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v932_open_source_integrations.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_release_branch_guards": {
+      "introduced": "9.3.2",
+      "implementation": [
+        ".github/workflows/release.yml"
+      ],
+      "tests": [
+        "tests/test_v932_open_source_integrations.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md"
+      ]
+    },
+    "v932_network_adjustment": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/network_adjustment.py",
+        "surveysync/network_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v932_network_adjustment.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_level_network_adjustment": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/level_network.py",
+        "surveysync/level_network_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v932_level_network.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v932_vertical_curve": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/cogo_extended.py",
+        "surveysync/cogo_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v932_vertical_curve.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_earthwork_and_slope_stake": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/earthwork.py",
+        "surveysync/cogo_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v932_earthwork.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_alignment_landxml": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "surveysync/horizontal_alignment.py",
+        "surveysync/landxml_io.py",
+        "surveysync/alignment_routes.py",
+        "surveysync/api_models.py",
+        "surveysync/router.py",
+        "surveysync/static/index.html",
+        "surveysync/static/app.js"
+      ],
+      "tests": [
+        "tests/test_v932_landxml_alignment.py"
+      ],
+      "documentation": [
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v932_installed_runtime_parity": {
+      "introduced": "9.3.2",
+      "implementation": [
+        "requirements.in",
+        "requirements.lock",
+        "installer/provision_runtime.ps1",
+        ".github/workflows/release.yml"
+      ],
+      "tests": [
+        "tests/test_v932_installer_runtime.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_3_2.md",
+        "QA_REPORT_v9_3_2.md",
+        "docs/TEST_COVERAGE.md",
+        "CHANGELOG.md"
       ]
     }
   }

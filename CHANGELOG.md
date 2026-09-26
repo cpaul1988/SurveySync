@@ -1,3 +1,18 @@
+# 9.3.2 — Open-source integration foundation (Unreleased)
+
+- Added attributed MIT-derived horizontal and three-point curve calculations to COGOSync, with explicit 100-foot-arc degree-of-curve handling and project-unit safety.
+- Added Phase B COGOSync production tools: polygon area/perimeter/centroid, polyline station-offset with LEFT-positive convention, and station-based simple-curve staking with PC/full-station/PT output.
+- Added equal-tangent vertical parabolic curve geometry with BVC/PVI/EVC, K-value, high/low point, and station/elevation sampling using percent-grade inputs.
+- Added cross-section cut/fill areas, average-end-area earthwork/mass-haul output, and 2D slope-catch intersection tools adapted from Cogokit construction calculations.
+- Added a continuous tangent/circular-curve horizontal alignment model with LEFT-positive station offsets, station/offset stake-point generation, and LandXML 1.2 point/parcel/alignment import-export with immutable source preservation on import.
+- Hardened installed-runtime dependency parity after Beta.1 startup acceptance exposed `defusedxml` being present in CI only; production requirements, runtime verification, and regression coverage now enforce the LandXML dependency.
+- Added a separate ControlSync weighted least-squares network adjustment workflow with distance/azimuth/direction/angle observations, residual and redundancy diagnostics, optional Huber robust weighting, and 95% coordinate error ellipses. Ronald's validated best-three workflow remains unchanged.
+- Added a separate weighted benchmark-network leveling adjustment with fixed-datum constraints, observation sigmas, redundancy/standardized-residual review, optional Huber weighting, and elevation uncertainty. Ronald's validated three-wire workbook workflow remains unchanged.
+- Added a Buzz-inspired, SHA-256 chained project audit ledger with migration/backfill, tamper verification, Project Health enforcement, and audit-head inclusion in deliverable manifests.
+- Added release workflow guards so Beta publication cannot run from main and Stable promotion cannot run before the tested candidate reaches main.
+- Added THIRD_PARTY_NOTICES.md and a maintained open-source integration plan covering Cogokit, pySurveying, jxl2txt, Buzz, and major geospatial dependencies.
+- Stable 9.3.1 remains unchanged while this work is validated on the v9.3.2-open-source-integration branch.
+
 # 9.3.1 — Reliability, support, and review hardening
 
 Adds the integrated Support Center, explicit interrupted-session recovery, Survey Data Inspector with SHA-256 caching and downstream handoff, TopoSync QC profiles/run history/review decisions, and advisory calibration summaries. Fixes startup-update event wiring, false recovery state from file-association maintenance, and stale project/CRS/unit context on Inspector cache hits. See `RELEASE_NOTES_v9_3_1.md`.

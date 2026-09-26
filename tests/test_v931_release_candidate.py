@@ -16,12 +16,12 @@ def test_v931_version_surfaces_are_consistent():
     desktop = (ROOT / "desktop.py").read_text(encoding="utf-8")
     shell = (ROOT / "surveysync" / "static" / "index.html").read_text(encoding="utf-8")
 
-    assert version == __version__ == "9.3.1"
-    assert '#define MyAppVersion "9.3.1"' in installer
-    assert "SurveySync_Setup_9.3.1" in installer
-    assert "VersionInfoVersion=9.3.1.0" in installer
-    assert 'APP_NAME = "SurveySync v9.3.1"' in desktop
-    assert "<title>SurveySync v9.3.1</title>" in shell
+    assert version == __version__
+    assert f'#define MyAppVersion "{version}"' in installer
+    assert f"SurveySync_Setup_{version}" in installer
+    assert f"VersionInfoVersion={version}.0" in installer
+    assert f'APP_NAME = "SurveySync v{version}"' in desktop
+    assert f"<title>SurveySync v{version}</title>" in shell
 
 
 def test_startup_update_check_is_not_nested_in_storage_event():

@@ -28,6 +28,14 @@ FORMATTED = [
     "surveysync/session_recovery.py",
     "surveysync/support_center.py",
     "surveysync/data_inspector.py",
+    "surveysync/cogo_extended.py",
+    "surveysync/network_adjustment.py",
+    "surveysync/level_network.py",
+    "surveysync/earthwork.py",
+    "surveysync/horizontal_alignment.py",
+    "surveysync/landxml_io.py",
+    "surveysync/alignment_routes.py",
+    "surveysync/network_routes.py",
 ]
 TESTS = [
     "tests",

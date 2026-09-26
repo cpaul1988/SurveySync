@@ -127,8 +127,10 @@ class SurveyProject:
         template_db = Path(__file__).with_name("resources") / "project_template.db"
         if template_db.is_file():
             shutil.copy2(template_db, paths.db)
-        else:
-            AuditDB(paths.db)
+        # Bring the copied master template to the current schema before the
+        # project is opened. Migration backups are reserved for real user
+        # projects, not for a just-created copy of an older bundled template.
+        AuditDB(paths.db)
         now = utc_now()
         enabled = set(template.get("enabled_modules") or DEFAULT_MODULES)
         manifest = {
