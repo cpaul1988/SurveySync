@@ -5,7 +5,13 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 
 from .api_models import CogoCrossSectionIn, CogoCurveStakeIn, CogoEarthworkIn, CogoPolygonIn, CogoSlopeCatchIn, CogoStationOffsetIn, CogoVerticalCurveIn
-from .cogo_extended import (\n    alignment_station_offset,\n    polygon_area_perimeter,\n    solve_vertical_curve,\n    stake_horizontal_curve,\n)\nfrom .earthwork import average_end_area_earthwork, cross_section_cut_fill, slope_catch_2d
+from .cogo_extended import (
+    alignment_station_offset,
+    polygon_area_perimeter,
+    solve_vertical_curve,
+    stake_horizontal_curve,
+)
+from .earthwork import average_end_area_earthwork, cross_section_cut_fill, slope_catch_2d
 
 router = APIRouter()
 
