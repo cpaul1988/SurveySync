@@ -15,7 +15,7 @@ from fieldbook_sync import app as field_app
 from fieldbook_sync.app import load_project_path_into_runtime
 from file_association import register as register_fbs, unregister as unregister_fbs
 
-APP_NAME = "SurveySync v9.3.2"
+APP_NAME = "SurveySync v9.4.0"
 
 
 class NativeBridge:
@@ -117,7 +117,7 @@ def main()->None:
     server=uvicorn.Server(config);server.install_signal_handlers=lambda:None
     thread=threading.Thread(target=server.run,name="SurveySyncServer",daemon=True);thread.start()
     if not _wait(host,port):server.should_exit=True;raise RuntimeError("SurveySync could not start its local application service.")
-    bridge=NativeBridge();window=webview.create_window(APP_NAME,f"http://{host}:{port}",width=1500,height=940,min_size=(1050,680),background_color="#0f172a",text_select=True)
+    bridge=NativeBridge();window=webview.create_window(APP_NAME,f"http://{host}:{port}",width=1500,height=940,min_size=(1050,680),background_color="#0F203C",text_select=True)
     bridge._window=window
     window_icon = root / "branding" / "SurveySync.ico"
     window.expose(bridge.exit_app,bridge.choose_folder,bridge.choose_file,bridge.choose_files,bridge.choose_save_file,bridge.choose_arcgis_project,bridge.choose_aprx,bridge.reveal_folder)
