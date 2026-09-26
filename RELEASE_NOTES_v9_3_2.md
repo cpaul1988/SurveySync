@@ -111,6 +111,22 @@ The open-source integration branch passed SurveySync Quality run **#80** before 
 
 The Beta publication workflow runs the complete shared release gate again and rebuilds both native Windows launchers before compiling the installer.
 
+## Beta.1 installed-acceptance failure and Beta.2 fix
+
+The first published 9.3.2 Beta passed CI/build validation but failed installed startup acceptance before the UI opened.
+
+**Root cause:** LandXML added a startup import of `defusedxml`. The package was present in `requirements-dev.lock`, so CI passed, but it was missing from the production `requirements.lock` consumed by the installer. The installed application therefore could fail at startup with the production environment missing that module.
+
+The Beta.2 candidate fixes this by:
+
+- adding `defusedxml>=0.7,<1` to `requirements.in`
+- pinning and hashing `defusedxml==0.7.1` in `requirements.lock`
+- verifying `defusedxml` during installer runtime provisioning
+- adding a regression test that asserts startup dependencies used by LandXML exist in the production lock and installer verification
+- publishing subsequent candidates under immutable numbered prerelease tags such as `v9.3.2-beta.2`
+
+The failed Beta.1 installer must not be promoted to Stable.
+
 ## Required installed-Windows Beta acceptance
 
 Before Stable promotion, install the published 9.3.2 Beta and verify:
