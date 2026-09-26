@@ -39,20 +39,20 @@ function providerLabel(p){return ({auto:'Automatic — Free Local AI',microsoft_
 
 // Theme ----------------------------------------------------------------------
 const PRODUCT_THEMES={
-  classic:{label:'FieldBook Classic',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Field data. Connected.',accentable:true},
+  classic:{label:'FieldBook Classic',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Field data. Connected.',accentable:true},
   edsi:{label:'EDSI Adaptive',icon:'/static/edsi_mark.png',name:'FieldBook Sync',tagline:'EDSI corporate',accentable:false},
-  slate:{label:'Slate Professional',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Slate Professional',accentable:true},
-  midnight:{label:'Midnight',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Midnight',accentable:false},
-  lightpro:{label:'Light Professional',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Light Professional',accentable:true},
-  contrast:{label:'High Contrast',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'High Contrast',accentable:false},
-  carbon:{label:'Carbon',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Carbon workspace',accentable:true},
-  obsidian:{label:'Obsidian Blue',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Obsidian Blue',accentable:false},
-  teal:{label:'Slate Teal',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Slate Teal',accentable:false},
-  violet:{label:'Midnight Violet',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Midnight Violet',accentable:false},
-  graphite:{label:'Graphite',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Graphite',accentable:true},
-  frost:{label:'Frost',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Frost',accentable:true},
-  arctic:{label:'Arctic Blue',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Arctic Blue',accentable:true},
-  sandstone:{label:'Sandstone',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Sandstone',accentable:false},
+  slate:{label:'Slate Professional',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Slate Professional',accentable:true},
+  midnight:{label:'Midnight',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Midnight',accentable:false},
+  lightpro:{label:'Light Professional',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Light Professional',accentable:true},
+  contrast:{label:'High Contrast',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'High Contrast',accentable:false},
+  carbon:{label:'Carbon',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Carbon workspace',accentable:true},
+  obsidian:{label:'Obsidian Blue',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Obsidian Blue',accentable:false},
+  teal:{label:'Slate Teal',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Slate Teal',accentable:false},
+  violet:{label:'Midnight Violet',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Midnight Violet',accentable:false},
+  graphite:{label:'Graphite',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Graphite',accentable:true},
+  frost:{label:'Frost',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Frost',accentable:true},
+  arctic:{label:'Arctic Blue',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Arctic Blue',accentable:true},
+  sandstone:{label:'Sandstone',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Sandstone',accentable:false},
   edsidark:{label:'EDSI Dark',icon:'/static/edsi_mark.png',name:'FieldBook Sync',tagline:'EDSI Dark',accentable:false,preferredAppearance:'dark'},
   edsilight:{label:'EDSI Light',icon:'/static/edsi_mark.png',name:'FieldBook Sync',tagline:'EDSI Light',accentable:false,preferredAppearance:'light'}
 };
