@@ -297,7 +297,7 @@ deferred because it would impose materially different distribution obligations.
 - **general least-squares network adjustment** — implemented as a separate ControlSync workflow supporting distance, azimuth, direction, and horizontal-angle observations.
 - **residual/redundancy/error-ellipse reports** — implemented with observation redundancy, standardized-residual review flags, optional Huber robust weighting, covariance, and 95% point error ellipses.
 - **independent numerical cross-validation** — pySurveying's MIT-licensed distance-network fixture is adapted into SurveySync regression coverage without copying the upstream adjustment engine.
-- weighted leveling network — next.
+- **weighted leveling network — implemented** as a separate fixed-datum least-squares workflow with observation sigmas, redundancy diagnostics, standardized-residual review flags, optional Huber robust weighting, and elevation uncertainty.
 - additional Cogokit/independent mixed-network fixtures — next.
 
 ### Phase D
