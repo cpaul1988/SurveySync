@@ -5,6 +5,7 @@
 - Added equal-tangent vertical parabolic curve geometry with BVC/PVI/EVC, K-value, high/low point, and station/elevation sampling using percent-grade inputs.
 - Added cross-section cut/fill areas, average-end-area earthwork/mass-haul output, and 2D slope-catch intersection tools adapted from Cogokit construction calculations.
 - Added a continuous tangent/circular-curve horizontal alignment model with LEFT-positive station offsets, station/offset stake-point generation, and LandXML 1.2 point/parcel/alignment import-export with immutable source preservation on import.
+- Hardened installed-runtime dependency parity after Beta.1 startup acceptance exposed `defusedxml` being present in CI only; production requirements, runtime verification, and regression coverage now enforce the LandXML dependency.
 - Added a separate ControlSync weighted least-squares network adjustment workflow with distance/azimuth/direction/angle observations, residual and redundancy diagnostics, optional Huber robust weighting, and 95% coordinate error ellipses. Ronald's validated best-three workflow remains unchanged.
 - Added a separate weighted benchmark-network leveling adjustment with fixed-datum constraints, observation sigmas, redundancy/standardized-residual review, optional Huber weighting, and elevation uncertainty. Ronald's validated three-wire workbook workflow remains unchanged.
 - Added a Buzz-inspired, SHA-256 chained project audit ledger with migration/backfill, tamper verification, Project Health enforcement, and audit-head inclusion in deliverable manifests.
