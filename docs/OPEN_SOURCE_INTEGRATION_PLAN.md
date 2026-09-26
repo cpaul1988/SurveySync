@@ -51,7 +51,8 @@ Decision:
 - simple circular-curve station staking with PC/full-station/PT output
 
 Next:
-- horizontal/vertical curve geometry expansion
+- **vertical parabolic curve geometry — implemented** with percent-grade inputs, BVC/PVI/EVC, K-value, high/low point, and station/elevation sampling.
+- horizontal alignment geometry expansion
 - slope staking
 - cross sections/earthwork
 
