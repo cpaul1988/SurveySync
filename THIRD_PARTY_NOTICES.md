@@ -13,7 +13,11 @@ Nothing in this file changes the licensing terms of third-party projects.
 - License: MIT
 - SurveySync usage:
   - `surveysync/cogo_extended.py` adapts portions of
-    `src/cogokit/solvers/horizontal_curve.py`.
+    `src/cogokit/solvers/horizontal_curve.py` and the vertical-curve equations
+    from `src/cogokit/solvers/vertical_curve.py`.
+  - `surveysync/earthwork.py` adapts the cross-section/earthwork and slope-catch
+    calculation approach from `src/cogokit/surveying/cross_sections.py` and
+    `src/cogokit/surveying/stakeout.py`.
   - SurveySync changes the public API to SurveySync naming/conventions, uses
     degrees at the API boundary, and returns plain dictionaries for FastAPI/UI use.
 
