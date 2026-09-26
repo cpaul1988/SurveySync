@@ -115,3 +115,19 @@ not replace field comparison against known survey software before Stable promoti
 ## v9.4.0 branding regression target
 
 `tests/test_v940_branding.py` verifies the new SurveySync product identity across both shells: the navy/gold/cream palette, product tagline, complete 12-icon workflow SVG library, FieldBookSync separation from EDSI client branding, Windows/installer icon wiring, pywebview native-window icon configuration, and required Inno Setup wizard image dimensions.
+
+## v9.4.0 pySurveying independent validation
+
+`tests/test_v940_pysurveying_validation.py` exercises the independent
+pySurveying-style ControlSync verification path. Coverage includes a
+distance-only network, a mixed distance/azimuth/angle network, agreement of
+coordinates/residuals/redundancy/error ellipses, deliberate native-result
+tampering that must produce REVIEW, review-only standardized-residual data
+snooping, API attachment/audit of validation status, and MIT attribution.
+
+The validator uses analytic observation derivatives and NumPy least-squares
+while the production solver uses a numerical Jacobian. Passing both paths is
+stronger regression evidence, but it still does not replace comparison against
+known survey software, governing specifications, or installed Windows
+acceptance before Stable promotion.
+
