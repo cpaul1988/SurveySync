@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 from fastapi import APIRouter, HTTPException
 
 from .api_models import ControlNetworkAdjustmentIn
@@ -49,7 +50,7 @@ def control_network_adjust(payload: ControlNetworkAdjustmentIn):
             huber_k=payload.huber_k,
             review_threshold=payload.review_threshold,
         )
-    except Exception as exc:
+    except (KeyError, ValueError, np.linalg.LinAlgError) as exc:
         validation = {
             "status": "UNAVAILABLE",
             "engine": "pysurveying_reference",
