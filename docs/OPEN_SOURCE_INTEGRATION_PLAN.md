@@ -52,7 +52,7 @@ Decision:
 
 Next:
 - **vertical parabolic curve geometry — implemented** with percent-grade inputs, BVC/PVI/EVC, K-value, high/low point, and station/elevation sampling.
-- horizontal alignment geometry expansion
+- **horizontal tangent/circular-curve alignment geometry — implemented** with continuous element geometry, station evaluation, LEFT-positive station/offset inverse, and stake-point generation. Spiral/clothoid elements remain future work.
 - **slope staking foundation — implemented** as deterministic 2D ground/design catch-point intersection; full 3D alignment-based slope staking remains future work.
 - **cross sections / earthwork — implemented** with cut/fill areas, average-end-area volumes, cumulative quantities, and mass-haul ordinates.
 
@@ -302,7 +302,7 @@ deferred because it would impose materially different distribution obligations.
 - additional Cogokit/independent mixed-network fixtures — next.
 
 ### Phase D
-- LandXML import/export expansion
+- **LandXML 1.2 point/parcel/alignment I/O — implemented** for CgPoints, Parcel Line geometry, and tangent/circular-curve Alignments, with immutable project-source preservation on import. Profiles/surfaces/spirals remain future expansion.
 - jxl2txt-derived JobXML regression matrix
 - optional PDAL/laspy point-cloud module
 
