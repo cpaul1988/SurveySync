@@ -28,7 +28,9 @@ def _norm_azimuth(value: float) -> float:
     return float(value) % 360.0
 
 
-def _forward(northing: float, easting: float, azimuth_deg: float, distance: float) -> tuple[float, float]:
+def _forward(
+    northing: float, easting: float, azimuth_deg: float, distance: float
+) -> tuple[float, float]:
     azimuth = math.radians(azimuth_deg)
     return (
         northing + distance * math.cos(azimuth),
@@ -250,7 +252,9 @@ def alignment_station_offset(
                 sweep = (radial_start - radial_to_point) % 360.0
 
             if sweep <= float(element["delta_deg"]) + 1e-9:
-                station = float(element["start_station"]) + math.radians(sweep) * float(element["radius"])
+                station = float(element["start_station"]) + math.radians(sweep) * float(
+                    element["radius"]
+                )
                 nearest = point_at_station(alignment, station)
             else:
                 start_point = point_at_station(alignment, float(element["start_station"]))
