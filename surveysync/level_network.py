@@ -185,12 +185,9 @@ def adjust_level_network(
 
     result_observations: list[dict[str, Any]] = []
     review_count = 0
-    for i, (obs, residual, red) in enumerate(
-        zip(normalized, residuals, redundancy, strict=True)
-    ):
-        sigma_v = (
-            math.sqrt(max(float(red), 0.0) / float(base_weights[i]))
-            * math.sqrt(max(variance_factor, 0.0))
+    for i, (obs, residual, red) in enumerate(zip(normalized, residuals, redundancy, strict=True)):
+        sigma_v = math.sqrt(max(float(red), 0.0) / float(base_weights[i])) * math.sqrt(
+            max(variance_factor, 0.0)
         )
         standardized = float(residual / sigma_v) if sigma_v > 1e-15 else 0.0
         needs_review = abs(standardized) >= review_threshold
