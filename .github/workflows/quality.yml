@@ -30,6 +30,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Production requirements.lock install failed.' }
           & (Join-Path $prodVenv 'Scripts\python.exe') -c "import surveysync.landxml_io,surveysync.router; print('SurveySync clean production runtime READY')"
           if ($LASTEXITCODE -ne 0) { throw 'Production startup import smoke test failed.' }
+      - name: Verify SurveySync 9.4 Windows brand icon
+        shell: pwsh
+        run: |
+          .\scripts\generate_surveysync_icon.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Brand icon generation failed.' }
+          $icon = Get-Item .\branding\SurveySync.ico
+          if ($icon.Length -lt 1000) { throw 'Generated SurveySync.ico is unexpectedly small.' }
+          $bytes = [System.IO.File]::ReadAllBytes($icon.FullName)
+          if ($bytes[0] -ne 0 -or $bytes[1] -ne 0 -or $bytes[2] -ne 1 -or $bytes[3] -ne 0) { throw 'Generated SurveySync.ico has an invalid ICO header.' }
+          Write-Host "SurveySync 9.4 ICO READY: $($icon.Length) bytes"
       - run: python scripts/release_gate.py
       - uses: actions/upload-artifact@v4
         if: always()
