@@ -20,7 +20,7 @@ def test_cogokit_derived_horizontal_curve_reference_case():
     result = solve_horizontal_curve(radius=500.0, delta_deg=30.0)
 
     assert result["radius"] == 500.0
-    assert result["delta_deg"] == 30.0
+    assert result["delta_deg"] == pytest.approx(30.0, abs=1e-12)
     assert result["tangent"] == pytest.approx(133.9745962, abs=1e-7)
     assert result["arc_length"] == pytest.approx(261.7993878, abs=1e-7)
     assert result["long_chord"] == pytest.approx(258.8190451, abs=1e-7)
