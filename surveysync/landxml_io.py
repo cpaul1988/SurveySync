@@ -294,7 +294,7 @@ def export_landxml(
             )
             geom = ET.SubElement(parcel_node, _q("CoordGeom"))
             closed = vertices + [vertices[0]]
-            for start_vertex, end_vertex in zip(closed, closed[1:], strict=True):
+            for start_vertex, end_vertex in zip(closed, closed[1:]):
                 line = ET.SubElement(geom, _q("Line"))
                 start = ET.SubElement(line, _q("Start"))
                 start.text = (
