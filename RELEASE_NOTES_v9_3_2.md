@@ -135,6 +135,14 @@ Beta.3 removes `defusedxml` as a mandatory installed dependency. SurveySync uses
 
 Beta.1 and Beta.2 must not be promoted to Stable.
 
+## Beta.3 packaging rejection and Beta.4 correction
+
+Beta.3 passed its clean production-runtime validation, but its installer was rejected before installation because the new repository-local production-test venv was unintentionally included by the recursive Inno Setup source rule, inflating Setup to about 67.4 MB.
+
+Beta.4 moves that temporary venv to the runner temp directory and explicitly excludes CI/repository metadata from Setup. A regression test now prevents `.prod-verify`, `.git`, or `.github` from being packaged.
+
+Beta.1, Beta.2, and Beta.3 must not be promoted to Stable.
+
 ## Required installed-Windows Beta acceptance
 
 Before Stable promotion, install the published 9.3.2 Beta and verify:
