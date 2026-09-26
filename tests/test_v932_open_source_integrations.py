@@ -8,7 +8,13 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from surveysync.audit import AuditDB, CURRENT_SCHEMA_VERSION
-from surveysync.cogo_extended import solve_horizontal_curve, three_point_curve
+from surveysync.cogo_extended import (
+    alignment_station_offset,
+    polygon_area_perimeter,
+    solve_horizontal_curve,
+    stake_horizontal_curve,
+    three_point_curve,
+)
 from surveysync.delivery import build_deliverable_package
 from surveysync.project import SurveyProject
 from surveysync.qa import run_project_qa
@@ -55,6 +61,68 @@ def test_three_point_curve_uses_survey_northing_easting_convention():
     assert result["radius"] == pytest.approx(math.sqrt(2.0))
 
 
+def test_polygon_area_perimeter_reference_square():
+    result = polygon_area_perimeter(
+        points=[
+            {"northing": 0.0, "easting": 0.0},
+            {"northing": 0.0, "easting": 10.0},
+            {"northing": 10.0, "easting": 10.0},
+            {"northing": 10.0, "easting": 0.0},
+        ]
+    )
+    assert result["area"] == pytest.approx(100.0)
+    assert result["perimeter"] == pytest.approx(40.0)
+    assert result["orientation"] == "CCW"
+    assert result["centroid_northing"] == pytest.approx(5.0)
+    assert result["centroid_easting"] == pytest.approx(5.0)
+
+
+def test_alignment_station_offset_uses_left_positive_convention():
+    result = alignment_station_offset(
+        alignment=[
+            {"northing": 0.0, "easting": 0.0},
+            {"northing": 100.0, "easting": 0.0},
+        ],
+        point={"northing": 40.0, "easting": -10.0},
+        start_station=1000.0,
+    )
+    assert result["station"] == pytest.approx(1040.0)
+    assert result["offset"] == pytest.approx(10.0)
+    assert result["side"] == "LEFT"
+    assert result["segment_azimuth_deg"] == pytest.approx(0.0)
+
+
+def test_curve_staking_generates_full_stations_and_pt():
+    result = stake_horizontal_curve(
+        pc_northing=0.0,
+        pc_easting=0.0,
+        tangent_azimuth_deg=0.0,
+        radius=100.0,
+        delta_deg=90.0,
+        direction="LEFT",
+        stake_interval=50.0,
+        start_station=1000.0,
+    )
+    assert result["stake_count"] == 5
+    assert [row["station"] for row in result["stakes"][:-1]] == pytest.approx([1000.0, 1050.0, 1100.0, 1150.0])
+    assert result["end_station"] == pytest.approx(1157.0796326794896)
+    assert result["pt_northing"] == pytest.approx(100.0)
+    assert result["pt_easting"] == pytest.approx(-100.0)
+
+
+def test_curve_staking_rejects_zero_interval():
+    with pytest.raises(ValueError, match="Stake interval"):
+        stake_horizontal_curve(
+            pc_northing=0,
+            pc_easting=0,
+            tangent_azimuth_deg=0,
+            radius=100,
+            delta_deg=30,
+            direction="RIGHT",
+            stake_interval=0,
+        )
+
+
 def test_extended_cogo_api_records_audited_results(tmp_path, monkeypatch):
     monkeypatch.setenv("SURVEYSYNC_CONFIG_ROOT", str(tmp_path / "cfg"))
     from fieldbook_sync import app as field_app
@@ -90,9 +158,51 @@ def test_extended_cogo_api_records_audited_results(tmp_path, monkeypatch):
     )
     assert three.status_code == 200, three.text
 
-    actions = [row["action"] for row in survey_router.current_project.db.recent_audit(20)]
+    polygon = client.post(
+        "/api/v9/cogo/polygon",
+        json={"points": [
+            {"northing": 0, "easting": 0},
+            {"northing": 0, "easting": 10},
+            {"northing": 10, "easting": 10},
+            {"northing": 10, "easting": 0},
+        ]},
+    )
+    assert polygon.status_code == 200, polygon.text
+    assert polygon.json()["area"] == pytest.approx(100.0)
+
+    station_offset = client.post(
+        "/api/v9/cogo/station-offset",
+        json={
+            "alignment": [{"northing": 0, "easting": 0}, {"northing": 100, "easting": 0}],
+            "point": {"northing": 40, "easting": -10},
+            "start_station": 1000,
+        },
+    )
+    assert station_offset.status_code == 200, station_offset.text
+    assert station_offset.json()["side"] == "LEFT"
+
+    stake = client.post(
+        "/api/v9/cogo/curve-stake",
+        json={
+            "pc_northing": 0,
+            "pc_easting": 0,
+            "tangent_azimuth_deg": 0,
+            "radius": 100,
+            "delta_deg": 90,
+            "direction": "LEFT",
+            "stake_interval": 50,
+            "start_station": 1000,
+        },
+    )
+    assert stake.status_code == 200, stake.text
+    assert stake.json()["stake_count"] == 5
+
+    actions = [row["action"] for row in survey_router.current_project.db.recent_audit(30)]
     assert "HORIZONTAL_CURVE" in actions
     assert "THREE_POINT_CURVE" in actions
+    assert "POLYGON_METRICS" in actions
+    assert "STATION_OFFSET" in actions
+    assert "CURVE_STAKE" in actions
 
 
 def test_audit_chain_detects_tampering(tmp_path):

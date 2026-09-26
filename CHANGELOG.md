@@ -1,6 +1,7 @@
 # 9.3.2 — Open-source integration foundation (Unreleased)
 
 - Added attributed MIT-derived horizontal and three-point curve calculations to COGOSync, with explicit 100-foot-arc degree-of-curve handling and project-unit safety.
+- Added Phase B COGOSync production tools: polygon area/perimeter/centroid, polyline station-offset with LEFT-positive convention, and station-based simple-curve staking with PC/full-station/PT output.
 - Added a Buzz-inspired, SHA-256 chained project audit ledger with migration/backfill, tamper verification, Project Health enforcement, and audit-head inclusion in deliverable manifests.
 - Added release workflow guards so Beta publication cannot run from main and Stable promotion cannot run before the tested candidate reaches main.
 - Added THIRD_PARTY_NOTICES.md and a maintained open-source integration plan covering Cogokit, pySurveying, jxl2txt, Buzz, and major geospatial dependencies.

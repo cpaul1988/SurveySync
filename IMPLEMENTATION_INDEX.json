@@ -616,6 +616,7 @@
       "introduced": "9.3.2",
       "implementation": [
         "surveysync/cogo_extended.py",
+        "surveysync/cogo_routes.py",
         "surveysync/api_models.py",
         "surveysync/router.py",
         "surveysync/static/index.html",
@@ -627,6 +628,7 @@
       ],
       "documentation": [
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/API_REFERENCE.md",
         "THIRD_PARTY_NOTICES.md"
       ]
     },

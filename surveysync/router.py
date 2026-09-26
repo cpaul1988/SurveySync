@@ -129,6 +129,7 @@ from .control_workspace_routes import router as control_workspace_router
 from .topo.routes import router as topo_router
 from .support_center import router as support_center_router
 from .data_inspector import router as data_inspector_router
+from .cogo_routes import router as cogo_extended_router
 from .diagnostics import (
     build_diagnostic_bundle,
     error_log_path,
@@ -139,7 +140,7 @@ from .diagnostics import (
 
 STATIC = Path(__file__).resolve().parent / "static"
 router = APIRouter()
-for subrouter in (control_workspace_router, topo_router, support_center_router, data_inspector_router):
+for subrouter in (control_workspace_router, topo_router, support_center_router, data_inspector_router, cogo_extended_router):
     router.include_router(subrouter)
 config_store = ConfigStore()
 core_logger = configure_core_logging(config_store.root / "logs")

@@ -151,6 +151,9 @@ Standalone point import, editable code classifications, feature-chain range dete
 - `POST /api/v9/cogo/curve` — solve a simple circular horizontal curve from exactly two independent elements. Supported elements include radius, central angle, tangent, arc length, long chord, external, middle ordinate, and the explicitly named 100-foot-arc degree of curve. The degree-of-curve input is rejected for meter projects.
 - `POST /api/v9/cogo/three-point-curve` — compute the center and radius of the unique circular curve through three Northing/Easting points; collinear points are rejected.
 - `GET /api/v9/audit/verify` — verify the active project's SHA-256 audit chain and return event count, chain count, broken sequence/reason when invalid, and the current audit head hash when valid.
+- `POST /api/v9/cogo/polygon` — compute closed-polygon area, signed area/orientation, perimeter, and centroid from Northing/Easting vertices.
+- `POST /api/v9/cogo/station-offset` — project a point onto a polyline alignment and return station, nearest coordinate, segment azimuth, and signed offset. Positive offset is LEFT looking ahead.
+- `POST /api/v9/cogo/curve-stake` — generate PC/full-station/PT stake coordinates, chord/deflection data, and tangent azimuths for a simple LEFT or RIGHT circular curve.
 
 The extended curve engine is adapted from the MIT-licensed Cogokit project and is attributed in `THIRD_PARTY_NOTICES.md`. The audit-chain design is inspired by Block's Apache-2.0 Buzz audit architecture but implemented natively for SurveySync SQLite projects.
 

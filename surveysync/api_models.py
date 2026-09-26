@@ -94,6 +94,32 @@ class CogoThreePointCurveIn(BaseModel):
     e3: float
 
 
+class CogoPointIn(BaseModel):
+    northing: float
+    easting: float
+
+
+class CogoPolygonIn(BaseModel):
+    points: list[CogoPointIn] = Field(min_length=3)
+
+
+class CogoStationOffsetIn(BaseModel):
+    alignment: list[CogoPointIn] = Field(min_length=2)
+    point: CogoPointIn
+    start_station: float = 0.0
+
+
+class CogoCurveStakeIn(BaseModel):
+    pc_northing: float
+    pc_easting: float
+    tangent_azimuth_deg: float
+    radius: float
+    delta_deg: float
+    direction: str = "LEFT"
+    stake_interval: float
+    start_station: float = 0.0
+
+
 class CrsInspectIn(BaseModel):
     crs: str
 

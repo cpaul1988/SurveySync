@@ -209,3 +209,225 @@ def three_point_curve(
         "center_easting": center_e,
         "radius": radius,
     }
+
+
+
+def _finite_number(name: str, value: float) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"{name} must be a finite number.")
+    return number
+
+
+def _normalized_points(points: list[dict[str, float]], *, minimum: int) -> list[tuple[float, float]]:
+    cleaned: list[tuple[float, float]] = []
+    for index, point in enumerate(points, start=1):
+        try:
+            northing = _finite_number(f"Point {index} northing", point["northing"])
+            easting = _finite_number(f"Point {index} easting", point["easting"])
+        except KeyError as exc:
+            raise ValueError(f"Point {index} must include northing and easting.") from exc
+        cleaned.append((northing, easting))
+    if len(cleaned) >= 2 and cleaned[0] == cleaned[-1]:
+        cleaned.pop()
+    if len(cleaned) < minimum:
+        raise ValueError(f"At least {minimum} distinct points are required.")
+    return cleaned
+
+
+def polygon_area_perimeter(*, points: list[dict[str, float]]) -> dict[str, float | int | str]:
+    """Compute closed-polygon area, perimeter, centroid, and orientation."""
+
+    vertices = _normalized_points(points, minimum=3)
+    twice_area = 0.0
+    perimeter = 0.0
+    centroid_e_numerator = 0.0
+    centroid_n_numerator = 0.0
+    for index, (northing, easting) in enumerate(vertices):
+        next_northing, next_easting = vertices[(index + 1) % len(vertices)]
+        cross = easting * next_northing - next_easting * northing
+        twice_area += cross
+        centroid_e_numerator += (easting + next_easting) * cross
+        centroid_n_numerator += (northing + next_northing) * cross
+        perimeter += math.hypot(next_easting - easting, next_northing - northing)
+
+    signed_area = twice_area / 2.0
+    if abs(signed_area) <= 1e-12:
+        raise ValueError("Polygon area is zero or numerically degenerate.")
+    centroid_easting = centroid_e_numerator / (6.0 * signed_area)
+    centroid_northing = centroid_n_numerator / (6.0 * signed_area)
+    return {
+        "vertex_count": len(vertices),
+        "area": abs(signed_area),
+        "signed_area": signed_area,
+        "perimeter": perimeter,
+        "orientation": "CCW" if signed_area > 0 else "CW",
+        "centroid_northing": centroid_northing,
+        "centroid_easting": centroid_easting,
+    }
+
+
+def alignment_station_offset(
+    *,
+    alignment: list[dict[str, float]],
+    point: dict[str, float],
+    start_station: float = 0.0,
+) -> dict[str, float | int | str]:
+    """Project a survey point onto a polyline alignment and return station/offset.
+
+    Positive offset is LEFT looking ahead along the selected alignment segment.
+    """
+
+    vertices = _normalized_points(alignment, minimum=2)
+    point_northing = _finite_number("Point northing", point["northing"])
+    point_easting = _finite_number("Point easting", point["easting"])
+    station_origin = _finite_number("Start station", start_station)
+
+    cumulative = 0.0
+    best: dict[str, float | int] | None = None
+    for index in range(len(vertices) - 1):
+        n1, e1 = vertices[index]
+        n2, e2 = vertices[index + 1]
+        dn = n2 - n1
+        de = e2 - e1
+        length_sq = dn * dn + de * de
+        if length_sq <= 1e-24:
+            continue
+        segment_length = math.sqrt(length_sq)
+        t_raw = ((point_northing - n1) * dn + (point_easting - e1) * de) / length_sq
+        t = min(1.0, max(0.0, t_raw))
+        nearest_n = n1 + t * dn
+        nearest_e = e1 + t * de
+        off_n = point_northing - nearest_n
+        off_e = point_easting - nearest_e
+        distance = math.hypot(off_n, off_e)
+        candidate = {
+            "distance": distance,
+            "segment_index": index + 1,
+            "segment_fraction": t,
+            "nearest_northing": nearest_n,
+            "nearest_easting": nearest_e,
+            "station": station_origin + cumulative + t * segment_length,
+            "segment_azimuth_deg": math.degrees(math.atan2(de, dn)) % 360.0,
+            "cross": de * (point_northing - n1) - dn * (point_easting - e1),
+        }
+        if best is None or distance < float(best["distance"]) - 1e-12:
+            best = candidate
+        cumulative += segment_length
+
+    if best is None:
+        raise ValueError("Alignment contains no non-zero-length segments.")
+
+    distance = float(best["distance"])
+    cross = float(best["cross"])
+    if distance <= 1e-12:
+        offset = 0.0
+        side = "ON"
+    elif cross > 0:
+        offset = distance
+        side = "LEFT"
+    else:
+        offset = -distance
+        side = "RIGHT"
+    return {
+        "station": float(best["station"]),
+        "offset": offset,
+        "side": side,
+        "nearest_northing": float(best["nearest_northing"]),
+        "nearest_easting": float(best["nearest_easting"]),
+        "segment_index": int(best["segment_index"]),
+        "segment_fraction": float(best["segment_fraction"]),
+        "segment_azimuth_deg": float(best["segment_azimuth_deg"]),
+        "distance_to_alignment": distance,
+        "alignment_length": cumulative,
+    }
+
+
+def stake_horizontal_curve(
+    *,
+    pc_northing: float,
+    pc_easting: float,
+    tangent_azimuth_deg: float,
+    radius: float,
+    delta_deg: float,
+    direction: str,
+    stake_interval: float,
+    start_station: float = 0.0,
+    max_points: int = 5000,
+) -> dict[str, object]:
+    """Generate station-based stake points along a simple circular curve."""
+
+    pc_n = _finite_number("PC northing", pc_northing)
+    pc_e = _finite_number("PC easting", pc_easting)
+    tangent_azimuth = _finite_number("Tangent azimuth", tangent_azimuth_deg) % 360.0
+    radius_value = _finite_positive("Radius", radius)
+    delta_value = _finite_positive("Central angle", delta_deg)
+    if delta_value >= 180.0:
+        raise ValueError("Central angle must be between 0 and 180 degrees.")
+    interval = _finite_positive("Stake interval", stake_interval)
+    station_origin = _finite_number("Start station", start_station)
+    direction_text = str(direction or "").strip().upper()
+    if direction_text not in {"LEFT", "RIGHT"}:
+        raise ValueError("Curve direction must be LEFT or RIGHT.")
+    if int(max_points) < 2:
+        raise ValueError("max_points must be at least 2.")
+
+    turn_sign = -1.0 if direction_text == "LEFT" else 1.0
+    delta_radians = math.radians(delta_value)
+    curve_length = radius_value * delta_radians
+    end_station = station_origin + curve_length
+
+    center_azimuth = math.radians(tangent_azimuth + turn_sign * 90.0)
+    center_n = pc_n + radius_value * math.cos(center_azimuth)
+    center_e = pc_e + radius_value * math.sin(center_azimuth)
+    initial_radius_azimuth = tangent_azimuth - turn_sign * 90.0
+
+    arc_distances = [0.0]
+    next_full_station = (math.floor(station_origin / interval) + 1.0) * interval
+    while next_full_station < end_station - 1e-10:
+        arc_distances.append(next_full_station - station_origin)
+        if len(arc_distances) >= int(max_points) - 1:
+            raise ValueError(f"Stake interval produces more than {int(max_points)} points.")
+        next_full_station += interval
+    if curve_length > 1e-12:
+        arc_distances.append(curve_length)
+
+    stakes: list[dict[str, float | int | str]] = []
+    for index, arc_distance in enumerate(arc_distances, start=1):
+        theta_radians = arc_distance / radius_value
+        theta_deg = math.degrees(theta_radians)
+        radius_azimuth_deg = initial_radius_azimuth + turn_sign * theta_deg
+        radial = math.radians(radius_azimuth_deg)
+        northing = center_n + radius_value * math.cos(radial)
+        easting = center_e + radius_value * math.sin(radial)
+        chord = 2.0 * radius_value * math.sin(theta_radians / 2.0)
+        chord_azimuth = (tangent_azimuth + turn_sign * theta_deg / 2.0) % 360.0
+        stakes.append(
+            {
+                "index": index,
+                "station": station_origin + arc_distance,
+                "arc_distance": arc_distance,
+                "northing": northing,
+                "easting": easting,
+                "deflection_deg": turn_sign * theta_deg / 2.0,
+                "chord_from_pc": chord,
+                "chord_azimuth_deg": chord_azimuth,
+                "tangent_azimuth_deg": (tangent_azimuth + turn_sign * theta_deg) % 360.0,
+            }
+        )
+
+    return {
+        "direction": direction_text,
+        "radius": radius_value,
+        "delta_deg": delta_value,
+        "curve_length": curve_length,
+        "start_station": station_origin,
+        "end_station": end_station,
+        "center_northing": center_n,
+        "center_easting": center_e,
+        "pt_northing": stakes[-1]["northing"],
+        "pt_easting": stakes[-1]["easting"],
+        "stake_interval": interval,
+        "stake_count": len(stakes),
+        "stakes": stakes,
+    }

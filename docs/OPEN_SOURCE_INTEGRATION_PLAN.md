@@ -45,10 +45,13 @@ Decision:
 - First integration implemented in 9.3.2:
   `surveysync/cogo_extended.py` + horizontal/three-point curve APIs and UI.
 
+9.3.2 Phase B implemented:
+- polygon area/perimeter with centroid/orientation
+- polyline alignment station/offset with explicit left-positive convention
+- simple circular-curve station staking with PC/full-station/PT output
+
 Next:
-- alignment station/offset
-- horizontal/vertical curve geometry
-- point/polygon area
+- horizontal/vertical curve geometry expansion
 - slope staking
 - cross sections/earthwork
 
@@ -283,12 +286,12 @@ deferred because it would impose materially different distribution obligations.
 - audit-chain verification endpoint
 - Beta/Stable release branch guards
 
-### Phase B — partially implemented
-- ~~Project Health audit-chain check~~ — implemented on this branch.
-- ~~include audit head in deliverable ZIP manifest~~ — implemented on this branch.
-- polygon area/perimeter
-- alignment station/offset
-- curve staking
+### Phase B — implemented on this branch
+- Project Health audit-chain check
+- audit head in deliverable ZIP manifest
+- polygon area/perimeter with centroid and orientation
+- polyline alignment station/offset with LEFT-positive convention
+- simple horizontal-curve station staking
 
 ### Phase C
 - general least-squares network adjustment
