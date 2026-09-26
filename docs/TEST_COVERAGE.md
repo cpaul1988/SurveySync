@@ -102,3 +102,7 @@ not replace field comparison against known survey software before Stable promoti
 ## 9.3.2 cross sections, earthwork, and slope catch
 
 - `tests/test_v932_earthwork.py` checks flat-profile cut area, average-end-area volume/mass-haul, a simple slope/ground catch intersection, and non-overlapping profile rejection.
+
+## 9.3.2 horizontal alignment and LandXML
+
+- `tests/test_v932_landxml_alignment.py` checks tangent/curve continuity, circular-curve midpoint geometry, LEFT-positive station/offset round trips on tangent and curve elements, invalid-curve rejection, LandXML 1.2 CgPoint/Parcel/Alignment round trips, and audited API import/export with immutable source preservation.
