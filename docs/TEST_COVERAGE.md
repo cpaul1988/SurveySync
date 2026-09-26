@@ -98,3 +98,7 @@ not replace field comparison against known survey software before Stable promoti
 ## 9.3.2 vertical curve geometry
 
 - `tests/test_v932_vertical_curve.py` checks a symmetric crest-curve reference case, equal-grade rejection, station/elevation sampling, and audited API integration.
+
+## 9.3.2 cross sections, earthwork, and slope catch
+
+- `tests/test_v932_earthwork.py` checks flat-profile cut area, average-end-area volume/mass-haul, a simple slope/ground catch intersection, and non-overlapping profile rejection.
