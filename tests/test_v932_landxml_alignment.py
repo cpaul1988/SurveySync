@@ -203,3 +203,34 @@ def test_alignment_landxml_api_preserves_source(tmp_path, monkeypatch):
     assert "LANDXML_EXPORTED" in actions
     assert "SOURCE_IMPORTED" in actions
     assert "LANDXML_IMPORTED" in actions
+
+
+def test_landxml_stdlib_fallback_rejects_unsafe_declarations(tmp_path, monkeypatch):
+    import surveysync.landxml_io as landxml_io
+
+    monkeypatch.setattr(landxml_io, "SafeET", None)
+    unsafe = tmp_path / "unsafe.xml"
+    unsafe.write_text(
+        '<?xml version="1.0"?><!DOCTYPE root [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>'
+        '<LandXML><CgPoints><CgPoint name="1">&xxe;</CgPoint></CgPoints></LandXML>',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Unsafe XML declarations"):
+        landxml_io.import_landxml(unsafe)
+
+
+def test_landxml_stdlib_fallback_parses_normal_landxml(tmp_path, monkeypatch):
+    import surveysync.landxml_io as landxml_io
+
+    monkeypatch.setattr(landxml_io, "SafeET", None)
+    source = tmp_path / "safe.xml"
+    source.write_text(
+        '<?xml version="1.0"?>'
+        '<LandXML xmlns="http://www.landxml.org/schema/LandXML-1.2" version="1.2">'
+        '<CgPoints><CgPoint name="1">100.0 200.0 5.0</CgPoint></CgPoints>'
+        '</LandXML>',
+        encoding="utf-8",
+    )
+    result = landxml_io.import_landxml(source)
+    assert result["point_count"] == 1
+    assert result["points"][0]["point_id"] == "1"
