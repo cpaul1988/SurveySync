@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import math
 import xml.etree.ElementTree as ET
+
+from defusedxml import ElementTree as SafeET
 from pathlib import Path
 from typing import Any
 
@@ -41,7 +43,7 @@ def import_landxml(path: Path) -> dict[str, Any]:
     if not source.is_file():
         raise ValueError("LandXML file does not exist.")
     try:
-        tree = ET.parse(source)
+        tree = SafeET.parse(source)
     except ET.ParseError as exc:
         raise ValueError(f"Invalid LandXML/XML: {exc}") from exc
     root = tree.getroot()
@@ -94,7 +96,20 @@ def import_landxml(path: Path) -> dict[str, Any]:
             coord_geom = alignment.find(f"{prefix}CoordGeom")
             if coord_geom is None:
                 continue
-            children = [child for child in coord_geom if _element_tag(child) in {"Line", "Curve"}]
+            all_geometry = list(coord_geom)
+            unsupported = [
+                _element_tag(child)
+                for child in all_geometry
+                if _element_tag(child) not in {"Line", "Curve"}
+            ]
+            if unsupported:
+                warnings.append(
+                    f"Alignment {alignment.get('name', '')!r} contains unsupported "
+                    f"geometry: {', '.join(unsupported)}."
+                )
+            children = [
+                child for child in all_geometry if _element_tag(child) in {"Line", "Curve"}
+            ]
             if not children:
                 continue
 
