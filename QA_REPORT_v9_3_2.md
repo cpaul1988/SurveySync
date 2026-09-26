@@ -127,6 +127,24 @@ SurveySync Quality run **#98** passed on the corrected Beta.2 candidate after th
 
 The additional regression coverage verifies that LandXML's `defusedxml` dependency exists in the production requirements input/lock used by Setup and that Setup smoke-tests actual SurveySync startup imports before reporting success.
 
+## Beta.2 Installed Acceptance Result
+
+**FAILED — installer runtime provisioning**
+
+The numbered Beta.2 release built and published correctly, but installed acceptance failed inside Setup with `SurveySync dependency setup failed` before the application could be launched. The file supplied for diagnosis was the older FieldBook Sync runtime log rather than the current `%LOCALAPPDATA%\SurveySync\logs\setup_runtime.log`, so the exact native pip/provisioner error is not claimed as proven.
+
+Beta.3 removes the new LandXML package as a mandatory production/install dependency. `defusedxml` is used when available, while the built-in fallback rejects DTD/entity declarations before parsing with the standard library. This prevents optional XML hardening from blocking the entire SurveySync installation.
+
+Additional prevention added for Beta.3:
+
+- Quality CI creates a fresh production venv from `requirements.lock` and imports the SurveySync LandXML/router startup path.
+- Release CI repeats the same clean production-runtime check before building Setup.
+- Setup's own verification imports the side-effect-light SurveySync startup modules.
+- Installer failures now report the provisioner exit code and exact SurveySync log path.
+- Regression tests cover safe fallback parsing and malicious DTD/entity rejection.
+
+Pre-Beta.3 tracker check on September 26, 2026: latest feedback remains FBR-0016; SurveySync Error Log Dashboard reports 0 total/open errors and Retry Queue is empty.
+
 ## Required Beta publication gate
 
 The GitHub **SurveySync Release** workflow must:
