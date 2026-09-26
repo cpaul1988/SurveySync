@@ -3,6 +3,7 @@
 - Added attributed MIT-derived horizontal and three-point curve calculations to COGOSync, with explicit 100-foot-arc degree-of-curve handling and project-unit safety.
 - Added Phase B COGOSync production tools: polygon area/perimeter/centroid, polyline station-offset with LEFT-positive convention, and station-based simple-curve staking with PC/full-station/PT output.
 - Added equal-tangent vertical parabolic curve geometry with BVC/PVI/EVC, K-value, high/low point, and station/elevation sampling using percent-grade inputs.
+- Added cross-section cut/fill areas, average-end-area earthwork/mass-haul output, and 2D slope-catch intersection tools adapted from Cogokit construction calculations.
 - Added a separate ControlSync weighted least-squares network adjustment workflow with distance/azimuth/direction/angle observations, residual and redundancy diagnostics, optional Huber robust weighting, and 95% coordinate error ellipses. Ronald's validated best-three workflow remains unchanged.
 - Added a separate weighted benchmark-network leveling adjustment with fixed-datum constraints, observation sigmas, redundancy/standardized-residual review, optional Huber weighting, and elevation uncertainty. Ronald's validated three-wire workbook workflow remains unchanged.
 - Added a Buzz-inspired, SHA-256 chained project audit ledger with migration/backfill, tamper verification, Project Health enforcement, and audit-head inclusion in deliverable manifests.
