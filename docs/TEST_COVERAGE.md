@@ -110,3 +110,8 @@ not replace field comparison against known survey software before Stable promoti
 ## 9.3.2 installed-runtime parity
 
 - `tests/test_v932_installer_runtime.py` verifies that LandXML's startup dependency `defusedxml` is declared in the production requirements input/lock used by Setup and is included in the installer's runtime import verification. It also asserts that Setup provisions from `requirements.lock`, not the developer lock.
+
+
+## v9.4.0 branding regression target
+
+`tests/test_v940_branding.py` verifies the new SurveySync product identity across both shells: the navy/gold/cream palette, product tagline, complete 12-icon workflow SVG library, FieldBookSync separation from EDSI client branding, Windows/installer icon wiring, pywebview native-window icon configuration, and required Inno Setup wizard image dimensions.
