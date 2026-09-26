@@ -136,6 +136,7 @@ def build_deliverable_package(project: SurveyProject, *, profile_id: str = "clie
         "audit_chain": {
             "verified": bool(audit_integrity.get("ok")),
             "hash_version": audit_integrity.get("hash_version"),
+            "chain_id": audit_integrity.get("chain_id", ""),
             "event_count": audit_integrity.get("event_count", 0),
             "head_hash": audit_integrity.get("head_hash", ""),
             "scope": "Project audit state immediately before deliverable package creation",
