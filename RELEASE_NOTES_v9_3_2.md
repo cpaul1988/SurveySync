@@ -127,6 +127,14 @@ The Beta.2 candidate fixes this by:
 
 The failed Beta.1 installer must not be promoted to Stable.
 
+## Beta.2 installed-acceptance failure and Beta.3 hardening
+
+Beta.2 corrected the original missing-module startup defect, but installed acceptance failed during Setup runtime provisioning before launch. The exact current SurveySync provisioner log was not captured, so the release record does not overstate a specific pip/network cause.
+
+Beta.3 removes `defusedxml` as a mandatory installed dependency. SurveySync uses it when present, otherwise LandXML uses a guarded standard-library parser that rejects DTD and ENTITY declarations before parsing. Quality and Release workflows now build a clean production venv from `requirements.lock` and import the production SurveySync startup path before a candidate can pass. Setup verification is also side-effect-light and installer errors expose the exact runtime log path and exit code.
+
+Beta.1 and Beta.2 must not be promoted to Stable.
+
 ## Required installed-Windows Beta acceptance
 
 Before Stable promotion, install the published 9.3.2 Beta and verify:
