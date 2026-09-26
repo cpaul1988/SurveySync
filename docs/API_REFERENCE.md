@@ -160,6 +160,12 @@ Standalone point import, editable code classifications, feature-chain range dete
 - `POST /api/v9/cogo/cross-section` — compute cut/fill area between measured ground and a design template over their overlapping offsets.
 - `POST /api/v9/cogo/earthwork` — compute average-end-area cut/fill volumes, cumulative volumes, and mass-haul ordinates from ordered section areas.
 - `POST /api/v9/cogo/slope-catch` — extend the outer design-template slope and intersect it with a measured ground profile for a selected left/right catch point.
+- `POST /api/v9/cogo/alignment/build` — build continuous tangent/circular-curve alignment geometry from start coordinate/azimuth/station plus sequential elements.
+- `POST /api/v9/cogo/alignment/point` — evaluate Northing/Easting and forward tangent azimuth at a station.
+- `POST /api/v9/cogo/alignment/station-offset` — inverse a coordinate to nearest alignment station and LEFT-positive offset across tangents and circular curves.
+- `POST /api/v9/cogo/alignment/stake-point` — convert station plus LEFT-positive offset into a stake coordinate.
+- `POST /api/v9/landxml/import` — preserve the supplied LandXML as immutable project source evidence, then parse supported CgPoint, Parcel Line geometry, and tangent/circular-curve Alignment records for review.
+- `POST /api/v9/landxml/export` — write LandXML 1.2 CgPoints, parcels, and SurveySync tangent/circular-curve alignments; blank output path writes beneath the current project Exports/LandXML folder.
 
 The extended curve engine is adapted from the MIT-licensed Cogokit project and is attributed in `THIRD_PARTY_NOTICES.md`. The audit-chain design is inspired by Block's Apache-2.0 Buzz audit architecture but implemented natively for SurveySync SQLite projects.
 
