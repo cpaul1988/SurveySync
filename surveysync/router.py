@@ -11,6 +11,8 @@ from .api_models import (
     CogoInverseIn as CogoInverseIn,
     CogoBDIn as CogoBDIn,
     CogoIntersectIn as CogoIntersectIn,
+    CogoCurveIn as CogoCurveIn,
+    CogoThreePointCurveIn as CogoThreePointCurveIn,
     CrsInspectIn as CrsInspectIn,
     CrsTransformIn as CrsTransformIn,
     RangeIn as RangeIn,
@@ -92,6 +94,7 @@ from .project import SurveyProject, safe_name
 from .project_templates import list_templates as list_project_templates
 from .data_manager import overview as data_overview, list_rows as data_rows, update_record as update_data_record, database_health, maintain_database
 from .cogo import inverse, bearing_distance, line_intersection
+from .cogo_extended import solve_horizontal_curve, three_point_curve
 from .reports import (
     parse_point_ids_file, available_ranges, ranges_csv, crew_range_recommendations,
     crew_ranges_csv, crew_ranges_txt, write_crew_ranges_xlsx,
@@ -522,6 +525,26 @@ def cogo_intersection(payload: CogoIntersectIn):
     try: result=line_intersection(payload.n1,payload.e1,payload.az1,payload.n2,payload.e2,payload.az2)
     except ValueError as exc: raise HTTPException(400,str(exc))
     p.db.audit("COGOSync","LINE_INTERSECTION",details=payload.model_dump()|{"result":result}); return result
+
+@router.post("/api/v9/cogo/curve")
+def cogo_curve(payload: CogoCurveIn):
+    p=require_project()
+    try:
+        result=solve_horizontal_curve(**payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(400,str(exc))
+    p.db.audit("COGOSync","HORIZONTAL_CURVE",details=payload.model_dump()|{"result":result})
+    return result
+
+@router.post("/api/v9/cogo/three-point-curve")
+def cogo_three_point_curve(payload: CogoThreePointCurveIn):
+    p=require_project()
+    try:
+        result=three_point_curve(**payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(400,str(exc))
+    p.db.audit("COGOSync","THREE_POINT_CURVE",details=payload.model_dump()|{"result":result})
+    return result
 
 def _project_numeric_point_ids(project: SurveyProject) -> tuple[list[int], int]:
     ids: list[int] = []
