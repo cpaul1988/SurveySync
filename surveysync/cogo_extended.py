@@ -190,14 +190,10 @@ def three_point_curve(
         raise ValueError("The three points are collinear; no unique circular curve exists.")
 
     center_e = (
-        (ax**2 + ay**2) * (by - cy)
-        + (bx**2 + by**2) * (cy - ay)
-        + (cx**2 + cy**2) * (ay - by)
+        (ax**2 + ay**2) * (by - cy) + (bx**2 + by**2) * (cy - ay) + (cx**2 + cy**2) * (ay - by)
     ) / determinant
     center_n = (
-        (ax**2 + ay**2) * (cx - bx)
-        + (bx**2 + by**2) * (ax - cx)
-        + (cx**2 + cy**2) * (bx - ax)
+        (ax**2 + ay**2) * (cx - bx) + (bx**2 + by**2) * (ax - cx) + (cx**2 + cy**2) * (bx - ax)
     ) / determinant
     radius = math.hypot(ax - center_e, ay - center_n)
     return {
