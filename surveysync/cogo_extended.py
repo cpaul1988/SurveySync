@@ -211,7 +211,6 @@ def three_point_curve(
     }
 
 
-
 def _finite_number(name: str, value: float) -> float:
     number = float(value)
     if not math.isfinite(number):
