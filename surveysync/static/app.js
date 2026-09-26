@@ -1,4 +1,4 @@
-const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function dismissProductSplash(){const splash=$('#productSplash');if(splash)splash.classList.add('dismissed')}
 setTimeout(dismissProductSplash,700);
 let statusData={},configData={},activeModule='Home',activeView='dashboard';
