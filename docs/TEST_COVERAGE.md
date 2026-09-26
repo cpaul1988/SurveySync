@@ -89,3 +89,8 @@ least-squares workflow, including an independently sourced pySurveying distance-
 reference fixture, mixed linear/angular residual units, redundancy-sum behavior, 95%
 error-ellipse output, rank-deficiency rejection, and audited API execution. The tests do
 not replace field comparison against known survey software before Stable promotion.
+
+## 9.3.2 weighted leveling network
+
+- `tests/test_v932_level_network.py` checks a redundant fixed-datum benchmark network against a hand-verifiable least-squares reference, rank-deficient geometry rejection, and audited API integration.
+- The workflow is intentionally separate from Ronald's validated three-wire workbook path; regression coverage ensures the new solver does not replace that profile.
