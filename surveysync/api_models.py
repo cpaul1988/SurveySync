@@ -120,6 +120,15 @@ class CogoCurveStakeIn(BaseModel):
     start_station: float = 0.0
 
 
+class CogoVerticalCurveIn(BaseModel):
+    pvi_station: float
+    pvi_elevation: float
+    grade_in_percent: float
+    grade_out_percent: float
+    length: float = Field(gt=0)
+    sample_interval: float | None = Field(default=None, gt=0)
+
+
 class NetworkPointIn(BaseModel):
     point_id: str = Field(min_length=1, max_length=80)
     northing: float
