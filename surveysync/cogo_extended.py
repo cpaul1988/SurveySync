@@ -526,9 +526,7 @@ def solve_vertical_curve(
                 length=curve_length,
                 distance_from_bvc=x,
             )
-            instantaneous_grade_percent = (
-                g1 + (g2 - g1) * x / curve_length
-            ) * 100.0
+            instantaneous_grade_percent = (g1 + (g2 - g1) * x / curve_length) * 100.0
             samples.append(
                 {
                     "station": station,
