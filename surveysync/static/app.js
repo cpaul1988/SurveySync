@@ -1,4 +1,6 @@
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+function dismissProductSplash(){const splash=$('#productSplash');if(splash)splash.classList.add('dismissed')}
+setTimeout(dismissProductSplash,700);
 let statusData={},configData={},activeModule='Home',activeView='dashboard';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(url,opt={}){const r=await fetch(url,opt);let d={};try{d=await r.json()}catch{d={detail:await r.text()}}if(!r.ok)throw new Error(d.detail||`HTTP ${r.status}`);return d}
@@ -10,7 +12,7 @@ function applyModalSize(key='default',large=false){const modal=$('#modal'),dialo
 function rememberModalSize(){const modal=$('#modal'),dialog=modal?.querySelector('.dialog');if(!modal||!dialog||modal.classList.contains('hidden'))return;const key=modal.dataset.modalKey||'default';const r=dialog.getBoundingClientRect();if(r.width>200&&r.height>150)localStorage.setItem(SS_MODAL_SIZE_PREFIX+key,JSON.stringify({width:Math.round(r.width),height:Math.round(r.height)}))}
 function openModalShell(key='default',large=false){applyModalSize(key,large);$('#modal').classList.remove('hidden')}
 function closeModalShell(){rememberModalSize();const modal=$('#modal');modal.classList.add('hidden');modal.classList.remove('crs-open');modal.dataset.modalKey='default'}
-window.addEventListener('beforeunload',rememberModalSize);
+window.addEventListener('beforeunload',rememberModalSize);window.addEventListener('load',()=>setTimeout(dismissProductSplash,120));
 
 const SS_RELEASE_SEEN_KEY='surveysync-release-notes-seen';
 let releaseNotesData={version:'',notes:[]};
@@ -496,3 +498,4 @@ installPathBrowsers();
 applyAppearance(localStorage.getItem(SS_APPEARANCE_KEY)||localStorage.getItem('fbs-theme')||'system',false);applyProductTheme(localStorage.getItem(SS_PRODUCT_THEME_KEY)||localStorage.getItem('fbs-product-theme')||'classic',false);applyAccent(localStorage.getItem(SS_ACCENT_KEY)||localStorage.getItem('fbs-accent')||'default',false);initGlobalThemeControls();applyModuleBrandIcons();const startupParams=new URLSearchParams(location.search),initial=startupParams.get('module');if(initial&&modules[initial])activeModule=initial;renderModuleNav();loadSharedUiPrefs().finally(()=>refresh().then(async()=>{switchModule(activeModule);await loadReleaseNotes(true);if(startupParams.get('manage_projects')==='1')showProjectManager()}).catch(e=>toast(e.message)));
 
 $('#openRodHeightQc')?.addEventListener('click',()=>location.href='/fieldbook?rod_height_qc=1');
+
