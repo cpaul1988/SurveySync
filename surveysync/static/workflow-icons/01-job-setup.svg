@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+    <rect x="0.75" y="0.75" width="46.5" height="46.5" rx="10" fill="#F6F4EE"/>
+    <g transform="translate(31.5,31)">
+      <circle r="7.4" fill="none" stroke="#0F203C" stroke-width="1.5"/>
+      <circle r="2.6" fill="none" stroke="#C19D65" stroke-width="1.5"/>
+      <rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(0)"/><rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(45)"/><rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(90)"/><rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(135)"/><rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(180)"/><rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(225)"/><rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(270)"/><rect x="-0.85" y="-10.2" width="1.7" height="3.2" rx="0.25" fill="#0F203C" transform="rotate(315)"/>
+    </g>
+    <rect x="9" y="10" width="17.5" height="22.5" rx="2" fill="none" stroke="#0F203C" stroke-width="1.5"/>
+    <rect x="13.6" y="8" width="8.2" height="4" rx="1.1" fill="#C19D65"/>
+    <line x1="12.4" y1="18" x2="22.2" y2="18" stroke="#0F203C" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="12.4" y1="22.2" x2="22.2" y2="22.2" stroke="#0F203C" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="12.4" y1="26.4" x2="19.2" y2="26.4" stroke="#C19D65" stroke-width="1.2" stroke-linecap="round"/>
+</svg>
