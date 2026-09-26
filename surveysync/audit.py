@@ -21,6 +21,7 @@ AUDIT_GENESIS_HASH = "0" * 64
 
 def _audit_hash(
     *,
+    chain_id: str,
     seq: int,
     event_id: str,
     ts_utc: str,
@@ -41,6 +42,7 @@ def _audit_hash(
 
     payload = {
         "hash_version": AUDIT_HASH_VERSION,
+        "chain_id": str(chain_id),
         "seq": int(seq),
         "event_id": str(event_id),
         "ts_utc": str(ts_utc),
@@ -88,6 +90,10 @@ CREATE TABLE IF NOT EXISTS audit_chain (
     FOREIGN KEY(event_id) REFERENCES audit_events(event_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_audit_chain_event ON audit_chain(event_id);
+CREATE TABLE IF NOT EXISTS audit_chain_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS source_registry (
     source_id TEXT PRIMARY KEY,
@@ -597,6 +603,10 @@ CREATE TABLE IF NOT EXISTS audit_chain (
     FOREIGN KEY(event_id) REFERENCES audit_events(event_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_audit_chain_event ON audit_chain(event_id);
+CREATE TABLE IF NOT EXISTS audit_chain_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """,
 }
 
@@ -665,7 +675,24 @@ class AuditDB:
             conn.execute(f"PRAGMA user_version={version}")
         conn.commit()
 
+    @staticmethod
+    def _audit_chain_id(conn: sqlite3.Connection, *, create: bool = True) -> str:
+        row = conn.execute(
+            "SELECT value FROM audit_chain_meta WHERE key='chain_id'"
+        ).fetchone()
+        if row:
+            return str(row[0])
+        if not create:
+            return ""
+        chain_id = uuid4().hex
+        conn.execute(
+            "INSERT INTO audit_chain_meta(key,value) VALUES('chain_id',?)",
+            (chain_id,),
+        )
+        return chain_id
+
     def _backfill_audit_chain(self, conn: sqlite3.Connection) -> None:
+        chain_id = self._audit_chain_id(conn)
         rows = conn.execute(
             """SELECT event_id,ts_utc,actor,module,action,object_type,object_id,
                       revision,details_json
@@ -676,6 +703,7 @@ class AuditDB:
         prev_hash = AUDIT_GENESIS_HASH
         for seq, row in enumerate(rows, start=1):
             event_hash = _audit_hash(
+                chain_id=chain_id,
                 seq=seq,
                 event_id=row["event_id"],
                 ts_utc=row["ts_utc"],
@@ -719,12 +747,14 @@ class AuditDB:
             # read transaction could otherwise let two writers choose the same seq.
             conn.execute("BEGIN IMMEDIATE")
             try:
+                chain_id = self._audit_chain_id(conn)
                 head = conn.execute(
                     "SELECT seq,event_hash FROM audit_chain ORDER BY seq DESC LIMIT 1"
                 ).fetchone()
                 seq = int(head["seq"]) + 1 if head else 1
                 prev_hash = str(head["event_hash"]) if head else AUDIT_GENESIS_HASH
                 event_hash = _audit_hash(
+                    chain_id=chain_id,
                     seq=seq,
                     event_id=event_id,
                     ts_utc=ts_utc,
@@ -752,6 +782,7 @@ class AuditDB:
 
     def verify_audit_chain(self) -> dict:
         with self.connect() as conn:
+            chain_id = self._audit_chain_id(conn, create=False)
             rows = conn.execute(
                 """SELECT c.seq,c.event_id,c.hash_version,c.prev_hash,c.event_hash,
                           e.ts_utc,e.actor,e.module,e.action,e.object_type,e.object_id,
@@ -761,6 +792,15 @@ class AuditDB:
                    ORDER BY c.seq ASC"""
             ).fetchall()
             event_count = int(conn.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0])
+
+        if not chain_id:
+            return {
+                "ok": False,
+                "event_count": event_count,
+                "chain_count": len(rows),
+                "broken_seq": None,
+                "reason": "Audit chain identity is missing.",
+            }
 
         if len(rows) != event_count:
             return {
@@ -791,6 +831,7 @@ class AuditDB:
                     "reason": f"Previous-hash link mismatch at sequence {seq}.",
                 }
             computed = _audit_hash(
+                chain_id=chain_id,
                 seq=seq,
                 event_id=row["event_id"],
                 ts_utc=row["ts_utc"],
@@ -820,6 +861,7 @@ class AuditDB:
             "broken_seq": None,
             "head_hash": expected_prev if rows else AUDIT_GENESIS_HASH,
             "hash_version": AUDIT_HASH_VERSION,
+            "chain_id": chain_id,
         }
 
     def recent_audit(self, limit: int = 100) -> list[dict]:
