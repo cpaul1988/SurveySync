@@ -56,4 +56,4 @@ def test_v940_windows_brand_icon_generated_before_build():
     assert "#0F203C" in generator
     assert "#C19D65" in generator
     assert r"SetupIconFile=..\branding\SurveySync.ico" in installer
-    assert r'IconFilename={app}\branding\SurveySync.ico' in installer
+    assert r'IconFilename: "{app}\branding\SurveySync.ico"' in installer
