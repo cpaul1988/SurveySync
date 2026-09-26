@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from .api_models import CogoCurveStakeIn, CogoPolygonIn, CogoStationOffsetIn
-from .cogo_extended import alignment_station_offset, polygon_area_perimeter, stake_horizontal_curve
+from .api_models import CogoCurveStakeIn, CogoPolygonIn, CogoStationOffsetIn, CogoVerticalCurveIn
+from .cogo_extended import alignment_station_offset, polygon_area_perimeter, solve_vertical_curve, stake_horizontal_curve
 
 router = APIRouter()
 
@@ -56,4 +56,27 @@ def cogo_curve_stake(payload: CogoCurveStakeIn):
         "pt_easting": result["pt_easting"],
     }
     project.db.audit("COGOSync", "CURVE_STAKE", details=payload.model_dump() | {"result": audit_result})
+    return result
+
+
+@router.post("/api/v9/cogo/vertical-curve")
+def cogo_vertical_curve(payload: CogoVerticalCurveIn):
+    project = _project()
+    try:
+        result = solve_vertical_curve(**payload.model_dump())
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    project.db.audit(
+        "COGOSync",
+        "VERTICAL_CURVE",
+        details=payload.model_dump() | {
+            "result": {
+                "bvc_station": result["bvc_station"],
+                "evc_station": result["evc_station"],
+                "k_value": result["k_value"],
+                "high_low_station": result["high_low_station"],
+                "sample_count": result["sample_count"],
+            }
+        },
+    )
     return result
