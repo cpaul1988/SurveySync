@@ -157,6 +157,9 @@ Standalone point import, editable code classifications, feature-chain range dete
 - `POST /api/v9/cogo/station-offset` — project a point onto a polyline alignment and return station, nearest coordinate, segment azimuth, and signed offset. Positive offset is LEFT looking ahead.
 - `POST /api/v9/cogo/curve-stake` — generate PC/full-station/PT stake coordinates, chord/deflection data, and tangent azimuths for a simple LEFT or RIGHT circular curve.
 - `POST /api/v9/cogo/vertical-curve` — solve an equal-tangent parabolic vertical curve from PVI station/elevation, incoming/outgoing percent grades, and length. Returns BVC/EVC, K-value, high/low point, and optional station/elevation samples.
+- `POST /api/v9/cogo/cross-section` — compute cut/fill area between measured ground and a design template over their overlapping offsets.
+- `POST /api/v9/cogo/earthwork` — compute average-end-area cut/fill volumes, cumulative volumes, and mass-haul ordinates from ordered section areas.
+- `POST /api/v9/cogo/slope-catch` — extend the outer design-template slope and intersect it with a measured ground profile for a selected left/right catch point.
 
 The extended curve engine is adapted from the MIT-licensed Cogokit project and is attributed in `THIRD_PARTY_NOTICES.md`. The audit-chain design is inspired by Block's Apache-2.0 Buzz audit architecture but implemented natively for SurveySync SQLite projects.
 
