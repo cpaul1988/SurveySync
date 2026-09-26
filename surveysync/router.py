@@ -534,7 +534,10 @@ def cogo_intersection(payload: CogoIntersectIn):
 def cogo_curve(payload: CogoCurveIn):
     p=require_project()
     try:
-        result=solve_horizontal_curve(**payload.model_dump())
+        result=solve_horizontal_curve(
+            **payload.model_dump(),
+            linear_units=str(p.manifest.get("horizontal_units") or ""),
+        )
     except ValueError as exc:
         raise HTTPException(400,str(exc))
     p.db.audit("COGOSync","HORIZONTAL_CURVE",details=payload.model_dump()|{"result":result})
