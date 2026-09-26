@@ -27,7 +27,7 @@ class CurveElements:
     long_chord: float
     external: float
     middle_ordinate: float
-    degree_of_curve: float
+    degree_of_curve_100ft_arc: float | None
 
 
 def _finite_positive(name: str, value: float) -> float:
@@ -130,8 +130,9 @@ def solve_horizontal_curve(
     long_chord: float | None = None,
     external: float | None = None,
     middle_ordinate: float | None = None,
-    degree_of_curve: float | None = None,
-) -> dict[str, float]:
+    degree_of_curve_100ft_arc: float | None = None,
+    linear_units: str = "us_survey_feet",
+) -> dict[str, float | None]:
     """Solve a simple circular curve from exactly two independent elements."""
 
     values = {
@@ -142,8 +143,15 @@ def solve_horizontal_curve(
         "C": long_chord,
         "E": external,
         "M": middle_ordinate,
-        "D": degree_of_curve,
+        "D": degree_of_curve_100ft_arc,
     }
+    units = str(linear_units or "").strip().lower()
+    foot_units = {"us_survey_feet", "international_feet", "foot", "feet", "ft"}
+    if degree_of_curve_100ft_arc is not None and units not in foot_units:
+        raise ValueError(
+            "Degree of curve uses the 100-foot arc definition and is only enabled for foot-based projects."
+        )
+
     given = {key: float(value) for key, value in values.items() if value is not None}
     if len(given) != 2:
         raise ValueError(f"Provide exactly two curve elements; received {len(given)}.")
@@ -162,7 +170,7 @@ def solve_horizontal_curve(
         long_chord=2.0 * radius_value * math.sin(half),
         external=radius_value * (1.0 / math.cos(half) - 1.0),
         middle_ordinate=radius_value * (1.0 - math.cos(half)),
-        degree_of_curve=_D_CONST / radius_value,
+        degree_of_curve_100ft_arc=(_D_CONST / radius_value if units in foot_units else None),
     )
     return asdict(result)
 
