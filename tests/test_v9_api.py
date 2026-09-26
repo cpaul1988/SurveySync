@@ -62,8 +62,8 @@ def test_global_theme_and_globe_branding(tmp_path, monkeypatch):
     client=TestClient(app)
     root=client.get('/').text
     fieldbook=client.get('/fieldbook').text
-    assert '/surveysync-static/favicon.ico' in root
-    assert '/surveysync-static/favicon.ico' in fieldbook
+    assert '/surveysync-static/surveysync_monogram.svg' in root
+    assert '/surveysync-static/surveysync_monogram.svg' in fieldbook
     assert '/surveysync-static/workflow-icons/11-fieldsync.svg' in fieldbook
     assert 'data-global-appearance="system"' in root
     assert 'data-global-appearance="light"' in root
