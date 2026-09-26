@@ -94,3 +94,7 @@ not replace field comparison against known survey software before Stable promoti
 
 - `tests/test_v932_level_network.py` checks a redundant fixed-datum benchmark network against a hand-verifiable least-squares reference, rank-deficient geometry rejection, and audited API integration.
 - The workflow is intentionally separate from Ronald's validated three-wire workbook path; regression coverage ensures the new solver does not replace that profile.
+
+## 9.3.2 vertical curve geometry
+
+- `tests/test_v932_vertical_curve.py` checks a symmetric crest-curve reference case, equal-grade rejection, station/elevation sampling, and audited API integration.
