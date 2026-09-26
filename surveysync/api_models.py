@@ -146,6 +146,28 @@ class ControlNetworkAdjustmentIn(BaseModel):
     review_threshold: float = Field(default=3.0, gt=0)
 
 
+class LevelNetworkPointIn(BaseModel):
+    point_id: str = Field(min_length=1, max_length=80)
+    elevation: float
+    fixed: bool = False
+
+
+class LevelNetworkObservationIn(BaseModel):
+    from_id: str = Field(min_length=1, max_length=80)
+    to_id: str = Field(min_length=1, max_length=80)
+    delta_elevation: float
+    sigma: float = Field(gt=0)
+
+
+class LevelNetworkAdjustmentIn(BaseModel):
+    points: list[LevelNetworkPointIn] = Field(min_length=2)
+    observations: list[LevelNetworkObservationIn] = Field(min_length=1)
+    robust: bool = False
+    huber_k: float = Field(default=1.5, gt=0)
+    review_threshold: float = Field(default=3.0, gt=0)
+    max_iterations: int = Field(default=20, ge=1, le=100)
+
+
 class CrsInspectIn(BaseModel):
     crs: str
 
