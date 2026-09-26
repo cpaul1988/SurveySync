@@ -25,7 +25,8 @@ function New-BrandPng([int]$Size) {
         $path.AddArc($Size-$d,$Size-$d,$d,$d,0,90)
         $path.AddArc(0,$Size-$d,$d,$d,90,90)
         $path.CloseFigure()
-        $navyBrush = [System.Drawing.SolidBrush]::new($navy)`n        $g.FillPath($navyBrush,$path)
+        $navyBrush = [System.Drawing.SolidBrush]::new($navy)
+        $g.FillPath($navyBrush,$path)
 
         $margin = $Size * .16
         $diam = $Size - 2*$margin
@@ -49,7 +50,8 @@ function New-BrandPng([int]$Size) {
         $sf=[System.Drawing.StringFormat]::new()
         $sf.Alignment=[System.Drawing.StringAlignment]::Center
         $sf.LineAlignment=[System.Drawing.StringAlignment]::Center
-        $creamBrush=[System.Drawing.SolidBrush]::new($cream)`n        $g.DrawString('S',$font,$creamBrush,[System.Drawing.RectangleF]::new(0,0,$Size,$Size),$sf)
+        $creamBrush=[System.Drawing.SolidBrush]::new($cream)
+        $g.DrawString('S',$font,$creamBrush,[System.Drawing.RectangleF]::new(0,0,$Size,$Size),$sf)
 
         $starX=$Size*.50; $starY=$Size*.10; $r=$Size*.035
         $pts = [System.Drawing.PointF[]]@(
@@ -62,7 +64,8 @@ function New-BrandPng([int]$Size) {
           [System.Drawing.PointF]::new($starX-$r*1.8,$starY),
           [System.Drawing.PointF]::new($starX-$r*.6,$starY-$r*.6)
         )
-        $goldBrush=[System.Drawing.SolidBrush]::new($gold)`n        $g.FillPolygon($goldBrush,$pts)
+        $goldBrush=[System.Drawing.SolidBrush]::new($gold)
+        $g.FillPolygon($goldBrush,$pts)
 
         $ms = [System.IO.MemoryStream]::new()
         $bmp.Save($ms,[System.Drawing.Imaging.ImageFormat]::Png)
