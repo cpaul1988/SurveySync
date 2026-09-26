@@ -11,7 +11,7 @@ import math
 from typing import Any
 
 
-def _finite(name: str, value: float) -> float:
+def _finite(name: str, value: Any) -> float:
     number = float(value)
     if not math.isfinite(number):
         raise ValueError(f"{name} must be finite.")
