@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" fill="none">
+  <defs>
+    <clipPath id="sClip">
+      <text x="110" y="158" font-family="Playfair Display, DM Serif Display, Georgia, serif" font-weight="600"
+            font-size="168" text-anchor="middle">S</text>
+    </clipPath>
+  </defs>
+  <circle cx="110" cy="110" r="90" fill="none" stroke="#C19D65" stroke-width="1.15"/>
+  <text x="110" y="158" font-family="Playfair Display, DM Serif Display, Georgia, serif" font-weight="600"
+        font-size="168" text-anchor="middle" fill="#0F203C">S</text>
+  <g clip-path="url(#sClip)" opacity="0.9">
+    <ellipse cx="110" cy="78" rx="78" ry="13" fill="none" stroke="#C19D65" stroke-width="1.35"/>
+    <ellipse cx="110" cy="104" rx="84" ry="14" fill="none" stroke="#C19D65" stroke-width="1.35"/>
+    <ellipse cx="110" cy="130" rx="80" ry="13" fill="none" stroke="#C19D65" stroke-width="1.35"/>
+    <path d="M70 58 C96 104 104 140 82 176" fill="none" stroke="#C19D65" stroke-width="1.2"/>
+    <path d="M112 50 C132 102 136 140 116 178" fill="none" stroke="#C19D65" stroke-width="1.2"/>
+  </g>
+  <polygon points="110.000,11.800 111.520,16.480 116.200,18.000 111.520,19.520 110.000,24.200 108.480,19.520 103.800,18.000 108.480,16.480" fill="#C19D65"/>
+  <g transform="translate(186,38) scale(0.72) rotate(-22)">
+    <rect x="-15.2" y="-3.6" width="8.4" height="7.2" rx="0.4" fill="#C19D65"/>
+    <rect x="6.8" y="-3.6" width="8.4" height="7.2" rx="0.4" fill="#C19D65"/>
+    <rect x="-7.2" y="-0.7" width="14.4" height="1.4" fill="#C19D65"/>
+    <rect x="-3.6" y="-4.8" width="7.2" height="9.6" rx="0.9" fill="#C19D65"/>
+    <rect x="-2.2" y="-3.2" width="4.4" height="3.4" rx="0.3" fill="#0F203C" opacity="0.28"/>
+    <line x1="0" y1="-4.8" x2="0" y2="-7.4" stroke="#C19D65" stroke-width="1" stroke-linecap="round"/>
+    <circle cx="0" cy="-8.2" r="1.15" fill="none" stroke="#C19D65" stroke-width="0.95"/>
+  </g>
+</svg>
