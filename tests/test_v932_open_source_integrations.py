@@ -24,7 +24,16 @@ def test_cogokit_derived_horizontal_curve_reference_case():
     assert result["tangent"] == pytest.approx(133.9745962, abs=1e-7)
     assert result["arc_length"] == pytest.approx(261.7993878, abs=1e-7)
     assert result["long_chord"] == pytest.approx(258.8190451, abs=1e-7)
-    assert result["degree_of_curve"] == pytest.approx(11.4591559026, abs=1e-9)
+    assert result["degree_of_curve_100ft_arc"] == pytest.approx(11.4591559026, abs=1e-9)
+
+
+def test_horizontal_curve_rejects_degree_of_curve_for_metric_projects():
+    with pytest.raises(ValueError, match="100-foot arc"):
+        solve_horizontal_curve(
+            degree_of_curve_100ft_arc=10.0,
+            delta_deg=30.0,
+            linear_units="meters",
+        )
 
 
 def test_horizontal_curve_rejects_wrong_element_count():
