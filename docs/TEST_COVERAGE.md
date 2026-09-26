@@ -106,3 +106,7 @@ not replace field comparison against known survey software before Stable promoti
 ## 9.3.2 horizontal alignment and LandXML
 
 - `tests/test_v932_landxml_alignment.py` checks tangent/curve continuity, circular-curve midpoint geometry, LEFT-positive station/offset round trips on tangent and curve elements, invalid-curve rejection, LandXML 1.2 CgPoint/Parcel/Alignment round trips, and audited API import/export with immutable source preservation.
+
+## 9.3.2 installed-runtime parity
+
+- `tests/test_v932_installer_runtime.py` verifies that LandXML's startup dependency `defusedxml` is declared in the production requirements input/lock used by Setup and is included in the installer's runtime import verification. It also asserts that Setup provisions from `requirements.lock`, not the developer lock.
