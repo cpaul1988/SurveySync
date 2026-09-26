@@ -18,6 +18,11 @@ Nothing in this file changes the licensing terms of third-party projects.
   - `surveysync/earthwork.py` adapts the cross-section/earthwork and slope-catch
     calculation approach from `src/cogokit/surveying/cross_sections.py` and
     `src/cogokit/surveying/stakeout.py`.
+  - `surveysync/horizontal_alignment.py` adapts the tangent/circular-curve alignment
+    geometry concepts from `src/cogokit/surveying/alignment.py` while using
+    SurveySync's LEFT-positive offset convention.
+  - `surveysync/landxml_io.py` adapts the supported LandXML 1.2 CgPoint, Parcel,
+    and Alignment import/export structure from `src/cogokit/io/landxml.py`.
   - SurveySync changes the public API to SurveySync naming/conventions, uses
     degrees at the API boundary, and returns plain dictionaries for FastAPI/UI use.
 
