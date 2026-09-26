@@ -28,14 +28,14 @@ async function loadReleaseNotes(showOnUpgrade=true){
 }
 function openReleaseNotes(markSeen=false){
   const d=releaseNotesData||{},version=String(d.version||'').trim(),notes=Array.isArray(d.notes)?d.notes:[];
-  openModalShell('release-notes');$('#modalBody').innerHTML=`<div class="release-dialog"><div class="brand-lockup"><img class="brand-lockup-icon" src="/surveysync-static/favicon.ico" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><div class="eyebrow">WHAT'S NEW</div><h2>SurveySync ${version?`v${esc(version)}`:''}</h2><p class="muted">Latest application-wide update.</p><ul class="release-list">${notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div class="row"><button id="releaseDone" class="primary">Continue</button></div></div>`;
+  openModalShell('release-notes');$('#modalBody').innerHTML=`<div class="release-dialog"><div class="brand-lockup"><img class="brand-lockup-icon" src="/surveysync-static/surveysync_monogram.svg" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><div class="eyebrow">WHAT'S NEW</div><h2>SurveySync ${version?`v${esc(version)}`:''}</h2><p class="muted">Latest application-wide update.</p><ul class="release-list">${notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div class="row"><button id="releaseDone" class="primary">Continue</button></div></div>`;
   if(markSeen&&version)localStorage.setItem(SS_RELEASE_SEEN_KEY,version);
   $('#releaseDone').onclick=closeModalShell;
 }
 function openAboutSurveySync(){
   openModalShell('about-surveysync');
   const version=String(releaseNotesData?.version||statusData?.version||'9.4.0');
-  $('#modalBody').innerHTML=`<div class="about-brand"><img class="brand-lockup-icon" src="/surveysync-static/favicon.ico" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div><p class="muted" style="margin:8px 0 0">Modular land-survey workspace · v${esc(version)}</p></div></div><p>One project foundation for field books, control, COGO, topo, boundary, GIS, QA, crew and reporting workflows.</p><p class="muted">Product branding uses the Surveying Navy / Topographic Gold / Canvas Cream 9.4 identity. Client themes such as EDSI remain presentation profiles and do not replace SurveySync ownership.</p><div class="row"><button id="aboutDone" class="primary">Close</button></div>`;
+  $('#modalBody').innerHTML=`<div class="about-brand"><img class="brand-lockup-icon" src="/surveysync-static/surveysync_monogram.svg" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div><p class="muted" style="margin:8px 0 0">Modular land-survey workspace · v${esc(version)}</p></div></div><p>One project foundation for field books, control, COGO, topo, boundary, GIS, QA, crew and reporting workflows.</p><p class="muted">Product branding uses the Surveying Navy / Topographic Gold / Canvas Cream 9.4 identity. Client themes such as EDSI remain presentation profiles and do not replace SurveySync ownership.</p><div class="row"><button id="aboutDone" class="primary">Close</button></div>`;
   $('#aboutDone').onclick=closeModalShell;
 }
 function openGlobalFeedbackWizard(prefill=''){
