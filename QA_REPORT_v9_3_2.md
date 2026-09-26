@@ -86,6 +86,29 @@ The Beta does not claim production support for:
 
 Unsupported LandXML alignment geometry is surfaced for review rather than silently approximated.
 
+## Beta.1 Installed Acceptance Result
+
+**FAILED — startup before UI**
+
+The first 9.3.2 Beta installer completed its CI/build workflow but the installed application crashed before opening the SurveySync UI.
+
+Root cause confirmed from the packaged dependency model:
+
+- `surveysync/landxml_io.py` imports `defusedxml` during router startup.
+- CI installs `requirements-dev.lock`, which contained `defusedxml==0.7.1`.
+- The Windows installer provisions the application environment from `requirements.lock`.
+- `requirements.lock` did not contain `defusedxml`.
+
+Corrective action for Beta.2:
+
+- production input/lock updated with `defusedxml`
+- installer runtime verification now imports `defusedxml`
+- `tests/test_v932_installer_runtime.py` prevents recurrence
+- numbered immutable Beta candidates are supported
+- Beta publication now requires a pre-created exact candidate tag, avoiding GitHub App workflow-tag permission failures
+
+Beta.1 is rejected for Stable promotion.
+
 ## Required Beta publication gate
 
 The GitHub **SurveySync Release** workflow must:
