@@ -107,16 +107,16 @@ def import_landxml(path: Path) -> dict[str, Any]:
                     f"Alignment {alignment.get('name', '')!r} contains unsupported "
                     f"geometry: {', '.join(unsupported)}."
                 )
-            children = [
-                child for child in all_geometry if _element_tag(child) in {"Line", "Curve"}
-            ]
+            children = [child for child in all_geometry if _element_tag(child) in {"Line", "Curve"}]
             if not children:
                 continue
 
             first = children[0]
             start_node = first.find(f"{prefix}Start")
             if start_node is None or not start_node.text:
-                warnings.append(f"Alignment {alignment.get('name', '')!r} has no valid start coordinate.")
+                warnings.append(
+                    f"Alignment {alignment.get('name', '')!r} has no valid start coordinate."
+                )
                 continue
             start_n, start_e, _ = _parse_coord_text(start_node.text)
 
@@ -124,14 +124,18 @@ def import_landxml(path: Path) -> dict[str, Any]:
             if first_tag == "Line":
                 end_node = first.find(f"{prefix}End")
                 if end_node is None or not end_node.text:
-                    warnings.append(f"Alignment {alignment.get('name', '')!r} first line has no endpoint.")
+                    warnings.append(
+                        f"Alignment {alignment.get('name', '')!r} first line has no endpoint."
+                    )
                     continue
                 end_n, end_e, _ = _parse_coord_text(end_node.text)
                 start_azimuth = math.degrees(math.atan2(end_e - start_e, end_n - start_n)) % 360.0
             else:
                 center_node = first.find(f"{prefix}Center")
                 if center_node is None or not center_node.text:
-                    warnings.append(f"Alignment {alignment.get('name', '')!r} first curve has no center.")
+                    warnings.append(
+                        f"Alignment {alignment.get('name', '')!r} first curve has no center."
+                    )
                     continue
                 center_n, center_e, _ = _parse_coord_text(center_node.text)
                 radial = math.degrees(math.atan2(start_e - center_e, start_n - center_n)) % 360.0
@@ -143,7 +147,12 @@ def import_landxml(path: Path) -> dict[str, Any]:
                 tag = _element_tag(child)
                 start_node = child.find(f"{prefix}Start")
                 end_node = child.find(f"{prefix}End")
-                if start_node is None or end_node is None or not start_node.text or not end_node.text:
+                if (
+                    start_node is None
+                    or end_node is None
+                    or not start_node.text
+                    or not end_node.text
+                ):
                     warnings.append(
                         f"Alignment {alignment.get('name', '')!r} element {child_index} is missing Start/End."
                     )
@@ -178,13 +187,19 @@ def import_landxml(path: Path) -> dict[str, Any]:
                             )
                             continue
                         center_n, center_e, _ = _parse_coord_text(center_node.text)
-                        start_radial = math.degrees(
-                            math.atan2(child_start_e - center_e, child_start_n - center_n)
-                        ) % 360.0
-                        end_radial = math.degrees(
-                            math.atan2(child_end_e - center_e, child_end_n - center_n)
-                        ) % 360.0
-                        direction = "RIGHT" if str(child.get("rot") or "cw").lower() == "cw" else "LEFT"
+                        start_radial = (
+                            math.degrees(
+                                math.atan2(child_start_e - center_e, child_start_n - center_n)
+                            )
+                            % 360.0
+                        )
+                        end_radial = (
+                            math.degrees(math.atan2(child_end_e - center_e, child_end_n - center_n))
+                            % 360.0
+                        )
+                        direction = (
+                            "RIGHT" if str(child.get("rot") or "cw").lower() == "cw" else "LEFT"
+                        )
                         delta_deg = (
                             (end_radial - start_radial) % 360.0
                             if direction == "RIGHT"
@@ -282,7 +297,9 @@ def export_landxml(
             for start_vertex, end_vertex in zip(closed, closed[1:], strict=True):
                 line = ET.SubElement(geom, _q("Line"))
                 start = ET.SubElement(line, _q("Start"))
-                start.text = f"{float(start_vertex['northing']):.6f} {float(start_vertex['easting']):.6f}"
+                start.text = (
+                    f"{float(start_vertex['northing']):.6f} {float(start_vertex['easting']):.6f}"
+                )
                 end = ET.SubElement(line, _q("End"))
                 end.text = f"{float(end_vertex['northing']):.6f} {float(end_vertex['easting']):.6f}"
 
@@ -329,13 +346,11 @@ def export_landxml(
                     )
                 start = ET.SubElement(node, _q("Start"))
                 start.text = (
-                    f"{float(element['start_northing']):.6f} "
-                    f"{float(element['start_easting']):.6f}"
+                    f"{float(element['start_northing']):.6f} {float(element['start_easting']):.6f}"
                 )
                 end = ET.SubElement(node, _q("End"))
                 end.text = (
-                    f"{float(element['end_northing']):.6f} "
-                    f"{float(element['end_easting']):.6f}"
+                    f"{float(element['end_northing']):.6f} {float(element['end_easting']):.6f}"
                 )
 
     tree = ET.ElementTree(root)
