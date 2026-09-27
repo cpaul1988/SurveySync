@@ -14,7 +14,10 @@ def test_v940_brand_palette_and_marks_are_wired():
     for token in ("#0F203C", "#C19D65", "#F6F4EE", "#1A2433"):
         assert token in css
 
-    assert "/surveysync-static/surveysync_monogram.svg" in index
+    assert "/surveysync-static/surveysync_globe.svg" in index
+    assert "surveysync_monogram.svg" not in index
+    assert "surveysync_monogram.svg" not in app
+    assert "surveysync_monogram.svg" not in field_index
     assert "/surveysync-static/favicon.ico" not in index
     assert "/surveysync-static/favicon.ico" not in app
     assert "/surveysync-static/favicon.ico" not in field_index
@@ -53,7 +56,7 @@ def test_v940_windows_brand_icon_generated_before_build():
 
     assert "generate_surveysync_icon.ps1" in build
     assert "16,24,32,48,64,128,256" in generator
-    assert "#0F203C" in generator
-    assert "#C19D65" in generator
+    assert "SurveySync_globe_512.png" in generator
+    assert "DrawString('S'" not in generator
     assert r"SetupIconFile=..\branding\SurveySync.ico" in installer
     assert r'IconFilename: "{app}\branding\SurveySync.ico"' in installer
