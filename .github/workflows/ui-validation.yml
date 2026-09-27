@@ -27,21 +27,22 @@ jobs:
       - name: Apply reviewed source changes only on the candidate branch
         shell: pwsh
         run: |
-          python _ui_payload/apply.py
-          if ($LASTEXITCODE -ne 0) { throw 'Source migration failed.' }
-          ./scripts/generate_surveysync_icon.ps1
-          if ($LASTEXITCODE -ne 0) { throw 'Brand generation failed.' }
-          Copy-Item _ui_payload/final_ui_workflow.yml .github/workflows/ui-validation.yml -Force
-          git rm -r _ui_payload
-          git add -u
-          git add surveysync/static/fieldbook-standard.css branding/SurveySync_globe_transparent_512.png installer/wizard_large_200.bmp installer/wizard_large_400.bmp installer/wizard_small_200.bmp installer/wizard_small_400.bmp
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Apply Beta.3 FieldBook-standard UI, globe branding and startup repairs'
-          if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
-          git push origin HEAD:refs/heads/v9.4.0-beta3-unified-ui
-          if ($LASTEXITCODE -ne 0) { throw 'Candidate changed concurrently; no force push permitted.' }
-          git rev-parse HEAD
+          if (Test-Path _ui_payload/apply.py) {
+            python _ui_payload/apply.py
+            if ($LASTEXITCODE -ne 0) { throw 'Source migration failed.' }
+            ./scripts/generate_surveysync_icon.ps1
+            if ($LASTEXITCODE -ne 0) { throw 'Brand generation failed.' }
+            git rm -r _ui_payload
+            git add -u
+            git add surveysync/static/fieldbook-standard.css branding/SurveySync_globe_transparent_512.png installer/wizard_large_200.bmp installer/wizard_large_400.bmp installer/wizard_small_200.bmp installer/wizard_small_400.bmp
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Apply Beta.3 FieldBook-standard UI, globe branding and startup repairs'
+            if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
+            git push origin HEAD:refs/heads/v9.4.0-beta3-unified-ui
+            if ($LASTEXITCODE -ne 0) { throw 'Candidate source push failed; see Git output. No force push attempted.' }
+            git rev-parse HEAD
+          }
       - name: Run unchanged release quality gate
         run: python scripts/release_gate.py
       - run: python -m playwright install chromium
