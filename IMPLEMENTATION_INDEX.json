@@ -773,6 +773,23 @@
         "docs/TEST_COVERAGE.md",
         "CHANGELOG.md"
       ]
+    },
+    "v940_pysurveying_independent_validation": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/pysurveying_reference.py",
+        "surveysync/network_routes.py",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "tests": [
+        "tests/test_v940_pysurveying_validation.py",
+        "tests/test_v932_network_adjustment.py"
+      ],
+      "documentation": [
+        "docs/PYSURVEYING_VALIDATION_ENGINE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
     }
   }
 }
