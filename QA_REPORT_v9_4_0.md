@@ -174,3 +174,25 @@ Beta.2:
 
 Pre-Beta.2 tracker check: latest feedback remains **FBR-0016**; SurveySync Error Log reports **0 total/open errors** and Retry Queue is empty.
 
+## Beta.2 automated quality result
+
+SurveySync Quality run **#165** (run ID **36287654750**) passed on the Beta.2
+branding/release-notes implementation before this evidence-only documentation commit:
+
+- generated SurveySync globe ICO: **133,338 bytes**, **7 frames**
+- clean production runtime: PASS
+- Windows branding/icon gate: PASS
+- documentation gate: PASS
+- static-quality gate: PASS
+- Ruff / formatting: PASS
+- mypy: PASS across 29 source files
+- JavaScript syntax: PASS
+- **365 tests passed**
+- **1 test skipped**
+- **0 failures**
+- total line coverage: **59.35%**
+- required coverage floor: 54%
+
+The branch head is revalidated after recording this evidence. Beta.2 must be tagged
+only at that final green SHA.
+
