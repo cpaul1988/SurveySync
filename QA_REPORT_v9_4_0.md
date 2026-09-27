@@ -120,3 +120,27 @@ Required smoke tests:
 - FieldBookSync
 
 Optional external capabilities that are not installed should report unavailable cleanly rather than blocking SurveySync startup.
+
+## Versioned candidate quality result
+
+SurveySync Quality run **#160** (run ID **36285028740**) passed on the versioned
+9.4.0 release candidate:
+
+- **362 passed**
+- **1 skipped**
+- **0 failed**
+- **59.35% total line coverage**
+- 54% required coverage floor
+- documentation gate: PASS
+- static-quality gate: PASS
+- Ruff checks and formatting: PASS
+- mypy: PASS across 29 source files
+- clean production-runtime verification: PASS
+- Windows 9.4 branding/icon verification: PASS
+- Python compile checks: PASS
+- JavaScript syntax checks: PASS
+- dependency-lock audit: PASS
+
+This QA evidence entry is documentation-only. The branch head is revalidated after
+recording it so the exact candidate source remains green before tagging.
+
