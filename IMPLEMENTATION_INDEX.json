@@ -846,6 +846,59 @@
         "docs/TEST_COVERAGE.md",
         "THIRD_PARTY_NOTICES.md"
       ]
+    },
+    "v940_crs_diagnostics": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/crs_diagnostics.py",
+        "surveysync/crs_diagnostic_routes.py",
+        "surveysync/integration_routes.py"
+      ],
+      "tests": [
+        "tests/test_v940_crs_report_gis_bridges.py"
+      ],
+      "documentation": [
+        "docs/CRS_DIAGNOSTICS.md",
+        "docs/API_REFERENCE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v940_reportsync_template_mapper": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/report_template_mapper.py",
+        "surveysync/report_template_routes.py",
+        "surveysync/integration_routes.py"
+      ],
+      "tests": [
+        "tests/test_v940_crs_report_gis_bridges.py"
+      ],
+      "documentation": [
+        "docs/REPORT_TEMPLATE_MAPPER.md",
+        "docs/API_REFERENCE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v940_optional_qgis_grass_bridges": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/gis_bridges.py",
+        "surveysync/gis_bridge_routes.py",
+        "surveysync/integration_routes.py"
+      ],
+      "tests": [
+        "tests/test_v940_crs_report_gis_bridges.py"
+      ],
+      "documentation": [
+        "docs/GIS_PROCESSING_BRIDGES.md",
+        "docs/API_REFERENCE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
     }
   }
 }
