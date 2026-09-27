@@ -29,7 +29,9 @@ def check_equal(actual, expected, message):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix='ss940-audit-') as tmp:
+    # Application logging legitimately keeps handles open until process exit.
+    # Do not lose the audit results because Windows cannot yet delete its temp log.
+    with tempfile.TemporaryDirectory(prefix='ss940-audit-', ignore_cleanup_errors=True) as tmp:
         base = Path(tmp)
         os.environ['SURVEYSYNC_CONFIG_ROOT'] = str(base / 'config')
         os.environ['SURVEYSYNC_FIELD_ROOT'] = str(base / 'field')
@@ -67,7 +69,7 @@ def main():
 
         def fieldbook_rows():
             result = solve_level_run([{'point_id': 'BM_START', 'backsight': 1.5}, {'point_id': 'TP1', 'foresight': 1., 'backsight': 2.}, {'point_id': 'BM_END', 'foresight': 1.2}], start_elevation=100., known_end_elevation=101.3, adjustment_method='none')
-            return check_equal([round(x['raw_elevation'], 6) for x in result['results']], [100., 100.5, 101.3], 'Point elevations in separate BS/FS fieldbook layout')
+            return check_equal([round(x['raw_elevation'], 6) for x in result['results']], [100., 100.5, 101.3], 'Point elevations in separate BS/FS fieldbook layout; distinct from Ron differential-setup rows')
         probe('A04 separate fieldbook BS/FS point elevations', fieldbook_rows)
 
         def invalid(parser, filename, text):
@@ -126,9 +128,23 @@ def main():
                 raise AssertionError('Expected area ~0.02, centroid (10000000.1,3000000.05); got ' + json.dumps(value))
             return value
         probe('A10 polygon numeric conditioning at large coordinates', polygon)
+
+        def corrupt_job_store():
+            from fieldbook_sync.job_engine import AnalysisJobStore
+            path=base/'corrupted-ledger'/'jobs.sqlite3'
+            path.parent.mkdir()
+            path.write_bytes(b'not a sqlite database')
+            store=AnalysisJobStore(path)
+            try:
+                check_equal(store._conn.execute('PRAGMA integrity_check').fetchone()[0], 'ok', 'Recovered analysis ledger')
+            finally:
+                store.close()
+            return 'Corrupt analysis ledger preserved/recreated successfully'
+        probe('A13 Windows corrupt analysis-ledger recovery', corrupt_job_store)
         client.close()
-    (OUT / 'independent-probes.json').write_text(json.dumps(RESULTS, indent=2), encoding='utf-8')
-    print(json.dumps(RESULTS, indent=2))
+        # Write before leaving temporary state so a cleanup failure cannot hide results.
+        (OUT / 'independent-probes.json').write_text(json.dumps(RESULTS, indent=2), encoding='utf-8')
+        print(json.dumps(RESULTS, indent=2), flush=True)
     if any(x['status']=='FAIL' for x in RESULTS):
         raise SystemExit(1)
 
