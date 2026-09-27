@@ -1,0 +1,217 @@
+# SurveySync 9.4.0 — Integration, Automation, Interoperability, and Product Refresh
+
+SurveySync 9.4.0 completes the first eight-item open-source integration roadmap while preserving the validated Ronald/EDSI control and leveling workflows, immutable source evidence, project audit chain, and explicit professional-review boundaries.
+
+## Product identity and Windows experience
+
+- Introduces the SurveySync **Surveying Navy / Topographic Gold / Canvas Cream** product identity and **UNIFYING GLOBAL DATA** tagline.
+- Updates the Windows installer, shortcut, native window/taskbar icon, favicon surfaces, Inno Setup wizard graphics, About panel, and workflow navigation artwork.
+- Adds the 12-icon surveying workflow library across SurveySync and FieldBookSync while preserving client-specific branding profiles such as EDSI.
+- Stamps the Python core, native launcher, Windows installer, main shell, and FieldBookSync shell as **9.4.0**.
+
+## 1. COGOSync / open-source surveying integration foundation
+
+SurveySync 9.4 carries forward the attributed MIT-derived COGO and construction geometry foundation:
+
+- horizontal circular curves and three-point curves
+- polygon area/perimeter/centroid
+- station-based curve staking
+- tangent/circular-curve horizontal alignments
+- LEFT-positive station/offset calculations
+- vertical parabolic curves
+- cross-section cut/fill, earthwork, mass-haul, and 2D slope-catch calculations
+- LandXML 1.2 point, parcel-line, and supported alignment geometry
+
+Original survey evidence remains separate from calculated output.
+
+## 2. Independent pySurveying-style network validation
+
+ControlSync's conventional 2D least-squares network workflow now includes a separate independent validation engine.
+
+The production network adjustment uses SurveySync's numerical Jacobian path, while the validator uses analytic derivatives and NumPy least-squares. It cross-checks:
+
+- adjusted coordinates
+- normalized residuals
+- redundancy
+- sigma0
+- 95% error-ellipse axes
+
+Validation status is reported as **PASS**, **REVIEW**, or **UNAVAILABLE**. Review-only data snooping can identify possible gross-error observations without deleting or changing the original observations.
+
+Ronald's validated best-three control workflow remains unchanged.
+
+## 3. Trimble JobXML compatibility hardening
+
+Direct JXL/JobXML support is expanded across Trimble Access and TBC-style variations:
+
+- namespace/version-independent parsing
+- nested Reductions / InventoryData / FieldBook / Environment discovery
+- UTF-8/UTF-16/BOM handling
+- preferred PointName/PointID aliases
+- attribute-based point fields
+- Reductions-first behavior with InventoryData supplementation
+- GNSS occupation metadata merge
+- narrow text-level recovery for illegal XML control characters and bare ampersands
+- fail-closed structural XML corruption handling
+
+Proprietary binary .job files still use Trimble's official ASCII File Generator path; SurveySync does not reverse-engineer the binary format.
+
+## 4. Optional LAS / LAZ point-cloud support
+
+TopoSync adds optional point-cloud intake:
+
+- dependency-free LAS 1.0–1.4 header metadata inspection
+- point count, point format, scale, offset, bounds, and VLR metadata
+- immutable LAS/LAZ source preservation with audit provenance
+- optional laspy support for richer metadata and bounded point sampling
+- optional PDAL CLI fallback for compressed LAZ/COPC metadata
+
+Neither laspy nor PDAL is required for normal SurveySync startup.
+
+## 5. Project workflow automation
+
+SurveySync adds project-scoped YAML workflows with persistent run state.
+
+Supported triggers include:
+
+- manual
+- project opened
+- source imported
+- QA completed
+- export completed
+- deliverable created
+
+Supported safe actions include Project Health, saved export profiles, and Review Center items.
+
+**FINAL deliverable creation and stakeholder notification are hard approval-gated.** Workflow YAML cannot disable those requirements. Unknown actions fail closed, and arbitrary shell/Python execution is not supported.
+
+## 6. CRS diagnostics via pyproj / PROJ
+
+GISSync now exposes the evidence behind coordinate-system operations:
+
+- CRS authority/name/type
+- datum, ellipsoid, and prime meridian
+- axis order, direction, units, and conversion factors
+- area of use
+- available and unavailable source-to-target operations
+- published operation accuracy
+- missing transformation-grid evidence
+- best-operation availability
+- project unit mismatch review flags
+- optional sample-coordinate area-of-use checks
+- Local Site / grid-to-ground context
+
+PROJ remains SurveySync's authoritative CRS transformation engine. SurveySync does not silently change a project CRS or automatically download transformation grids.
+
+## 7. ReportSync Excel Template Mapper
+
+ReportSync can now preserve and populate company/client Excel deliverables without hard-coding each workbook layout.
+
+Features include:
+
+- immutable .xlsx/.xlsm template preservation
+- {{placeholder}} discovery
+- reusable scalar-cell mappings
+- canonical-point table mappings
+- template-row style propagation
+- embedded placeholder replacement
+- source SHA-256 provenance
+- rendered workbook registration as **DRAFT** deliverables
+
+DRAFT template output intentionally does not trigger final-deliverable notification policy.
+
+## 8. Optional QGIS / GRASS GIS processing bridges
+
+SurveySync can optionally use independently installed QGIS or GRASS GIS applications as external processing engines.
+
+QGIS bridge capabilities:
+- runtime discovery/status
+- Processing algorithm list
+- algorithm help
+- explicit algorithm execution
+
+GRASS bridge capabilities:
+- runtime discovery/status
+- validated g.*, r.*, v.*, db.*, and i.* module execution
+- temporary-project execution using the selected CRS
+
+The bridge uses validated argument arrays and `shell=False`. SurveySync does not vendor, embed, link against, or import QGIS/GRASS application source code.
+
+## Existing 9.x safety and reliability retained
+
+9.4.0 retains:
+
+- append-oriented and tamper-evident project audit history
+- project-bound audit-chain verification
+- immutable imported source evidence with SHA-256
+- Project Health / Review Center
+- staged imports and comparison
+- active solution revisions
+- Support Center and diagnostics
+- Survey Data Inspector
+- TopoSync rod-height review workflow
+- exact-artifact Beta-to-Stable promotion architecture
+- clean production-runtime verification before installer build
+
+## Pre-build feedback and error check
+
+Checked **September 26, 2026** before 9.4.0 release-candidate preparation:
+
+- Latest Feedback Intake item: **FBR-0016 — Rod Height Bust Tool**
+- Newer Intake items: **none**
+- SurveySync Error Log Tracker: **0 total errors / 0 open errors**
+- Critical errors: **0**
+- Retry/queued submissions: **0**
+
+FBR-0016 is already represented in the TopoSync rod-height workflow.
+
+## Feature-complete quality evidence before version bump
+
+The feature-complete 9.4 integration branch passed SurveySync Quality run **#158** (run ID **36283699520**) before the release stamp:
+
+- **362 passed**
+- **1 skipped**
+- **0 failed**
+- **59.35% line coverage** against a 54% floor
+- documentation gate: PASS
+- static-quality gate: PASS
+- Ruff checks: PASS
+- Ruff formatting: PASS
+- mypy: PASS across 29 source files
+- Python compile checks: PASS
+- JavaScript syntax checks: PASS
+- dependency lock audit: PASS
+
+The versioned release-candidate branch must pass the same quality gate again before Beta publication.
+
+## Installed Windows acceptance required before Stable
+
+The 9.4.0 Beta is not Stable until the exact published installer is installed and checked on Windows.
+
+At minimum verify:
+
+1. installer runtime provisioning completes and SurveySync opens normally
+2. About/title/update surfaces report 9.4.0
+3. project create/open/switch/recovery
+4. Support Center, Feedback Wizard, and Error Log
+5. Survey Data Inspector
+6. Ronald ControlSync best-three workflow
+7. conventional network adjustment plus independent validation
+8. Ron three-wire leveling and weighted benchmark network
+9. Trimble JXL and official .job conversion path where Trimble components are installed
+10. COGOSync alignment/LandXML/vertical curve/earthwork
+11. TopoSync rod-height review and LAS point-cloud metadata intake
+12. workflow automation, including WAITING_APPROVAL behavior
+13. CRS diagnostics and unit/area-of-use warnings
+14. ReportSync Excel Template Mapper with a representative client/company workbook
+15. QGIS / GRASS bridge status and a real processing smoke test where those applications are installed
+16. Project Health, audit verification, deliverable package, and FieldBookSync regression smoke
+
+Stable promotion must reuse the **exact tested Beta installer and SHA-256**.
+
+## Known release boundaries
+
+- QGIS, GRASS, laspy, PDAL, and Trimble conversion components are optional external capabilities.
+- QGIS/GRASS availability in CI is not required; installed-machine acceptance is required when those bridges will be used.
+- Real field-positive and field-negative rod-height datasets remain necessary for production calibration of rod-height detection.
+- Authenticode signing and cryptographically signed update manifests are not configured. Do not represent this build as a signed Windows release.

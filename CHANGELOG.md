@@ -1,4 +1,4 @@
-# 9.4.0 — Brand system refresh (Development)
+# 9.4.0 — Open-source integration, automation, interoperability, and brand refresh
 
 - Adopted the new SurveySync **Surveying Navy / Topographic Gold / Canvas Cream** product identity and **UNIFYING GLOBAL DATA** tagline across the main SurveySync shell.
 - Replaced Windows installer, shortcut, favicon and file-association icon surfaces with the new topographic globe artwork.
@@ -8,7 +8,14 @@
 - Replaced the legacy release-note logo image with the new lockup treatment and added a branded About panel.
 - Updated FieldBookSync's global SurveySync ribbon and non-EDSI theme icons while preserving official EDSI branding profiles.
 - Added permanent branding regression coverage for installer/native icon wiring, workflow assets, shell integration and palette tokens.
-- Kept the application release stamp at 9.3.2 during the 9.4 development phase; the complete 9.4 version bump will occur when the 9.4 feature set is prepared for build.
+- Completed the 9.4 release stamp across the Python core, native launcher, Windows installer, main shell, and FieldBookSync shell.
+- Added independent pySurveying-style network validation with analytic derivatives, residual/redundancy/error-ellipse cross-checks, and review-only data snooping.
+- Hardened Trimble JobXML/JXL intake with namespace/version independence, nested-section support, UTF/BOM handling, safe field-text recovery, and broader regression coverage.
+- Added optional LAS/LAZ point-cloud support with dependency-free LAS metadata inspection plus optional laspy/PDAL capabilities.
+- Added project-scoped YAML workflow automation with persistent run state, automatic trigger dispatch, and hard human-approval gates for final deliverables and stakeholder notifications.
+- Added pyproj/PROJ CRS diagnostics for units, axes, operation accuracy, area of use, and missing transformation-grid evidence.
+- Added the ReportSync Excel Template Mapper for immutable company/client workbook templates, placeholders, reusable mappings, canonical-point tables, and DRAFT rendered deliverables.
+- Added optional external QGIS and GRASS GIS processing bridges using validated argument arrays and shell-free subprocess execution.
 
 # 9.3.2 — Open-source integration foundation (Unreleased)
 

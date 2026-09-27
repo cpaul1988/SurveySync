@@ -1,3 +1,11 @@
+# SurveySync Release History
+
+## 9.4.0 BetaCandidate — integration, automation, interoperability, and product refresh
+
+Completes the first eight-item open-source integration roadmap: attributed COGO foundations, independent pySurveying-style network validation, hardened Trimble JobXML compatibility, optional LAS/LAZ point-cloud support, approval-gated YAML workflow automation, PROJ CRS diagnostics, ReportSync Excel Template Mapper, and optional external QGIS/GRASS processing bridges. Also completes the SurveySync 9.4 product identity refresh.
+
+The original Ronald/EDSI ControlSync and three-wire leveling workflows remain protected. Stable promotion requires installed Windows acceptance of the exact published Beta artifact. See `RELEASE_NOTES_v9_4_0.md` and `QA_REPORT_v9_4_0.md`.
+
 ## 9.2.2 BetaCandidate - Feedback Intake compatibility hotfix
 - Restored the legacy-compatible `application: "FieldBook Sync"` feedback envelope.
 - Feedback now syncs against both the older deployed Intake Web App and the newer SurveySync tracker endpoint.
