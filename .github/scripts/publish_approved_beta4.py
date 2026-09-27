@@ -32,7 +32,8 @@ def require(ok, message):
 
 
 def gh(*args, data=None, optional=False):
-    result = subprocess.run(['gh', *args], input=data, text=True, capture_output=True, check=False)
+    result = subprocess.run(['gh', *args], input=data, text=True, encoding='utf-8',
+                            capture_output=True, check=False)
     if result.returncode:
         if optional and 'HTTP 404' in result.stderr:
             return None
@@ -46,6 +47,33 @@ def api(path, method='GET', body=None, optional=False):
         args += ['--input', '-']
     raw = gh(*args, data=None if body is None else json.dumps(body), optional=optional)
     return None if raw is None else json.loads(raw)
+
+
+def normalized_notes(text):
+    """Compare Markdown content across Windows/GitHub newline normalization.
+
+    Only newline representation and outer whitespace are normalized. The
+    downloadable notes file is still checked byte-for-byte against EXPECTED.
+    """
+    return (text or '').replace('\r\n', '\n').replace('\r', '\n').strip()
+
+
+def find_release():
+    """Find the exact tag in authenticated listings, including unpublished drafts.
+
+    The by-tag REST endpoint only returns published releases. Run #23 created
+    a draft, then failed by requesting that draft via the published-only route.
+    Paginate here so a retry can recover that existing draft without duplication.
+    """
+    matches = []
+    for page in range(1, 101):
+        batch = api(f'{ROOT}/releases?per_page=100&page={page}')
+        require(isinstance(batch, list), 'Unexpected release listing response.')
+        matches.extend(release for release in batch if release.get('tag_name') == TAG)
+        require(len(matches) <= 1, 'Multiple releases use the approved tag; review manually.')
+        if len(batch) < 100:
+            return matches[0] if matches else None
+    raise RuntimeError('Release listing exceeded the safety limit; nothing was published.')
 
 
 def verify(path, digest):
@@ -104,20 +132,26 @@ def main():
     executable = files['SurveySync_Setup_9.4.0.exe']
     require(executable.stat().st_size == 8823709 and executable.read_bytes()[:2] == b'MZ',
             'Approved installer size or executable header mismatch.')
-    notes = files['RELEASE_NOTES_v9_4_0.md'].read_text(encoding='utf-8-sig').strip()
+    notes = normalized_notes(files['RELEASE_NOTES_v9_4_0.md'].read_text(encoding='utf-8-sig'))
     load_feed()  # Validate the live feed before creating a tag or release.
     ref = api(f'{ROOT}/git/ref/tags/{TAG}', optional=True)
     if ref is None:
         ref = api(f'{ROOT}/git/refs', 'POST', {'ref': f'refs/tags/{TAG}', 'sha': SHA})
     require(ref['object']['type'] == 'commit' and ref['object']['sha'] == SHA,
             'Release tag is not the approved source. No tag will be moved.')
-    release = api(f'{ROOT}/releases/tags/{TAG}', optional=True)
+    release = find_release()
     if release is None:
-        gh('release', 'create', TAG, '--repo', REPO, '--verify-tag', '--draft', '--prerelease',
-           '--latest=false', '--title', 'SurveySync 9.4.0 [beta.4]', '--notes-file', str(files['RELEASE_NOTES_v9_4_0.md']))
-        release = api(f'{ROOT}/releases/tags/{TAG}')
-    require(release['prerelease'] and (release.get('body') or '').strip() == notes,
-            'Existing release type or notes differ; refusing to overwrite them.')
+        # POST returns the draft's numeric ID directly; do not look it up by tag.
+        release = api(f'{ROOT}/releases', 'POST', {
+            'tag_name': TAG, 'target_commitish': SHA, 'name': 'SurveySync 9.4.0 [beta.4]',
+            'body': notes, 'draft': True, 'prerelease': True, 'make_latest': 'false',
+        })
+    require(release.get('tag_name') == TAG and release.get('prerelease') is True
+            and normalized_notes(release.get('body')) == notes,
+            'Existing release tag, type or notes differ; refusing to overwrite them.')
+    release_id = release.get('id')
+    require(type(release_id) is int and release_id > 0, 'Release has no valid numeric ID.')
+    print(f'Using release ID {release_id} ({"draft" if release["draft"] else "published"}).', flush=True)
     existing = {asset['name'] for asset in release.get('assets', [])}
     missing = [str(path) for name, path in files.items() if name not in existing]
     if missing:
@@ -127,10 +161,17 @@ def main():
         for name, digest in EXPECTED.items():
             gh('release', 'download', TAG, '--repo', REPO, '--pattern', name, '--dir', tmp)
             verify(Path(tmp) / name, digest)
+    print('All three uploaded assets passed pinned SHA-256 verification.', flush=True)
     if release['draft']:
-        gh('release', 'edit', TAG, '--repo', REPO, '--draft=false', '--prerelease', '--latest=false')
-    release = api(f'{ROOT}/releases/tags/{TAG}')
-    require(not release['draft'] and release['prerelease'], 'Prerelease publication was not confirmed.')
+        api(f'{ROOT}/releases/{release_id}', 'PATCH', {
+            'draft': False, 'prerelease': True, 'make_latest': 'false',
+        })
+    release = api(f'{ROOT}/releases/{release_id}')
+    require(release.get('id') == release_id and release.get('tag_name') == TAG
+            and not release['draft'] and release['prerelease']
+            and release.get('published_at')
+            and normalized_notes(release.get('body')) == notes,
+            'Prerelease publication was not confirmed.')
     entry, data = load_feed()  # Read fresh and update only beta with optimistic concurrency.
     other_channels = {key: copy.deepcopy(value) for key, value in data['channels'].items() if key != 'beta'}
     timestamp = release['published_at']
