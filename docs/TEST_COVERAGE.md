@@ -131,3 +131,17 @@ stronger regression evidence, but it still does not replace comparison against
 known survey software, governing specifications, or installed Windows
 acceptance before Stable promotion.
 
+## v9.4.0 Trimble JobXML compatibility
+
+`tests/test_v940_jxl_regression.py` expands direct JXL coverage using a
+jxl2txt-informed compatibility matrix. It verifies default namespaces and
+schema-version independence, nested Trimble sections, UTF-16 input,
+attribute-based point fields, PointName/PointID precedence over generic Name,
+Reductions plus InventoryData supplementation, FieldBook GNSS metadata merging,
+safe recovery of illegal XML text/control characters, structural-corruption
+rejection, rejection of valid non-JobXML input, and BSD attribution.
+
+The parser continues to require Trimble's official ASCII File Generator for
+proprietary binary `.job` files. The new recovery path only repairs field-text
+defects and deliberately does not reconstruct broken XML structure.
+
