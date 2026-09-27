@@ -1,0 +1,70 @@
+name: SurveySync UI Validation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: surveysync-ui-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser-ui-and-installer:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install locked application and test dependencies
+        run: python -m pip install --require-hashes -r requirements-dev.lock
+      - name: Install isolated browser QA tooling
+        run: python -m pip install playwright==1.57.0
+      - run: python -m playwright install chromium
+      - name: Regenerate every globe branding surface
+        shell: pwsh
+        run: ./scripts/generate_surveysync_icon.ps1
+      - name: Static assets and release-note regression tests
+        run: python -m pytest -q tests/test_beta3_ui.py tests/test_v940_branding.py tests/test_v940_beta2_brand_release_notes.py tests/test_theme_branding.py
+      - name: Real application light and dark browser checks
+        run: python scripts/ui_browser_smoke.py
+      - name: Theme-only client branding and switch regression checks
+        run: python scripts/theme_branding_smoke.py
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+      - name: Run full release gate and compile candidate installer
+        shell: pwsh
+        run: ./Build_SurveySync.ps1
+      - name: Retain candidate installer, checksum, and release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurveySync_Beta4_Installer
+          path: |
+            installer/output/SurveySync_Setup_9.4.0.exe
+            installer/output/SurveySync_Setup_9.4.0.exe.sha256
+            RELEASE_NOTES_v9_4_0.md
+          if-no-files-found: error
+          retention-days: 14
+      - name: Retain actual UI screenshots and trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surveysync-ui-evidence
+          path: ui-evidence/
+          retention-days: 14
+      - name: Retain exact tested source
+        if: always()
+        shell: pwsh
+        run: git archive --format=zip --output=source-for-ui-validation.zip HEAD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: source-for-ui-validation
+          path: source-for-ui-validation.zip
+          retention-days: 3

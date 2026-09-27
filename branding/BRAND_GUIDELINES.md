@@ -31,8 +31,9 @@ SurveySync must not ship font files from the asset package. Use installed/web-sa
 - Windows launcher / installer / shortcut: topographic globe application icon.
 - Top-left product brand: globe + pole star + satellite emblem.
 - Splash/About/first-run branding: horizontal SurveySync lockup.
-- Compact project/file surfaces: SurveySync monogram when an appropriate derivative is available.
-- Detailed globe should not be reduced below 48 px; use simplified 32/16 masters for small UI surfaces.
+- SurveySync product branding uses the globe consistently, including Windows app/installer/shortcut/taskbar and shared top-left product marks.
+- The monogram asset may remain in the repository for archival/reference use but is not an active SurveySync product mark.
+- For small Windows icon frames, downsample the canonical globe artwork rather than substituting a lettermark.
 
 ## Workflow icon mapping
 

@@ -7,7 +7,7 @@
 AppId={{D7432040-46E5-4F2B-A9AC-97B2DB7BAF4B}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion} Beta.4
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -24,8 +24,9 @@ OutputBaseFilename=SurveySync_Setup_9.4.0
 SetupIconFile=..\branding\SurveySync.ico
 UninstallDisplayIcon={app}\branding\SurveySync.ico
 WizardStyle=modern
-WizardImageFile=wizard_large.bmp
-WizardSmallImageFile=wizard_small.bmp
+WizardImageFile=wizard_large.bmp,wizard_large_200.bmp,wizard_large_400.bmp
+WizardSmallImageFile=wizard_small.bmp,wizard_small_200.bmp,wizard_small_400.bmp
+WizardImageStretch=yes
 Compression=lzma2/ultra64
 SolidCompression=yes
 CloseApplications=yes
@@ -49,7 +50,7 @@ Name: "fbsassoc"; Description: "Associate .fbs project files with SurveySync"; G
 Name: "localai"; Description: "Run optional FieldBookSync Local AI setup after installation"; GroupDescription: "Local AI:"; Flags: unchecked
 
 [Files]
-Source: "..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git\*,.github\*,.build-venv\*,.prod-verify\*,.ruff_cache\*,.mypy_cache\*,.pytest_cache\*,.coverage,coverage.xml,installer\output\*,tests\*,legacy_tests\*,.venv\*,.paddleenv\*,runtime\*,dist\*,build\*,__pycache__\*,*.pyc,*.pyo"
+Source: "..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git\*,.github\*,.build-venv\*,.prod-verify\*,.ruff_cache\*,.mypy_cache\*,.pytest_cache\*,.coverage,coverage.xml,installer\output\*,tests\*,legacy_tests\*,ui-evidence\*,_ui_payload\*,.venv\*,.paddleenv\*,runtime\*,dist\*,build\*,__pycache__\*,*.pyc,*.pyo"
 Source: "provision_runtime.ps1"; DestDir: "{app}\installer"; Flags: ignoreversion; AfterInstall: ProvisionRuntime
 
 [Icons]
