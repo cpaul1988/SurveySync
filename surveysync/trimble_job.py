@@ -25,6 +25,155 @@ def _local(tag: str) -> str:
     return str(tag or "").rsplit("}", 1)[-1]
 
 
+def _attribute(node: ET.Element | None, *names: str) -> str:
+    """Return the first matching attribute value without depending on namespace/case."""
+    if node is None:
+        return ""
+    wanted = {name.casefold() for name in names}
+    for key, value in node.attrib.items():
+        if _local(key).casefold() in wanted:
+            text = str(value or "").strip()
+            if text:
+                return text
+    return ""
+
+
+def _decode_xml_bytes(raw: bytes) -> tuple[str, str]:
+    """Decode malformed XML for the narrow recovery path.
+
+    ElementTree handles encoding declarations during normal parsing. This helper is
+    only used after strict parsing failed, so it explicitly recognizes the common
+    UTF BOMs/declarations that appear in Trimble JobXML exports.
+    """
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return raw.decode("utf-16"), "utf-16"
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return raw.decode("utf-8-sig"), "utf-8-sig"
+
+    head = raw[:512]
+    match = re.search(
+        br"""<\?xml[^>]*encoding\s*=\s*["']([^"']+)["']""",
+        head,
+        flags=re.IGNORECASE,
+    )
+    if match:
+        encoding = match.group(1).decode("ascii", errors="ignore").strip() or "utf-8"
+        try:
+            return raw.decode(encoding), encoding
+        except (LookupError, UnicodeDecodeError):
+            pass
+
+    # Some controller exports omit a BOM while still writing UTF-16.
+    if len(raw) >= 4:
+        if raw[1:2] == b"\x00" and raw[3:4] == b"\x00":
+            return raw.decode("utf-16-le"), "utf-16-le"
+        if raw[0:1] == b"\x00" and raw[2:3] == b"\x00":
+            return raw.decode("utf-16-be"), "utf-16-be"
+
+    try:
+        return raw.decode("utf-8"), "utf-8"
+    except UnicodeDecodeError:
+        # cp1252 is a practical final fallback for old Windows-authored exports.
+        return raw.decode("cp1252"), "cp1252"
+
+
+def _recover_jobxml_text(text: str) -> tuple[str, list[str]]:
+    """Apply only safe text-level JobXML repairs.
+
+    jxl2txt uses libxml2's recover mode. SurveySync deliberately avoids general
+    structural recovery: it only removes illegal XML control characters and escapes
+    bare ampersands, two field-text defects seen in hand-edited/vendor-generated XML.
+    """
+    actions: list[str] = []
+    repaired = text
+
+    cleaned = "".join(
+        char
+        for char in repaired
+        if char in "\t\n\r" or ord(char) >= 0x20
+    )
+    if cleaned != repaired:
+        repaired = cleaned
+        actions.append("removed_illegal_xml_control_characters")
+
+    bare_ampersand = re.compile(
+        r"&(?!#\d+;|#x[0-9A-Fa-f]+;|amp;|lt;|gt;|apos;|quot;)"
+    )
+    escaped = bare_ampersand.sub("&amp;", repaired)
+    if escaped != repaired:
+        repaired = escaped
+        actions.append("escaped_bare_ampersands")
+
+    # ElementTree receives Unicode in recovery mode, so an encoding declaration
+    # would no longer describe the input byte stream.
+    without_declaration = re.sub(
+        r"^\ufeff?\s*<\?xml[^>]*\?>",
+        "",
+        repaired,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+    if without_declaration != repaired:
+        repaired = without_declaration
+        actions.append("removed_encoding_declaration_for_recovery")
+
+    return repaired, actions
+
+
+def _parse_jobxml_root(source: Path) -> tuple[ET.Element, dict]:
+    """Parse JobXML strictly first, then use a narrow jxl2txt-inspired recovery path."""
+    try:
+        root = ET.parse(source).getroot()
+        parse_meta = {
+            "xml_parse_mode": "strict",
+            "xml_recovery_used": False,
+            "xml_recovery_actions": [],
+            "xml_encoding": "",
+        }
+    except ET.ParseError as strict_error:
+        try:
+            raw = source.read_bytes()
+            text, encoding = _decode_xml_bytes(raw)
+            repaired, actions = _recover_jobxml_text(text)
+            if not actions:
+                raise TrimbleJobError(
+                    f"Trimble JobXML could not be parsed: {strict_error}"
+                ) from strict_error
+            root = ET.fromstring(repaired)
+        except TrimbleJobError:
+            raise
+        except (ET.ParseError, OSError, UnicodeError) as recovery_error:
+            raise TrimbleJobError(
+                "Trimble JobXML could not be parsed strictly or by the safe "
+                f"text-recovery path: {recovery_error}"
+            ) from strict_error
+        parse_meta = {
+            "xml_parse_mode": "recovered_text",
+            "xml_recovery_used": True,
+            "xml_recovery_actions": actions,
+            "xml_encoding": encoding,
+            "strict_parse_error": str(strict_error),
+        }
+
+    root_name = _local(root.tag)
+    if root_name.casefold() not in {"jobfile", "jobxml"}:
+        raise TrimbleJobError(
+            f"Selected XML is not recognized as Trimble JobXML (root element: {root_name or '(blank)'})."
+        )
+    parse_meta["xml_root"] = root_name
+    return root, parse_meta
+
+
+def _first_descendant(node: ET.Element, name: str) -> ET.Element | None:
+    wanted = name.casefold()
+    for child in node.iter():
+        if child is node:
+            continue
+        if _local(child.tag).casefold() == wanted:
+            return child
+    return None
+
+
 def _children(node: ET.Element, name: str) -> list[ET.Element]:
     wanted = name.casefold()
     return [child for child in list(node) if _local(child.tag).casefold() == wanted]
@@ -344,33 +493,23 @@ def convert_job_to_jxl(
 
 
 def parse_jobxml_points(path: str | Path) -> dict:
-    """Parse grid points from the JobXML ``Reductions`` section.
+    """Parse grid points from Trimble JobXML without binding to one schema version.
 
-    Namespace versions vary across Trimble Access releases, so parsing is based on
-    local element names rather than a hard-coded schema namespace.
+    Parsing is namespace-agnostic and accepts Reductions/InventoryData sections
+    nested beneath wrapper elements used by different Trimble products. Strict XML
+    parsing is always attempted first; the fallback only repairs field-text defects
+    (illegal control characters or bare ampersands), never structural XML damage.
     """
     source = Path(path).expanduser().resolve()
     if not source.is_file():
         raise TrimbleJobError(f"JobXML file was not found: {source}")
-    try:
-        root = ET.parse(source).getroot()
-    except ET.ParseError as exc:
-        raise TrimbleJobError(f"Trimble JobXML could not be parsed: {exc}") from exc
 
-    reductions = None
-    inventory = None
-    fieldbook = None
-    environment = None
-    for child in list(root):
-        local = _local(child.tag).casefold()
-        if local == "reductions":
-            reductions = child
-        elif local == "inventorydata":
-            inventory = child
-        elif local == "fieldbook":
-            fieldbook = child
-        elif local == "environment":
-            environment = child
+    root, parse_meta = _parse_jobxml_root(source)
+
+    reductions = _first_descendant(root, "Reductions")
+    inventory = _first_descendant(root, "InventoryData")
+    fieldbook = _first_descendant(root, "FieldBook")
+    environment = _first_descendant(root, "Environment")
 
     points: list[dict] = []
     skipped = 0
@@ -386,66 +525,118 @@ def parse_jobxml_points(path: str | Path) -> dict:
         for point in container.iter():
             if _local(point.tag).casefold() != "point":
                 continue
-            name = _text(point, "Name", "PointName", "PointID").strip()
+
+            _name_tag, name_text = _first_text(
+                point, ("PointName", "PointID", "PointId", "Name")
+            )
+            name = (
+                str(name_text or "").strip()
+                or _attribute(point, "PointName", "PointID", "PointId", "Name")
+            )
             if not name:
                 skipped += 1
                 continue
             if skip_existing and name in seen:
                 continue
+
             grid = _first_child(point, "Grid")
             if grid is None:
-                # Some schema versions nest the grid record one level deeper.
-                grid = next((x for x in point.iter() if _local(x.tag).casefold() == "grid"), None)
-            north = _float(_text(grid, "North", "Northing"))
-            east = _float(_text(grid, "East", "Easting"))
-            elevation = _float(_text(grid, "Elevation", "Height", "Elev"))
+                grid = _first_descendant(point, "Grid")
+            coordinate_node = grid if grid is not None else point
+
+            _north_tag, north_text = _first_text(
+                coordinate_node, ("North", "Northing")
+            )
+            _east_tag, east_text = _first_text(
+                coordinate_node, ("East", "Easting")
+            )
+            _elev_tag, elevation_text = _first_text(
+                coordinate_node, ("Elevation", "Height", "Elev")
+            )
+            north = _float(north_text)
+            east = _float(east_text)
+            elevation = _float(elevation_text)
             if north is None or east is None:
                 skipped += 1
                 continue
-            code = _text(point, "Code", "FeatureCode", "Description")
-            survey_method = _text(point, "SurveyMethod")
-            classification = _text(point, "Classification")
+
+            _code_tag, code_text = _first_text(
+                point, ("Code", "FeatureCode", "Description")
+            )
+            _method_tag, method_text = _first_text(point, ("SurveyMethod",))
+            _class_tag, classification_text = _first_text(
+                point, ("Classification",)
+            )
+            code = str(code_text or "").strip() or _attribute(
+                point, "Code", "FeatureCode", "Description"
+            )
+            survey_method = str(method_text or "").strip() or _attribute(
+                point, "SurveyMethod"
+            )
+            classification = str(classification_text or "").strip() or _attribute(
+                point, "Classification"
+            )
+
             if name in seen:
                 duplicate_names.append(name)
             seen.add(name)
+
             point_meta = _observation_metadata(point)
             fb_meta = fieldbook_meta.get(name, {})
             merged_meta = {
-                key: (point_meta.get(key) if point_meta.get(key) not in (None, "") else fb_meta.get(key))
+                key: (
+                    point_meta.get(key)
+                    if point_meta.get(key) not in (None, "")
+                    else fb_meta.get(key)
+                )
                 for key in (
-                    "observed_utc", "epoch_count", "duration_seconds", "satellite_count",
-                    "pdop", "hdop", "vdop", "fix_type", "receiver_model",
-                    "receiver_serial", "antenna_type", "antenna_height", "fieldbook_record_type"
+                    "observed_utc",
+                    "epoch_count",
+                    "duration_seconds",
+                    "satellite_count",
+                    "pdop",
+                    "hdop",
+                    "vdop",
+                    "fix_type",
+                    "receiver_model",
+                    "receiver_serial",
+                    "antenna_type",
+                    "antenna_height",
+                    "fieldbook_record_type",
                 )
             }
-            # A reduction/inventory point usually has no observation-time fields at all;
-            # its default 0 flag must not overwrite a real FieldBook occupation time.
+            # A reduction/inventory point usually has no observation-time fields at
+            # all; its default 0 flag must not overwrite a real FieldBook time.
             merged_meta["observed_time_provided"] = (
                 int(bool(point_meta.get("observed_time_provided")))
                 if point_meta.get("observed_utc")
                 else int(bool(fb_meta.get("observed_time_provided")))
             )
-            points.append({
-                "point_id": name,
-                "northing": north,
-                "easting": east,
-                "elevation": elevation,
-                "code": code,
-                "survey_method": survey_method,
-                "classification": classification,
-                **merged_meta,
-            })
+            points.append(
+                {
+                    "point_id": name,
+                    "northing": north,
+                    "easting": east,
+                    "elevation": elevation,
+                    "code": code,
+                    "survey_method": survey_method,
+                    "classification": classification,
+                    **merged_meta,
+                }
+            )
             added += 1
         return added
 
     reduction_count = append_points(reductions)
-    # TBC-produced JobXML can legitimately contain an empty <Reductions/> section
-    # while storing the usable grid point list under <InventoryData>. Prefer real
-    # reductions when present; otherwise fall back to InventoryData so SurveySync
-    # can read these exports directly. If reductions exist, InventoryData only
-    # supplements names that were not already reduced.
+    # TBC-produced JobXML can legitimately contain an empty Reductions section
+    # while storing usable grid points under InventoryData. Prefer reductions,
+    # then use InventoryData only to supplement point IDs not already present.
     inventory_count = append_points(inventory, skip_existing=bool(reduction_count))
-    point_source = "Reductions" if reduction_count else ("InventoryData" if inventory_count else "")
+    point_source = (
+        "Reductions"
+        if reduction_count
+        else ("InventoryData" if inventory_count else "")
+    )
 
     fieldbook_record_counts: dict[str, int] = {}
     if fieldbook is not None:
@@ -458,20 +649,36 @@ def parse_jobxml_points(path: str | Path) -> dict:
 
     env_summary: dict[str, str] = {}
     if environment is not None:
-        # Preserve small, useful coordinate-system hints without trying to make a
-        # professional CRS decision from vendor-specific records.
-        for key in ("CoordinateSystemName", "Projection", "Datum", "GeoidModel", "DistanceUnits", "VerticalDatum"):
+        # Preserve coordinate-system hints without making a professional CRS
+        # decision from vendor-specific records.
+        for key in (
+            "CoordinateSystemName",
+            "Projection",
+            "Datum",
+            "GeoidModel",
+            "DistanceUnits",
+            "VerticalDatum",
+        ):
             value = _text(environment, key)
             if value:
                 env_summary[key] = value
 
+    namespace_uri = ""
+    root_tag = str(root.tag or "")
+    if root_tag.startswith("{") and "}" in root_tag:
+        namespace_uri = root_tag[1:].split("}", 1)[0]
+
     metadata = {
-        "job_name": str(root.attrib.get("jobName") or root.attrib.get("JobName") or source.stem),
-        "jobxml_version": str(root.attrib.get("version") or ""),
-        "product": str(root.attrib.get("product") or ""),
-        "product_version": str(root.attrib.get("productVersion") or ""),
-        "product_db_version": str(root.attrib.get("productDBVersion") or ""),
-        "timestamp": str(root.attrib.get("TimeStamp") or root.attrib.get("timestamp") or ""),
+        "job_name": _attribute(root, "jobName", "JobName") or source.stem,
+        "jobxml_version": _attribute(root, "version", "Version"),
+        "product": _attribute(root, "product", "Product"),
+        "product_version": _attribute(root, "productVersion", "ProductVersion"),
+        "product_db_version": _attribute(
+            root, "productDBVersion", "ProductDBVersion"
+        ),
+        "timestamp": _attribute(root, "TimeStamp", "Timestamp", "timestamp"),
+        "schema_location": _attribute(root, "schemaLocation"),
+        "namespace_uri": namespace_uri,
         "point_count": len(points),
         "point_source": point_source,
         "reduction_point_count": reduction_count,
@@ -482,9 +689,23 @@ def parse_jobxml_points(path: str | Path) -> dict:
         "fieldbook_scan": fieldbook_scan,
         "environment": env_summary,
         "gnss_metadata_counts": {
-            key: sum(1 for p in points if p.get(key) not in (None, ""))
-            for key in ("observed_utc","epoch_count","duration_seconds","satellite_count","pdop","hdop","vdop","fix_type","receiver_model","receiver_serial","antenna_type","antenna_height")
+            key: sum(1 for point in points if point.get(key) not in (None, ""))
+            for key in (
+                "observed_utc",
+                "epoch_count",
+                "duration_seconds",
+                "satellite_count",
+                "pdop",
+                "hdop",
+                "vdop",
+                "fix_type",
+                "receiver_model",
+                "receiver_serial",
+                "antenna_type",
+                "antenna_height",
+            )
         },
+        **parse_meta,
     }
     return {"metadata": metadata, "points": points}
 

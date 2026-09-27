@@ -88,6 +88,7 @@ from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from . import __version__
+from .static_assets import serve_static
 from .audit import utc_now
 from .config import AppConfig, ConfigStore, ENVIRONMENTS, RELEASE_CHANNELS, DEFAULT_UPDATE_MANIFEST_URL
 from .project import SurveyProject, safe_name
@@ -133,6 +134,7 @@ from .cogo_routes import router as cogo_extended_router
 from .network_routes import router as network_adjustment_router
 from .level_network_routes import router as level_network_adjustment_router
 from .alignment_routes import router as alignment_landxml_router
+from .integration_routes import router as integration_router
 from .diagnostics import (
     build_diagnostic_bundle,
     error_log_path,
@@ -152,6 +154,7 @@ for subrouter in (
     network_adjustment_router,
     level_network_adjustment_router,
     alignment_landxml_router,
+    integration_router,
 ):
     router.include_router(subrouter)
 config_store = ConfigStore()
@@ -159,14 +162,23 @@ core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
+SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.4"
+
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.3.2: expands COGOSync and ControlSync with production-oriented open-source integrations while preserving SurveySync's existing validated workflows.",
-    "COGOSync now includes continuous tangent/circular-curve alignments, station/offset stake-point calculations, vertical curves, cross-section cut/fill, earthwork, and 2D slope-catch tools.",
-    "LandXML 1.2 import/export supports CgPoints, parcel line geometry, and tangent/circular-curve alignments; imported LandXML is preserved as immutable SHA-256 project source evidence.",
-    "ControlSync adds a separate weighted least-squares 2D network adjustment with covariance, redundancy, standardized residuals, 95% error ellipses, and optional Huber robust weighting.",
-    "Leveling adds a separate weighted benchmark-network adjustment without changing Ronald's validated three-wire workbook workflow.",
-    "Project audit history is now project-bound and tamper-evident with SHA-256 chaining, Project Health verification, and deliverable-manifest audit heads.",
-    "The release pipeline now separates tested Beta candidates from exact-artifact Stable promotion to prevent branch/version ambiguity.",
+    "Beta.4 makes EDSI branding theme-only: normal themes show the SurveySync globe alone; EDSI Adaptive, EDSI Dark and EDSI Light show the globe and EDSI logo side by side throughout both shells.",
+    "Switching themes immediately updates headers, sidebars, Home, About and release notes. The Windows icon and installer retain the SurveySync globe; project data and saved theme preferences are unchanged.",
+    "Beta.3 makes FieldBookSync the visual standard for Home and every module: shared palettes, toolbars, sidebars, cards, controls, spacing, and readable typography.",
+    "Fixes the module-icon startup exception and the static route that rejected workflow-icon subfolders; release notes no longer depend on successful project/status initialization.",
+    "Globe branding is generated from one source for application icons and both installer wizard images. Dark-mode wordmarks use light lettering without inverting the globe colors.",
+    "Release notes identify this build as 9.4.0-beta.4, remain unread until Continue, and include a visible retry action on failure. Existing project data and saved theme preferences are retained.",
+    "9.4.0 completes the open-source integration roadmap while preserving SurveySync's validated ControlSync, leveling, audit, and source-evidence workflows.",
+    "ControlSync network adjustment now has an independent pySurveying-style numerical validation engine with residual, redundancy, sigma0, and error-ellipse cross-checks.",
+    "Trimble JobXML/JXL intake is more tolerant across Access/TBC generations while structurally corrupt XML still fails closed.",
+    "TopoSync adds optional LAS/LAZ point-cloud intake with built-in LAS metadata and optional laspy/PDAL support.",
+    "SurveySync adds project-scoped YAML workflow automation with persistent run state and explicit human approval for final deliverables and stakeholder notifications.",
+    "GISSync adds PROJ-based CRS diagnostics plus optional external QGIS and GRASS processing bridges.",
+    "ReportSync adds immutable Excel template mapping/rendering for company and client workbooks, with rendered outputs registered as DRAFT deliverables.",
+    "SurveySync 9.4 introduces the new Surveying Navy / Topographic Gold / Canvas Cream product identity and unified workflow icon system.",
 ]
 
 
@@ -223,6 +235,23 @@ def _set_current(project: SurveyProject) -> SurveyProject:
         _remember_project(project.paths.root)
         from .session_recovery import set_project
         set_project(config_store.root, project.paths.root)
+        try:
+            from .workflow_engine import WorkflowError, dispatch_trigger
+            dispatch_trigger(
+                project,
+                "project_opened",
+                context={
+                    "project_id": project.manifest.get("project_id", ""),
+                    "project_name": project.manifest.get("name", ""),
+                    "project_root": str(project.paths.root),
+                },
+            )
+        except (WorkflowError, OSError, ValueError) as exc:
+            core_logger.warning(
+                "Workflow dispatch failed after project open %s: %s",
+                project.paths.root,
+                exc,
+            )
     return project
 
 
@@ -297,15 +326,16 @@ def shell():
 
 @router.get("/api/v9/release-notes")
 def release_notes():
-    return {"version": __version__, "notes": list(SURVEYSYNC_RELEASE_NOTES)}
+    return {
+        "version": __version__,
+        "release_id": SURVEYSYNC_RELEASE_NOTES_ID,
+        "notes": list(SURVEYSYNC_RELEASE_NOTES),
+    }
 
 
-@router.get("/surveysync-static/{name}")
+@router.get("/surveysync-static/{name:path}")
 def static_asset(name: str):
-    if "/" in name or "\\" in name or ".." in name: raise HTTPException(404)
-    path=STATIC/name
-    if not path.is_file(): raise HTTPException(404)
-    return FileResponse(path)
+    return serve_static(STATIC, name)
 
 @router.get("/api/v9/status")
 def status():

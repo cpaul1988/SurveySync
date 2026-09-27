@@ -294,21 +294,31 @@ deferred because it would impose materially different distribution obligations.
 - polyline alignment station/offset with LEFT-positive convention
 - simple horizontal-curve station staking
 
-### Phase C — partially implemented
+### Phase C — implemented
 - **general least-squares network adjustment** — implemented as a separate ControlSync workflow supporting distance, azimuth, direction, and horizontal-angle observations.
 - **residual/redundancy/error-ellipse reports** — implemented with observation redundancy, standardized-residual review flags, optional Huber robust weighting, covariance, and 95% point error ellipses.
-- **independent numerical cross-validation** — pySurveying's MIT-licensed distance-network fixture is adapted into SurveySync regression coverage without copying the upstream adjustment engine.
+- **independent numerical cross-validation** — implemented in `surveysync/pysurveying_reference.py`. The secondary pySurveying-style calculation uses analytic derivatives and NumPy least-squares, then compares coordinates, residuals, redundancy, sigma0, and error-ellipse axes against the production numerical-Jacobian engine.
+- **validation status in the API** — every ControlSync network-adjustment result includes `independent_validation` with PASS, REVIEW, or UNAVAILABLE status. Validator failure never replaces or blocks the native adjustment result.
+- **review-only data snooping** — implemented for repeated standardized-residual screening. Candidate removals are recommendations only and original survey evidence remains unchanged.
 - **weighted leveling network — implemented** as a separate fixed-datum least-squares workflow with observation sigmas, redundancy diagnostics, standardized-residual review flags, optional Huber robust weighting, and elevation uncertainty.
-- additional Cogokit/independent mixed-network fixtures — next.
+- **mixed-network cross-check fixtures** — covered by SurveySync-owned regression tests for distance plus angular observations.
 
-### Phase D
+### Phase D — implemented for the current scope
 - **LandXML 1.2 point/parcel/alignment I/O — implemented** for CgPoints, Parcel Line geometry, and tangent/circular-curve Alignments, with immutable project-source preservation on import. Profiles/surfaces/spirals remain future expansion.
-- jxl2txt-derived JobXML regression matrix
-- optional PDAL/laspy point-cloud module
+- **jxl2txt-informed JobXML compatibility matrix — implemented** with namespace/version-independent parsing, nested section discovery, UTF/BOM handling, point-ID alias precedence, attribute-based point fields, safe text-level XML recovery, fail-closed structural-corruption handling, and SurveySync-owned regression fixtures.
+- **Trimble parser provenance metadata — implemented** with XML parse mode, recovery actions, namespace/schema location, product/version, section-source, and GNSS metadata counts.
+- **optional PDAL/laspy point-cloud module — implemented** with dependency-free LAS 1.0-1.4 header inspection, immutable TopoSync source import, optional laspy sampling/LAZ handling, and optional PDAL metadata fallback.
 
-### Phase E
-- SurveySync declarative automation/workflow engine inspired by Buzz
-- explicit human approval gates for high-impact survey operations
+### Phase E — implemented
+- **SurveySync declarative automation/workflow engine — implemented** as project-scoped YAML definitions with persistent run state and explicit trigger/action schemas.
+- **human approval gates — implemented** for FINAL deliverable creation and stakeholder notification. Workflow YAML cannot disable those approval requirements.
+- **automatic trigger boundaries — implemented** for project open, source import, QA completion, export completion, and deliverable creation without allowing workflow failures to roll back the originating SurveySync operation.
+- **safe action set — implemented** for Project Health, saved export profiles, Review Center items, deliverable packages, and configured stakeholder notifications. Arbitrary commands/code execution are not supported.
+
+### Phase F — 9.4 roadmap items 6–8 implemented
+- **CRS diagnostics via pyproj/PROJ — implemented** with datum/axis/unit metadata, area of use, coordinate-operation accuracy, available/unavailable operation details, missing transformation-grid evidence, project-unit mismatch review flags, and optional sample-point area checks. PROJ remains authoritative and SurveySync does not auto-download grids or silently change CRS.
+- **ReportSync Template Mapper — implemented** for immutable company/client Excel templates, placeholder discovery, reusable scalar-cell mappings, canonical-point table mappings, style-preserving workbook copies, audit/source provenance, and DRAFT deliverable registration.
+- **optional QGIS/GRASS processing bridges — implemented** as external-process integrations only. SurveySync detects installed runtimes, exposes QGIS processing list/help/run, and executes validated GRASS modules in a temporary project. No QGIS/GRASS GPL source is vendored or imported.
 
 ## Production validation
 

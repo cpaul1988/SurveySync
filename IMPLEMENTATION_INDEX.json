@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.3.2",
+  "version": "9.4.0",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -772,6 +772,132 @@
         "QA_REPORT_v9_3_2.md",
         "docs/TEST_COVERAGE.md",
         "CHANGELOG.md"
+      ]
+    },
+    "v940_pysurveying_independent_validation": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/pysurveying_reference.py",
+        "surveysync/network_routes.py",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "tests": [
+        "tests/test_v940_pysurveying_validation.py",
+        "tests/test_v932_network_adjustment.py"
+      ],
+      "documentation": [
+        "docs/PYSURVEYING_VALIDATION_ENGINE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v940_trimble_jobxml_compatibility": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/trimble_job.py",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "tests": [
+        "tests/test_v940_jxl_regression.py",
+        "tests/test_v925_control_workspace.py",
+        "tests/test_v926_control_production.py"
+      ],
+      "documentation": [
+        "docs/JOBXML_COMPATIBILITY.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v940_optional_pointcloud": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/pointcloud.py",
+        "surveysync/pointcloud_routes.py",
+        "surveysync/integration_routes.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v940_pointcloud_workflows.py"
+      ],
+      "documentation": [
+        "docs/POINT_CLOUD_SUPPORT.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v940_workflow_automation": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/workflow_engine.py",
+        "surveysync/workflow_routes.py",
+        "surveysync/integration_routes.py",
+        "surveysync/operations_routes.py",
+        "surveysync/project.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v940_pointcloud_workflows.py"
+      ],
+      "documentation": [
+        "docs/WORKFLOW_AUTOMATION.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v940_crs_diagnostics": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/crs_diagnostics.py",
+        "surveysync/crs_diagnostic_routes.py",
+        "surveysync/integration_routes.py"
+      ],
+      "tests": [
+        "tests/test_v940_crs_report_gis_bridges.py"
+      ],
+      "documentation": [
+        "docs/CRS_DIAGNOSTICS.md",
+        "docs/API_REFERENCE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v940_reportsync_template_mapper": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/report_template_mapper.py",
+        "surveysync/report_template_routes.py",
+        "surveysync/integration_routes.py"
+      ],
+      "tests": [
+        "tests/test_v940_crs_report_gis_bridges.py"
+      ],
+      "documentation": [
+        "docs/REPORT_TEMPLATE_MAPPER.md",
+        "docs/API_REFERENCE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md"
+      ]
+    },
+    "v940_optional_qgis_grass_bridges": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/gis_bridges.py",
+        "surveysync/gis_bridge_routes.py",
+        "surveysync/integration_routes.py"
+      ],
+      "tests": [
+        "tests/test_v940_crs_report_gis_bridges.py"
+      ],
+      "documentation": [
+        "docs/GIS_PROCESSING_BRIDGES.md",
+        "docs/API_REFERENCE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
       ]
     }
   }

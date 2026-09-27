@@ -1,3 +1,35 @@
+# 9.4.0 — Open-source integration, automation, interoperability, and brand refresh
+
+## Beta.4 — Theme-only EDSI co-branding
+
+- Non-EDSI themes use the SurveySync globe alone, including FieldBookSync.
+- EDSI Adaptive, EDSI Dark and EDSI Light show the EDSI logo beside the globe in both shells: headers, sidebars, Home, splash markup, About and release notes.
+- Switching away from an EDSI theme removes the companion immediately; saved preferences and project data are retained.
+- Dark-mode client lettering remains readable without changing the globe colors. Windows icons and the installer remain SurveySync-branded.
+- Adds live Options-switch, persistence, cross-window, module, dialog and responsive regression coverage. Full release quality gates remain required.
+
+See `docs/THEME_BRANDING.md` for behavior and validation. This is a test candidate, not a Stable release or native-Windows acceptance signoff.
+
+
+- **Beta.2 correction:** replaced the generated S/monogram product icon with the canonical SurveySync globe across Windows and shared product-brand surfaces, and made first-launch release notes release-specific so later 9.4 candidates are not suppressed by earlier 9.4 sessions.
+
+- Adopted the new SurveySync **Surveying Navy / Topographic Gold / Canvas Cream** product identity and **UNIFYING GLOBAL DATA** tagline across the main SurveySync shell.
+- Replaced Windows installer, shortcut, favicon and file-association icon surfaces with the new topographic globe artwork.
+- Wired pywebview's native Windows icon support to the installed SurveySync ICO so the running desktop window/taskbar uses the product icon.
+- Refreshed Inno Setup wizard graphics with the new globe and palette.
+- Added the supplied 12-icon survey workflow library and mapped the icons into SurveySync module navigation and FieldBookSync module tabs.
+- Replaced the legacy release-note logo image with the new lockup treatment and added a branded About panel.
+- Updated FieldBookSync's global SurveySync ribbon and non-EDSI theme icons while preserving official EDSI branding profiles.
+- Added permanent branding regression coverage for installer/native icon wiring, workflow assets, shell integration and palette tokens.
+- Completed the 9.4 release stamp across the Python core, native launcher, Windows installer, main shell, and FieldBookSync shell.
+- Added independent pySurveying-style network validation with analytic derivatives, residual/redundancy/error-ellipse cross-checks, and review-only data snooping.
+- Hardened Trimble JobXML/JXL intake with namespace/version independence, nested-section support, UTF/BOM handling, safe field-text recovery, and broader regression coverage.
+- Added optional LAS/LAZ point-cloud support with dependency-free LAS metadata inspection plus optional laspy/PDAL capabilities.
+- Added project-scoped YAML workflow automation with persistent run state, automatic trigger dispatch, and hard human-approval gates for final deliverables and stakeholder notifications.
+- Added pyproj/PROJ CRS diagnostics for units, axes, operation accuracy, area of use, and missing transformation-grid evidence.
+- Added the ReportSync Excel Template Mapper for immutable company/client workbook templates, placeholders, reusable mappings, canonical-point tables, and DRAFT rendered deliverables.
+- Added optional external QGIS and GRASS GIS processing bridges using validated argument arrays and shell-free subprocess execution.
+
 # 9.3.2 — Open-source integration foundation (Unreleased)
 
 - Added attributed MIT-derived horizontal and three-point curve calculations to COGOSync, with explicit 100-foot-arc degree-of-curve handling and project-unit safety.

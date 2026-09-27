@@ -1,5 +1,5 @@
 #define MyAppName "SurveySync"
-#define MyAppVersion "9.3.2"
+#define MyAppVersion "9.4.0"
 #define MyAppPublisher "Clever Bird Development"
 #define MyAppURL "https://github.com/cpaul1988/SurveySync"
 
@@ -7,7 +7,7 @@
 AppId={{D7432040-46E5-4F2B-A9AC-97B2DB7BAF4B}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion} Beta.4
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -20,12 +20,13 @@ PrivilegesRequiredOverridesAllowed=dialog
 MinVersion=10.0
 ArchitecturesAllowed=x64compatible
 OutputDir=output
-OutputBaseFilename=SurveySync_Setup_9.3.2
+OutputBaseFilename=SurveySync_Setup_9.4.0
 SetupIconFile=..\branding\SurveySync.ico
 UninstallDisplayIcon={app}\branding\SurveySync.ico
 WizardStyle=modern
-WizardImageFile=wizard_large.bmp
-WizardSmallImageFile=wizard_small.bmp
+WizardImageFile=wizard_large.bmp,wizard_large_200.bmp,wizard_large_400.bmp
+WizardSmallImageFile=wizard_small.bmp,wizard_small_200.bmp,wizard_small_400.bmp
+WizardImageStretch=yes
 Compression=lzma2/ultra64
 SolidCompression=yes
 CloseApplications=yes
@@ -33,12 +34,12 @@ RestartApplications=no
 ChangesAssociations=yes
 UsePreviousAppDir=yes
 UsePreviousTasks=yes
-VersionInfoVersion=9.3.2.0
-VersionInfoTextVersion=9.3.2
+VersionInfoVersion=9.4.0.0
+VersionInfoTextVersion=9.4.0
 VersionInfoCompany=Clever Bird Development
 VersionInfoDescription=SurveySync Windows Setup
 VersionInfoProductName=SurveySync
-VersionInfoProductVersion=9.3.2
+VersionInfoProductVersion=9.4.0
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -49,7 +50,7 @@ Name: "fbsassoc"; Description: "Associate .fbs project files with SurveySync"; G
 Name: "localai"; Description: "Run optional FieldBookSync Local AI setup after installation"; GroupDescription: "Local AI:"; Flags: unchecked
 
 [Files]
-Source: "..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git\*,.github\*,.build-venv\*,.prod-verify\*,.ruff_cache\*,.mypy_cache\*,.pytest_cache\*,.coverage,coverage.xml,installer\output\*,tests\*,legacy_tests\*,.venv\*,.paddleenv\*,runtime\*,dist\*,build\*,__pycache__\*,*.pyc,*.pyo"
+Source: "..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git\*,.github\*,.build-venv\*,.prod-verify\*,.ruff_cache\*,.mypy_cache\*,.pytest_cache\*,.coverage,coverage.xml,installer\output\*,tests\*,legacy_tests\*,ui-evidence\*,_ui_payload\*,.venv\*,.paddleenv\*,runtime\*,dist\*,build\*,__pycache__\*,*.pyc,*.pyo"
 Source: "provision_runtime.ps1"; DestDir: "{app}\installer"; Flags: ignoreversion; AfterInstall: ProvisionRuntime
 
 [Icons]
@@ -58,7 +59,7 @@ Name: "{autoprograms}\SurveySync (Browser Fallback)"; Filename: "{app}\.venv\Scr
 Name: "{autodesktop}\SurveySync"; Filename: "{app}\SurveySync.exe"; WorkingDir: "{app}"; IconFilename: "{app}\branding\SurveySync.ico"; Tasks: desktopicon
 
 [InstallDelete]
-; v9.3.2 is an in-place SurveySync feature update and retains the FieldBook Sync migration cleanup.
+; v9.4.0 is an in-place SurveySync feature update and retains the FieldBook Sync migration cleanup.
 ; Only legacy application binaries/shortcuts are removed. User data under
 ; %LOCALAPPDATA%\FieldBookSync and user-created .fbs files are intentionally untouched.
 Type: files; Name: "{app}\FieldBookSync.exe"

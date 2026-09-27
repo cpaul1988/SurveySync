@@ -4,8 +4,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-if ($SkipLauncherBuild) { throw 'Release builds must rebuild both native launchers.' }
+
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+& (Join-Path $Root 'scripts\generate_surveysync_icon.ps1')
+if ($SkipLauncherBuild) { throw 'Release builds must rebuild both native launchers.' }
 $Version = (Get-Content (Join-Path $Root 'VERSION.txt') -Raw).Trim()
 $InstallerScript = Join-Path $Root 'installer\SurveySync.iss'
 $Output = Join-Path $Root ("installer\output\SurveySync_Setup_{0}.exe" -f $Version)

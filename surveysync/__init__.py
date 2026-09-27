@@ -1,3 +1,3 @@
 """SurveySync v9 shared platform core."""
 
-__version__ = "9.3.2"
+__version__ = "9.4.0"

@@ -110,3 +110,69 @@ not replace field comparison against known survey software before Stable promoti
 ## 9.3.2 installed-runtime parity
 
 - `tests/test_v932_installer_runtime.py` verifies that LandXML's startup dependency `defusedxml` is declared in the production requirements input/lock used by Setup and is included in the installer's runtime import verification. It also asserts that Setup provisions from `requirements.lock`, not the developer lock.
+
+
+## v9.4.0 branding regression target
+
+`tests/test_v940_branding.py` verifies the new SurveySync product identity across both shells: the navy/gold/cream palette, product tagline, complete 12-icon workflow SVG library, FieldBookSync separation from EDSI client branding, Windows/installer icon wiring, pywebview native-window icon configuration, and required Inno Setup wizard image dimensions.
+
+## v9.4.0 pySurveying independent validation
+
+`tests/test_v940_pysurveying_validation.py` exercises the independent
+pySurveying-style ControlSync verification path. Coverage includes a
+distance-only network, a mixed distance/azimuth/angle network, agreement of
+coordinates/residuals/redundancy/error ellipses, deliberate native-result
+tampering that must produce REVIEW, review-only standardized-residual data
+snooping, API attachment/audit of validation status, and MIT attribution.
+
+The validator uses analytic observation derivatives and NumPy least-squares
+while the production solver uses a numerical Jacobian. Passing both paths is
+stronger regression evidence, but it still does not replace comparison against
+known survey software, governing specifications, or installed Windows
+acceptance before Stable promotion.
+
+## v9.4.0 Trimble JobXML compatibility
+
+`tests/test_v940_jxl_regression.py` expands direct JXL coverage using a
+jxl2txt-informed compatibility matrix. It verifies default namespaces and
+schema-version independence, nested Trimble sections, UTF-16 input,
+attribute-based point fields, PointName/PointID precedence over generic Name,
+Reductions plus InventoryData supplementation, FieldBook GNSS metadata merging,
+safe recovery of illegal XML text/control characters, structural-corruption
+rejection, rejection of valid non-JobXML input, and BSD attribution.
+
+The parser continues to require Trimble's official ASCII File Generator for
+proprietary binary `.job` files. The new recovery path only repairs field-text
+defects and deliberately does not reconstruct broken XML structure.
+
+## v9.4.0 optional point-cloud and workflow automation
+
+`tests/test_v940_pointcloud_workflows.py` covers dependency-free LAS 1.2 header
+inspection, invalid-LAS rejection, immutable TopoSync point-cloud source import,
+point-cloud audit provenance, project-scoped YAML workflow round trips, safe manual
+workflow execution, automatic source-import triggers, persistent run-state JSON,
+explicit approval and rejection behavior for high-impact actions, engine policy
+reporting, and API registration for the point-cloud/workflow routes.
+
+The same API regression verifies the existing shared operations router is explicitly
+registered, matching endpoints already referenced by the SurveySync UI.
+
+Optional laspy/PDAL availability is not required for the automated gate. Stable
+promotion should still include installed-Windows acceptance with representative LAS
+and, when those optional tools are configured, real LAZ/COPC files.
+
+## v9.4.0 CRS diagnostics, ReportSync Template Mapper, and GIS bridges
+
+`tests/test_v940_crs_report_gis_bridges.py` verifies pyproj/PROJ operation
+inspection with a known EPSG:4326 -> EPSG:3857 sample, project horizontal-unit
+mismatch review behavior, Excel placeholder discovery, immutable template-source
+preservation, reusable point-table mappings, formatting propagation, DRAFT
+deliverable registration, QGIS algorithm parsing/invocation with `shell=False`,
+invalid algorithm rejection, GRASS temporary-project command construction,
+optional-runtime status, audit provenance, and API route registration.
+
+The QGIS/GRASS tests mock their external executables so those GPL applications
+remain optional in CI and in the normal SurveySync runtime. Installed-Windows
+acceptance should additionally exercise real QGIS/GRASS installations when those
+bridges will be used in production.
+

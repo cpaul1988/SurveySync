@@ -1,6 +1,6 @@
 :root{
   --font:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,sans-serif;
-  --radius:16px;--radius-sm:11px;--sidebar:258px;--topbar:68px;--survey-menubar-bg:#082b52;--survey-menubar-text:#f9f5e8;
+  --radius:16px;--radius-sm:11px;--sidebar:258px;--topbar:68px;--survey-menubar-bg:#0F203C;--survey-menubar-text:#F6F4EE;
   --accent:#007dc5;--accent-2:#26aea1;--accent-soft:rgba(0,125,197,.12);
   --good:#18845b;--warn:#d6a800;--bad:#d84a4a;--info:#0099dc;
   --good-soft:color-mix(in srgb,var(--good) 10%,transparent);--good-border:color-mix(in srgb,var(--good) 32%,transparent);
@@ -390,3 +390,9 @@ input[type="checkbox"],input[type="radio"]{accent-color:var(--accent)}.control:f
 .trainer-preview-thumb{flex:0 0 88px;text-align:center}
 .trainer-preview-thumb img{display:block;width:100%;height:104px;object-fit:contain;background:var(--panel);border-radius:5px}
 .trainer-preview-thumb span{display:block;margin-top:4px;font-size:11px}
+
+/* SurveySync 9.4 module icon system ----------------------------------------- */
+.module-tab{display:flex;align-items:center;gap:7px}.module-tab-icon{width:21px;height:21px;display:block;object-fit:contain;flex:0 0 auto}.product-brand .brand-globe{width:23px;height:23px;object-fit:contain}.brand-mark img{object-fit:contain}
+
+/* SurveySync 9.4 product-brand alignment */
+.product-brand .brand-globe,.surveysync-brand-globe{object-fit:contain}.brand-mark img{object-fit:contain}.startup-splash-logo{object-fit:contain;background:#F6F4EE}.brand-tagline{color:#C19D65}

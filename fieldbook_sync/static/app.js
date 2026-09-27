@@ -39,20 +39,20 @@ function providerLabel(p){return ({auto:'Automatic — Free Local AI',microsoft_
 
 // Theme ----------------------------------------------------------------------
 const PRODUCT_THEMES={
-  classic:{label:'FieldBook Classic',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Field data. Connected.',accentable:true},
+  classic:{label:'FieldBook Classic',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Field data. Connected.',accentable:true},
   edsi:{label:'EDSI Adaptive',icon:'/static/edsi_mark.png',name:'FieldBook Sync',tagline:'EDSI corporate',accentable:false},
-  slate:{label:'Slate Professional',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Slate Professional',accentable:true},
-  midnight:{label:'Midnight',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Midnight',accentable:false},
-  lightpro:{label:'Light Professional',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Light Professional',accentable:true},
-  contrast:{label:'High Contrast',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'High Contrast',accentable:false},
-  carbon:{label:'Carbon',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Carbon workspace',accentable:true},
-  obsidian:{label:'Obsidian Blue',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Obsidian Blue',accentable:false},
-  teal:{label:'Slate Teal',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Slate Teal',accentable:false},
-  violet:{label:'Midnight Violet',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Midnight Violet',accentable:false},
-  graphite:{label:'Graphite',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Graphite',accentable:true},
-  frost:{label:'Frost',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Frost',accentable:true},
-  arctic:{label:'Arctic Blue',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Arctic Blue',accentable:true},
-  sandstone:{label:'Sandstone',icon:'/static/app_icon.png',name:'FieldBook Sync',tagline:'Sandstone',accentable:false},
+  slate:{label:'Slate Professional',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Slate Professional',accentable:true},
+  midnight:{label:'Midnight',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Midnight',accentable:false},
+  lightpro:{label:'Light Professional',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Light Professional',accentable:true},
+  contrast:{label:'High Contrast',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'High Contrast',accentable:false},
+  carbon:{label:'Carbon',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Carbon workspace',accentable:true},
+  obsidian:{label:'Obsidian Blue',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Obsidian Blue',accentable:false},
+  teal:{label:'Slate Teal',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Slate Teal',accentable:false},
+  violet:{label:'Midnight Violet',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Midnight Violet',accentable:false},
+  graphite:{label:'Graphite',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Graphite',accentable:true},
+  frost:{label:'Frost',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Frost',accentable:true},
+  arctic:{label:'Arctic Blue',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Arctic Blue',accentable:true},
+  sandstone:{label:'Sandstone',icon:'/surveysync-static/workflow-icons/11-fieldsync.svg',name:'FieldBook Sync',tagline:'Sandstone',accentable:false},
   edsidark:{label:'EDSI Dark',icon:'/static/edsi_mark.png',name:'FieldBook Sync',tagline:'EDSI Dark',accentable:false,preferredAppearance:'dark'},
   edsilight:{label:'EDSI Light',icon:'/static/edsi_mark.png',name:'FieldBook Sync',tagline:'EDSI Light',accentable:false,preferredAppearance:'light'}
 };
@@ -83,7 +83,7 @@ function currentProductTheme(){return document.documentElement.dataset.productTh
 function currentAccent(){return document.documentElement.dataset.accent||'default';}
 function themeDisplayLabel(){const meta=PRODUCT_THEMES[currentProductTheme()]||PRODUCT_THEMES.classic;const accent=ACCENT_CHOICES[currentAccent()]||ACCENT_CHOICES.default;return meta.accentable&&currentAccent()!=='default'?`${meta.label} · ${accent.label}`:meta.label;}
 function applyAccent(key,persist=true){if(!ACCENT_CHOICES[key])key='default';document.documentElement.dataset.accent=key;if(persist){localStorage.setItem(SURVEYSYNC_ACCENT_KEY,key);localStorage.setItem('fbs-accent',key);scheduleSharedUiSync()}$$('[data-accent-choice]').forEach(b=>b.classList.toggle('selected',b.dataset.accentChoice===key));const meta=PRODUCT_THEMES[currentProductTheme()]||PRODUCT_THEMES.classic;const panel=$('#accentPanel'),hint=$('#accentHint');if(panel)panel.classList.toggle('accent-locked',!meta.accentable);$$('[data-accent-choice]').forEach(b=>b.disabled=!meta.accentable);if(hint)hint.textContent=meta.accentable?'Accent changes controls and highlights; success/warning/error colors keep the same meaning.':'This branded theme uses a fixed accent palette for visual consistency.';const status=$('#statusTheme');if(status)status.textContent=`Theme: ${themeDisplayLabel()}`;const about=$('#aboutTheme');if(about)about.textContent=`${themeDisplayLabel()} theme`;}
-function applyProductTheme(key,persist=true){if(!PRODUCT_THEMES[key])key='classic';document.documentElement.dataset.productTheme=key;if(persist){localStorage.setItem(SURVEYSYNC_PRODUCT_THEME_KEY,key);localStorage.setItem(PRODUCT_THEME_PREF_KEY,key);localStorage.setItem(PRODUCT_THEME_USER_SET_KEY,'1');scheduleSharedUiSync();}const meta=PRODUCT_THEMES[key];const side=$('#sideBrandIcon'),splash=$('#startupBrandLogo');if(side)side.src=meta.icon;if(splash)splash.src=meta.icon;const tagline=$('#sideBrandTagline');if(tagline)tagline.textContent=meta.tagline;const chip=$('#activeThemeChip');if(chip)chip.textContent=meta.label;$$('[data-theme-choice]').forEach(b=>b.classList.toggle('selected',b.dataset.themeChoice===key));$$('[data-theme-select]').forEach(b=>b.classList.toggle('checked',b.dataset.themeSelect===key));if(meta.preferredAppearance&&persist)applyTheme(meta.preferredAppearance);applyAccent(currentAccent(),false);updateOptionControls();}
+function applyProductTheme(key,persist=true){if(!PRODUCT_THEMES[key])key='classic';document.documentElement.dataset.productTheme=key;if(persist){localStorage.setItem(SURVEYSYNC_PRODUCT_THEME_KEY,key);localStorage.setItem(PRODUCT_THEME_PREF_KEY,key);localStorage.setItem(PRODUCT_THEME_USER_SET_KEY,'1');scheduleSharedUiSync();}const meta=PRODUCT_THEMES[key];/* Product marks stay globe-based; theme-branding.css alone controls the EDSI companion. */const tagline=$('#sideBrandTagline');if(tagline)tagline.textContent=meta.tagline;const chip=$('#activeThemeChip');if(chip)chip.textContent=meta.label;$$('[data-theme-choice]').forEach(b=>b.classList.toggle('selected',b.dataset.themeChoice===key));$$('[data-theme-select]').forEach(b=>b.classList.toggle('checked',b.dataset.themeSelect===key));if(meta.preferredAppearance&&persist)applyTheme(meta.preferredAppearance);applyAccent(currentAccent(),false);updateOptionControls();}
 const UI_PREFS_MIGRATION_KEY='fbs-ui-prefs-v813-dashboard-default';
 function uiPrefs(){
   let p={};

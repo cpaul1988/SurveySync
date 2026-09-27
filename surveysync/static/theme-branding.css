@@ -1,0 +1,59 @@
+/* SurveySync owns the product identity. A client logo is opt-in presentation,
+   selected solely by the shared product theme, never by a project/profile.
+   CSS reacts to theme changes before another request, render, or reload. */
+.ss-brand-marks{
+  --brand-size:50px;--client-width:100px;--client-height:42px;
+  display:inline-flex;align-items:center;justify-content:flex-start;
+  gap:12px;flex:0 0 auto;vertical-align:middle;max-width:100%;
+}
+.ss-brand-marks>.ss-brand-globe{
+  display:block;width:var(--brand-size);height:var(--brand-size);flex:none;
+  object-fit:contain;border-radius:50%;background:transparent;filter:none;
+}
+.ss-brand-marks>.ss-client-logo{
+  display:none;width:var(--client-width);height:var(--client-height);flex:none;
+  object-fit:contain;object-position:center;padding-left:12px;
+  border-left:1px solid var(--line,#667080);border-radius:0;
+}
+html:is([data-product-theme="edsi"],[data-product-theme="edsidark"],[data-product-theme="edsilight"])
+.ss-brand-marks>.ss-client-logo{display:block}
+html[data-theme="dark"] .ss-brand-marks>.ss-client-logo{filter:brightness(0) invert(1)}
+/* Product menubar and startup splash have dark backgrounds in both modes. */
+.product-brand .ss-brand-marks>.ss-client-logo,
+.product-splash .ss-brand-marks>.ss-client-logo,
+.startup-splash .ss-brand-marks>.ss-client-logo{filter:brightness(0) invert(1);border-color:#667080}
+.ss-brand-compact{--brand-size:23px;--client-width:66px;--client-height:24px;gap:7px}
+.ss-brand-compact>.ss-client-logo{padding-left:7px}
+.ss-brand-sidebar{--brand-size:39px;--client-width:100px;--client-height:39px}
+.ss-brand-splash{--brand-size:92px;--client-width:166px;--client-height:76px;gap:22px;margin:0 auto 18px;justify-content:center}
+.ss-brand-splash>.ss-client-logo{padding-left:22px}
+.product-brand{flex-shrink:0;white-space:nowrap}
+.about-brand,.brand-lockup{flex-wrap:wrap}
+.help-card>.ss-brand-marks{margin:0 0 15px}
+/* Identical sidebar treatment: keep normal themes compact, and give both
+   logos a full-width row when a client theme is active. */
+.surveysync-workspace .module-heading>.ss-brand-sidebar{grid-column:1;grid-row:1/4;max-width:none}
+.fieldbook-workspace .brand-row{display:grid;grid-template-columns:39px minmax(0,1fr);align-items:center}
+.fieldbook-workspace .brand-row>.ss-brand-sidebar{grid-column:1;grid-row:1;max-width:none}
+.fieldbook-workspace .brand-row>div:last-child{min-width:0}
+html:is([data-product-theme="edsi"],[data-product-theme="edsidark"],[data-product-theme="edsilight"])
+.surveysync-workspace .module-heading>.ss-brand-sidebar{grid-column:1/-1;grid-row:1;margin-bottom:9px}
+html:is([data-product-theme="edsi"],[data-product-theme="edsidark"],[data-product-theme="edsilight"])
+.surveysync-workspace .module-heading>:not(.ss-brand-marks){grid-column:1/-1;grid-row:auto}
+html:is([data-product-theme="edsi"],[data-product-theme="edsidark"],[data-product-theme="edsilight"])
+.fieldbook-workspace .brand-row>.ss-brand-sidebar{grid-column:1/-1;grid-row:1;margin-bottom:9px}
+html:is([data-product-theme="edsi"],[data-product-theme="edsidark"],[data-product-theme="edsilight"])
+.fieldbook-workspace .brand-row>div:last-child{grid-column:1/-1}
+@media(max-width:950px){
+  .surveysync-workspace .module-heading>.ss-brand-sidebar,
+  .fieldbook-workspace .brand-row>.ss-brand-sidebar{
+    display:inline-flex;--brand-size:22px;--client-width:28px;--client-height:22px;gap:3px;margin:0;
+  }
+  .ss-brand-sidebar>.ss-client-logo{padding-left:3px}
+  .surveysync-workspace .module-heading .ss-brand-globe{display:block}
+  .fieldbook-workspace .brand-row{grid-template-columns:1fr;padding-left:0;padding-right:0}
+}
+body.compact-sidebar .brand-row>.ss-brand-sidebar{
+  --brand-size:22px;--client-width:28px;--client-height:22px;gap:3px;margin:0;
+}
+body.compact-sidebar .ss-brand-sidebar>.ss-client-logo{padding-left:3px}
