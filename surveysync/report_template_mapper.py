@@ -474,6 +474,9 @@ def render_excel_template(
                 _copy_row_style(sheet, start, row_number, columns)
                 for column, field in table["columns"].items():
                     sheet[f"{column}{row_number}"] = point.get(field)
+            if not points:
+                for column in columns:
+                    sheet[f"{column}{start}"] = None
             point_count = len(points)
 
         if output_path:
@@ -486,6 +489,14 @@ def render_excel_template(
                 / "TemplateExports"
                 / f"{safe_name(entry['name'])}_{stamp}{extension}"
             )
+        if output == template_path:
+            raise ReportTemplateError("Rendered output cannot overwrite immutable template evidence.")
+        try:
+            output.relative_to(project.paths.source.resolve())
+        except ValueError:
+            pass
+        else:
+            raise ReportTemplateError("Rendered output cannot be written inside the immutable Source folder.")
         output.parent.mkdir(parents=True, exist_ok=True)
         workbook.save(output)
     finally:
