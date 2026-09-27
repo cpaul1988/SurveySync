@@ -60,6 +60,9 @@ SOFTWARE.
     architecturally inspired by Buzz's `crates/buzz-audit`.
   - The Beta-candidate / exact-artifact Stable-promotion workflow is informed by
     Buzz's desktop release/promotion separation.
+  - `surveysync/workflow_engine.py` adopts the declarative trigger/action
+    separation as an architectural reference while remaining a local,
+    SurveySync-native YAML engine with explicit human approval gates.
 
 See the upstream Apache-2.0 LICENSE for the complete terms.
 
@@ -148,6 +151,43 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+
+## laspy (optional point-cloud capability)
+
+- Project: https://github.com/laspy/laspy
+- Upstream license: BSD-style 2-clause license
+- SurveySync usage:
+  - SurveySync does not vendor laspy source and does not require it for startup.
+  - When laspy is already installed, `surveysync/pointcloud.py` can use it for
+    richer LAS/LAZ metadata and bounded point-record QA sampling.
+  - LAS header metadata remains available through SurveySync's standard-library
+    reader when laspy is absent.
+
+Upstream copyright notice:
+
+Copyright (c) 2012, Grant Brown
+Copyright (c) 2012, Howard Butler
+Copyright (c) 2020, Thomas Montaigu
+
+See the upstream LICENSE for the complete BSD terms.
+
+## PDAL (optional point-cloud capability)
+
+- Project: https://github.com/PDAL/PDAL
+- Upstream license: BSD
+- SurveySync usage:
+  - SurveySync does not vendor PDAL source or binaries.
+  - When the `pdal` CLI is already installed and available on PATH,
+    `surveysync/pointcloud.py` can use `pdal info` as a metadata fallback for
+    compressed LAZ/COPC sources.
+  - PDAL is invoked without a shell and is not required for normal SurveySync
+    startup or ordinary LAS header inspection.
+
+Upstream overall PDAL copyright notice:
+
+Copyright (c) 2025, Hobu, Inc.
+
+See the upstream LICENSE.txt for the complete BSD terms.
 
 ## Existing geospatial dependencies
 
