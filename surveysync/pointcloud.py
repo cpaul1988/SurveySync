@@ -154,7 +154,7 @@ def _inspect_with_laspy(path: Path) -> dict[str, Any]:
             point_format = int(header.point_format.id)
             version = str(header.version)
             point_count = int(header.point_count)
-    except Exception as exc:
+    except (OSError, ValueError, laspy.errors.LaspyException) as exc:
         raise PointCloudError(f"laspy could not read point-cloud metadata: {exc}") from exc
 
     return {
@@ -276,7 +276,7 @@ def sample_points(path: str | Path, *, max_points: int = 1000) -> dict[str, Any]
                 if classifications is not None:
                     row["classification"] = int(classifications[index])
                 rows.append(row)
-    except Exception as exc:
+    except (OSError, ValueError, laspy.errors.LaspyException) as exc:
         raise PointCloudError(f"laspy could not sample point records: {exc}") from exc
 
     return {
