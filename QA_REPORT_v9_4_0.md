@@ -144,3 +144,33 @@ SurveySync Quality run **#160** (run ID **36285028740**) passed on the versioned
 This QA evidence entry is documentation-only. The branch head is revalidated after
 recording it so the exact candidate source remains green before tagging.
 
+## Beta.1 installed acceptance finding
+
+**REJECTED FOR PRESENTATION / UPDATE UX**
+
+The first installed 9.4.0 Beta opened, but installed acceptance found:
+
+- the Windows/application branding showed an S/monogram instead of the intended globe; and
+- the expected first-launch release-notes dialog did not appear.
+
+Root causes:
+
+- `scripts/generate_surveysync_icon.ps1` generated a synthetic globe-grid icon and explicitly drew `S` in its center, overwriting the intended application icon during every release build;
+- active SurveySync and shared FieldBookSync product surfaces referenced `surveysync_monogram.svg`;
+- release-note acknowledgement used only version `9.4.0`, allowing a prior 9.4 development/beta session to suppress the notes dialog.
+
+Beta.1 should not be used as the final installed-acceptance artifact.
+
+## Beta.2 correction scope
+
+Beta.2:
+
+- generates Windows icons directly from the canonical SurveySync globe artwork;
+- replaces active product-level monogram references with the globe;
+- keeps workflow/module-specific icons unchanged;
+- uses release ID `9.4.0-beta.2` for first-launch release-note acknowledgement;
+- records acknowledgement only when the user presses Continue;
+- adds regression coverage preventing the monogram/S generator from returning.
+
+Pre-Beta.2 tracker check: latest feedback remains **FBR-0016**; SurveySync Error Log reports **0 total/open errors** and Retry Queue is empty.
+
