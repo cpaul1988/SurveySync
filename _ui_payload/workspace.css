@@ -1,0 +1,121 @@
+/* Shared typography, navigation and product identity. No global image inversion. */
+:root{--ss-toolbar:54px;--ss-statusbar:27px;--ss-sidebar:258px;--ss-menubar:32px;--ss-modulebar:40px}
+html,body{font-family:var(--font);font-size:14px}
+.module-tabs,.surveysync-module-tabs{height:var(--ss-modulebar);background:var(--panel);border-color:var(--line)}
+.module-tab{display:flex;align-items:center;gap:7px;font-family:var(--font);font-size:11px;padding:0 12px;color:var(--muted);flex-shrink:0}
+.module-tab:hover{background:var(--hover);color:var(--text)}
+.module-tab.active{background:var(--accent-soft);color:var(--text)}
+.module-tab.active:after{background:var(--accent)}
+.module-tab-icon{width:22px;height:22px;object-fit:contain;flex:none}
+.brand-globe,.surveysync-brand-globe{object-fit:contain;background:transparent;border-radius:50%;box-shadow:0 0 0 1px #c19d6566}
+.brand-lockup-name{font-family:var(--font);font-size:25px;font-weight:780;line-height:1.1;color:var(--text)}
+.brand-lockup-tagline{color:#977544;font-size:9px;letter-spacing:.16em;line-height:1.5}
+html[data-theme="dark"] .brand-lockup-tagline{color:#d3b686}
+.brand-lockup-icon{width:50px;height:50px;object-fit:contain;flex:none}
+.about-brand{background:var(--panel2);border:1px solid var(--line);color:var(--text)}
+/* The client wordmark is monochrome only in dark mode; drawings/photos are untouched. */
+html[data-theme="dark"] #sideBrandIcon[src*="edsi_mark"]{filter:brightness(0) invert(1)}
+
+/* Adapt existing SurveySync views to the FieldBookSync layout without changing tools. */
+body.surveysync-workspace{--sidebar:var(--ss-sidebar);--menubar:var(--ss-menubar);--modulebar:var(--ss-modulebar);--heading:var(--text);--accent2:var(--accent-2);--topbar:var(--survey-menubar-bg);--topbar-text:var(--survey-menubar-text)}
+.surveysync-workspace .desktop-menubar{background:var(--survey-menubar-bg);color:var(--survey-menubar-text);height:var(--ss-menubar)}
+.surveysync-workspace .module-main{grid-template-rows:var(--ss-toolbar) minmax(0,1fr) var(--ss-statusbar);min-width:0;background:var(--bg)}
+.surveysync-workspace .module-sidebar{padding:18px 14px 14px;background:radial-gradient(circle at 25% 0%,#0099dc0d,transparent 28%),var(--sidebar-bg);border-color:var(--line)}
+.surveysync-workspace .module-heading{display:grid;grid-template-columns:42px minmax(0,1fr);column-gap:11px;padding:4px 5px 20px;align-items:center}
+.surveysync-workspace .sidebar-globe{width:40px;height:40px;grid-column:1;grid-row:1/4;object-fit:contain}
+.surveysync-workspace .module-heading h2{font-size:15.5px;font-weight:780;line-height:1.25;color:var(--text);margin:3px 0;overflow-wrap:anywhere}
+.surveysync-workspace .module-heading p{font-size:10px;line-height:1.4;color:var(--muted);grid-column:2}
+.surveysync-workspace .module-heading .eyebrow{grid-column:2;font-size:8.5px}
+.surveysync-workspace .project-tile{padding:12px;margin:0 0 14px;background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm)}
+.surveysync-workspace .project-tile-label{font-size:10px;color:var(--muted);font-weight:500;letter-spacing:.07em}
+.surveysync-workspace .project-tile-label:before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px var(--good-soft);margin-right:7px}
+.surveysync-workspace .project-tile strong{font-size:13px;color:var(--text);margin-top:12px}
+.surveysync-workspace .project-tile small{font-size:10.5px;color:var(--muted2)}
+.surveysync-workspace .module-nav{gap:3px}
+.surveysync-workspace .module-nav-label{font-size:9.5px;letter-spacing:.12em;color:var(--muted2);padding:12px 9px 5px;font-weight:700}
+.surveysync-workspace .module-nav-btn{grid-template-columns:25px minmax(0,1fr);gap:8px;padding:9px 10px;border-radius:11px;color:var(--muted);font-size:13px;min-height:38px}
+.surveysync-workspace .module-nav-btn span:nth-child(2){font-weight:620}
+.surveysync-workspace .module-nav-btn:hover{background:var(--hover);color:var(--text)}
+.surveysync-workspace .module-nav-btn.active{background:var(--accent-soft);color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 20%,transparent)}
+.surveysync-workspace .nav-ico{font-size:16px;color:var(--muted)}
+.surveysync-workspace .module-nav-btn.active .nav-ico{color:var(--accent)}
+.surveysync-workspace .sidebar-bottom{font-size:9.5px;padding:14px 3px 0}
+.surveysync-workspace .shared-foundation{padding:11px;border-radius:12px;background:var(--white-soft);border-color:var(--line2)}
+.surveysync-workspace .shared-foundation b{font-size:11.5px;color:var(--text)}
+.surveysync-workspace .shared-foundation span{font-size:9.5px;line-height:1.4}
+.surveysync-workspace .workspace-toolbar{height:var(--ss-toolbar);padding:0 12px;gap:12px;background:var(--glass);border-bottom:1px solid var(--line);backdrop-filter:blur(20px)}
+.surveysync-workspace .quick-actions{display:flex;align-items:center;gap:3px;min-width:0;overflow:auto}
+.surveysync-workspace .quick-btn{border:0;background:transparent;color:var(--muted);border-radius:8px;padding:6px 8px;display:inline-flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;white-space:nowrap;flex:none}
+.surveysync-workspace .quick-btn:hover{background:var(--hover);color:var(--text)}
+.surveysync-workspace .quick-btn.primary-quick{color:white;background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+.surveysync-workspace .quick-sep{width:1px;height:25px;background:var(--line);margin:0 3px;flex:none}
+.surveysync-workspace .header-actions{flex-wrap:nowrap;flex-shrink:0}
+.surveysync-workspace .header-actions .brand-badge{display:none}
+.surveysync-workspace .content-area{padding:29px 32px 50px;scrollbar-width:thin}
+.surveysync-workspace .view{max-width:1600px}
+.surveysync-workspace .workspace-view-heading{max-width:1600px;margin:4px auto 24px}
+.surveysync-workspace .workspace-view-heading h1{font-size:26px;font-weight:750;letter-spacing:-.035em;margin:6px 0 7px;color:var(--text)}
+.surveysync-workspace .workspace-view-heading p{margin:0;color:var(--muted);line-height:1.6}
+.surveysync-workspace[data-active-view="dashboard"] .workspace-view-heading{display:none}
+.surveysync-workspace .eyebrow,.surveysync-workspace .workspace-module{font-size:9.5px;letter-spacing:.12em;font-weight:800;color:var(--accent)}
+.surveysync-workspace .hero{padding:4px 0 24px;align-items:flex-start;border:0;border-radius:0;background:transparent;box-shadow:none;margin:0}
+.surveysync-workspace .hero h2{font-family:var(--font);font-size:30px;font-weight:780;letter-spacing:-.035em;margin:6px 0 7px;color:var(--text)}
+.surveysync-workspace .hero p{font-size:14px;line-height:1.6;color:var(--muted);max-width:770px}
+.surveysync-workspace .hero>button{align-self:center;flex:none}
+.surveysync-workspace .hero .brand-lockup{margin:0 0 20px}
+.surveysync-workspace .metrics{gap:12px;grid-template-columns:repeat(5,minmax(0,1fr));margin:0 0 26px}
+.surveysync-workspace .metric{background:var(--panel);border-color:var(--line);border-radius:16px;padding:18px 16px;min-width:0;box-shadow:var(--shadow-sm)}
+.surveysync-workspace .metric b{font-size:24px;line-height:1.2;color:var(--text);margin-bottom:8px}
+.surveysync-workspace .metric small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;overflow-wrap:anywhere}
+.surveysync-workspace .card,.surveysync-workspace .foundation-card{border:1px solid var(--line);border-radius:16px;padding:20px;background:var(--panel);box-shadow:var(--shadow-sm)}
+.surveysync-workspace .card h3,.surveysync-workspace .foundation-card h3{font-size:16px;line-height:1.3;color:var(--text);margin:0 0 8px;font-weight:750}
+.surveysync-workspace .card p,.surveysync-workspace .foundation-card p{font-size:14px;line-height:1.6;color:var(--muted)}
+.surveysync-workspace .muted{font-size:12px;line-height:1.6}
+.surveysync-workspace .primary,.surveysync-workspace .secondary,.surveysync-workspace .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid transparent;border-radius:10px;padding:9px 13px;font-size:13px;font-weight:650;line-height:1.3;cursor:pointer;transition:background .15s,box-shadow .15s}
+.surveysync-workspace .primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;box-shadow:0 7px 19px color-mix(in srgb,var(--accent) 22%,transparent)}
+.surveysync-workspace .secondary,.surveysync-workspace .btn.secondary{background:var(--panel2);border-color:var(--line);color:var(--text)}
+.surveysync-workspace .secondary:hover,.surveysync-workspace .btn.secondary:hover{background:var(--hover)}
+.surveysync-workspace #workspaceAppearance{border-radius:999px;font-size:11px;color:var(--muted);padding:7px 11px}
+.surveysync-workspace button:disabled{opacity:.5;cursor:not-allowed}
+.surveysync-workspace button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.surveysync-workspace .link-btn{font-size:12px;color:var(--accent)}
+.surveysync-workspace label{font-size:12px;color:var(--muted);line-height:1.5}
+.surveysync-workspace input,.surveysync-workspace select,.surveysync-workspace textarea{font-size:13px;line-height:1.4;padding:10px 11px;background:var(--input);color:var(--text);border:1px solid var(--line);border-radius:10px;min-width:0;max-width:100%}
+.surveysync-workspace .formgrid{grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:12px}
+.surveysync-workspace .table table{font-size:12px;line-height:1.5}
+.surveysync-workspace .table th{font-size:10.5px;color:var(--muted);background:var(--panel2)}
+.surveysync-workspace .table td{padding:10px 8px;border-color:var(--line2)}
+.surveysync-workspace .notice{font-size:12px;line-height:1.6}
+.surveysync-workspace .checks{font-size:12px;line-height:1.5;color:var(--text)}
+.surveysync-workspace .checks>div{padding:10px;background:var(--panel2);border-color:var(--line2)}
+.surveysync-workspace pre{font-size:12px;line-height:1.5}
+.surveysync-workspace .brand-badge{font-size:10px;padding:5px 8px;background:var(--accent-soft);color:var(--text)}
+.workflow-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px}
+.workflow-section-head h3{font-size:18px;margin:5px 0 0}
+.home-workflow-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.surveysync-workspace .workflow-step{display:flex;flex-direction:column;gap:8px;min-height:245px;min-width:0;padding:18px 16px;margin:0}
+.workflow-step-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--muted2);font-size:11px;font-weight:800}
+.workflow-step-top img{width:30px;height:30px;object-fit:contain}
+.surveysync-workspace .workflow-step p{margin:0 0 14px;flex:1;font-size:13px}
+.surveysync-workspace .workflow-step button{width:100%;margin-top:auto;white-space:normal}
+.surveysync-workspace .whats-new-card{border-left:3px solid var(--accent);margin-top:20px}
+.surveysync-workspace .release-list{font-size:13px;line-height:1.65;color:var(--muted);padding-left:20px}
+.surveysync-workspace .release-list li{margin:9px 0}
+.surveysync-workspace .dialog{width:min(880px,94vw);padding:26px;max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.surveysync-workspace .release-dialog h2{color:var(--text);font-size:24px;letter-spacing:-.02em}
+.surveysync-workspace .release-dialog .row{justify-content:flex-end;position:sticky;bottom:-26px;padding:16px 0;background:var(--panel);border-top:1px solid var(--line)}
+.surveysync-workspace .desktop-statusbar{height:var(--ss-statusbar);display:flex;align-items:center;gap:18px;padding:0 12px;border-top:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden}
+.surveysync-workspace .desktop-statusbar span{overflow:hidden;text-overflow:ellipsis}
+.surveysync-workspace .status-spacer{flex:1}
+html[data-product-theme="contrast"] .surveysync-workspace .primary,html[data-product-theme="contrast"] .surveysync-workspace .primary-quick{color:#000;font-weight:800}
+@media(max-width:1250px){.home-workflow-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.surveysync-workspace .header-actions .primary{font-size:11px}}
+@media(max-width:950px){body.surveysync-workspace{--sidebar:78px}.surveysync-workspace .module-heading{display:block;padding:4px 4px 18px}.surveysync-workspace .module-heading :not(img),.surveysync-workspace .project-tile,.surveysync-workspace .module-nav-label,.surveysync-workspace .module-nav-btn span:nth-child(2),.surveysync-workspace .sidebar-bottom{display:none}.surveysync-workspace .module-nav-btn{grid-template-columns:1fr;padding:11px}.surveysync-workspace .content-area{padding:22px 19px}.surveysync-workspace .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.surveysync-workspace .hero{display:block}.surveysync-workspace .hero>button{margin-top:16px}.surveysync-workspace .header-actions>.primary{display:none}}
+@media(max-width:650px){.home-workflow-grid,.surveysync-workspace .grid2{grid-template-columns:1fr}.surveysync-workspace .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.surveysync-workspace .hero h2{font-size:26px}.surveysync-workspace .workspace-toolbar{gap:4px;padding:0 8px}.surveysync-workspace .quick-btn[data-command]{display:none}.surveysync-workspace .dialog{padding:18px}.surveysync-workspace .formgrid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.surveysync-workspace *, .surveysync-workspace *:before,.surveysync-workspace *:after{transition:none!important;animation:none!important}}
+/* Module foundations use the same sans-serif hierarchy as FieldBookSync. */
+.surveysync-workspace .foundation-hero{padding:0 0 22px;gap:16px;margin-bottom:20px}
+.surveysync-workspace .foundation-hero h2{font-family:var(--font);font-size:28px;font-weight:750;letter-spacing:-.035em;color:var(--text)}
+.surveysync-workspace .foundation-hero p{font-size:14px;line-height:1.6}
+.surveysync-workspace .foundation-icon{background:var(--panel2);border:1px solid var(--line);border-radius:14px;flex:none}
+.surveysync-workspace .module-card-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.surveysync-workspace .foundation-card .status{font-size:10px;padding:5px 8px}

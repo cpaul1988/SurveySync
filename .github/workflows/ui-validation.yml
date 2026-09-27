@@ -2,17 +2,64 @@ name: SurveySync UI Validation
 on:
   push:
     branches: [v9.4.0-beta3-unified-ui]
-  pull_request:
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: surveysync-beta3-source-repair
+  cancel-in-progress: false
 jobs:
-  source-snapshot:
-    runs-on: ubuntu-latest
+  source-repair-and-ui:
+    if: github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/v9.4.0-beta3-unified-ui'
+    runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Retain exact source for reproducible visual QA
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install locked application dependencies
+        run: python -m pip install --require-hashes -r requirements-dev.lock
+      - name: Install source migration and browser QA tooling
+        run: python -m pip install tinycss2==1.4.0 playwright==1.57.0
+      - name: Apply reviewed source changes only on the candidate branch
+        shell: pwsh
+        run: |
+          python _ui_payload/apply.py
+          if ($LASTEXITCODE -ne 0) { throw 'Source migration failed.' }
+          ./scripts/generate_surveysync_icon.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Brand generation failed.' }
+          Copy-Item _ui_payload/final_ui_workflow.yml .github/workflows/ui-validation.yml -Force
+          git rm -r _ui_payload
+          git add -u
+          git add surveysync/static/fieldbook-standard.css branding/SurveySync_globe_transparent_512.png installer/wizard_large_200.bmp installer/wizard_large_400.bmp installer/wizard_small_200.bmp installer/wizard_small_400.bmp
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Apply Beta.3 FieldBook-standard UI, globe branding and startup repairs'
+          if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
+          git push origin HEAD:refs/heads/v9.4.0-beta3-unified-ui
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate changed concurrently; no force push permitted.' }
+          git rev-parse HEAD
+      - name: Run unchanged release quality gate
+        run: python scripts/release_gate.py
+      - run: python -m playwright install chromium
+      - name: Real application light and dark browser checks
+        run: python scripts/ui_browser_smoke.py
+      - name: Retain UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surveysync-ui-evidence
+          path: ui-evidence/
+          retention-days: 14
+      - name: Retain exact tested source
+        if: always()
+        shell: pwsh
         run: git archive --format=zip --output=source-for-ui-validation.zip HEAD
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: source-for-ui-validation
           path: source-for-ui-validation.zip
