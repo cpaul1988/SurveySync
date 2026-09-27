@@ -13,7 +13,7 @@ on:
       beta_suffix:
         description: Prerelease suffix to publish/promote (beta, beta.2, beta.3, ...)
         required: true
-        default: beta
+        default: beta.4
 permissions:
   contents: write
 concurrency:
@@ -25,8 +25,35 @@ env:
   BETA_SUFFIX: ${{ inputs.beta_suffix }}
 
 jobs:
+  beta_approved:
+    name: Publish approved Beta.4 (no rebuild)
+    if: ${{ inputs.action == 'publish_beta' && inputs.version == '9.4.0' && inputs.beta_suffix == 'beta.4' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download the exact approved Windows installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '10923766429'
+          run-id: '36294542913'
+          github-token: ${{ github.token }}
+          repository: cpaul1988/SurveySync
+          merge-multiple: true
+          path: approved-beta4
+      - name: Verify approved bytes, publish prerelease, and update beta feed only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/publish_approved_beta4.py
+
   beta:
-    if: ${{ inputs.action == 'publish_beta' }}
+    if: ${{ inputs.action == 'publish_beta' && !(inputs.version == '9.4.0' && inputs.beta_suffix == 'beta.4') }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
