@@ -1,5 +1,7 @@
 # 9.4.0 — Open-source integration, automation, interoperability, and brand refresh
 
+- **Beta.2 correction:** replaced the generated S/monogram product icon with the canonical SurveySync globe across Windows and shared product-brand surfaces, and made first-launch release notes release-specific so later 9.4 candidates are not suppressed by earlier 9.4 sessions.
+
 - Adopted the new SurveySync **Surveying Navy / Topographic Gold / Canvas Cream** product identity and **UNIFYING GLOBAL DATA** tagline across the main SurveySync shell.
 - Replaced Windows installer, shortcut, favicon and file-association icon surfaces with the new topographic globe artwork.
 - Wired pywebview's native Windows icon support to the installed SurveySync ICO so the running desktop window/taskbar uses the product icon.
