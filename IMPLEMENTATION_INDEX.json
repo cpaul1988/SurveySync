@@ -790,6 +790,24 @@
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
         "THIRD_PARTY_NOTICES.md"
       ]
+    },
+    "v940_trimble_jobxml_compatibility": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/trimble_job.py",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "tests": [
+        "tests/test_v940_jxl_regression.py",
+        "tests/test_v925_control_workspace.py",
+        "tests/test_v926_control_production.py"
+      ],
+      "documentation": [
+        "docs/JOBXML_COMPATIBILITY.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
     }
   }
 }

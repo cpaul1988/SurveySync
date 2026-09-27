@@ -303,9 +303,10 @@ deferred because it would impose materially different distribution obligations.
 - **weighted leveling network — implemented** as a separate fixed-datum least-squares workflow with observation sigmas, redundancy diagnostics, standardized-residual review flags, optional Huber robust weighting, and elevation uncertainty.
 - **mixed-network cross-check fixtures** — covered by SurveySync-owned regression tests for distance plus angular observations.
 
-### Phase D
+### Phase D — partially implemented
 - **LandXML 1.2 point/parcel/alignment I/O — implemented** for CgPoints, Parcel Line geometry, and tangent/circular-curve Alignments, with immutable project-source preservation on import. Profiles/surfaces/spirals remain future expansion.
-- jxl2txt-derived JobXML regression matrix
+- **jxl2txt-informed JobXML compatibility matrix — implemented** with namespace/version-independent parsing, nested section discovery, UTF/BOM handling, point-ID alias precedence, attribute-based point fields, safe text-level XML recovery, fail-closed structural-corruption handling, and SurveySync-owned regression fixtures.
+- **Trimble parser provenance metadata — implemented** with XML parse mode, recovery actions, namespace/schema location, product/version, section-source, and GNSS metadata counts.
 - optional PDAL/laspy point-cloud module
 
 ### Phase E
