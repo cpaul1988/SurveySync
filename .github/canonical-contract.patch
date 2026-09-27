@@ -1,0 +1,71 @@
+--- a/surveysync/router.py
++++ b/surveysync/router.py
+@@ -745,2 +745,5 @@
+     if not path.is_file(): raise HTTPException(400,"Point file was not found.")
++    from .point_import import parse_canonical_points
++    try: rows=parse_canonical_points(path)
++    except (ValueError, OSError) as exc: raise HTTPException(400,str(exc)) from exc
+     source_id=payload.source_id
+@@ -749,22 +752,8 @@
+         except Exception as exc: raise HTTPException(400,str(exc))
+-    text=path.read_text(encoding="utf-8-sig",errors="replace")
+-    try: dialect=csv.Sniffer().sniff(text[:4096],delimiters=",\t;")
+-    except Exception: dialect=csv.excel
+-    reader=csv.DictReader(text.splitlines(),dialect=dialect)
+-    fields={str(f).strip().lower().replace(' ','_'):f for f in (reader.fieldnames or [])}
+-    def pick(*names):
+-        for n in names:
+-            if n in fields:return fields[n]
+-        return None
+-    fp=pick('point_id','point','pt','name'); fn=pick('northing','north','n','y'); fe=pick('easting','east','e','x'); fz=pick('elevation','elev','z'); fd=pick('description','desc','code')
+-    if not fp or not fn or not fe: raise HTTPException(400,"Point file requires Point ID, Northing and Easting columns.")
+     now=utc_now(); count=0
+     with p.db.connect() as conn:
+-        for row in reader:
+-            pid=str(row.get(fp,'')).strip()
+-            if not pid: continue
+-            try: n=float(row[fn]); e=float(row[fe]); z=float(row[fz]) if fz and str(row.get(fz,'')).strip() else None
+-            except Exception: continue
++        for row in rows:
++            pid=row['point_id']; n=row['northing']; e=row['easting']; z=row['elevation']
+             conn.execute("INSERT INTO canonical_points(point_uuid,point_id,northing,easting,elevation,description,point_class,source_id,derived_from_json,crs,horizontal_units,vertical_units,review_state,revision,created_utc,modified_utc) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+-                (uuid4().hex,pid,n,e,z,str(row.get(fd,'') if fd else ''),payload.point_class,source_id,'[]',p.manifest.get('crs',''),p.manifest.get('horizontal_units',''),p.manifest.get('vertical_units',''),'UNREVIEWED',1,now,now)); count+=1
++                (uuid4().hex,pid,n,e,z,row['description'],payload.point_class,source_id,'[]',p.manifest.get('crs',''),p.manifest.get('horizontal_units',''),p.manifest.get('vertical_units',''),'UNREVIEWED',1,now,now)); count+=1
+     p.db.audit("Core","CANONICAL_POINTS_IMPORTED",object_type="source",object_id=source_id,details={"count":count})
+--- a/scripts/verify_update_cycle.py
++++ b/scripts/verify_update_cycle.py
+@@ -26,2 +26,3 @@
+ import urllib.request
++import urllib.error
+ 
+@@ -43,4 +44,8 @@
+                                  headers={'Content-Type':'application/json'})
+-    with urllib.request.urlopen(req, timeout=90) as response:
+-        return json.load(response)
++    try:
++        with urllib.request.urlopen(req, timeout=90) as response:
++            return json.load(response)
++    except urllib.error.HTTPError as exc:
++        message = exc.read().decode('utf-8', errors='replace')
++        raise RuntimeError(f'{path}: HTTP {exc.code}: {message}') from exc
+ 
+@@ -170,3 +175,5 @@
+         project=next((state/'projects').rglob('survey_sync_project.json')).parent
+-        source=state/'source.csv';source.write_text('PointID,Northing,Easting,Elevation,Code\n001A,1000,2000,10,CP\n001B,1001,2001,11,CP\n001C,1002,2002,12,CP\n',encoding='utf-8')
++        source=state/'source.csv'
++        header = 'point_id' if name=='released-9.4.0-migration' else 'PointID'
++        source.write_text(header+',Northing,Easting,Elevation,Code\n001A,1000,2000,10,CP\n001B,1001,2001,11,CP\n001C,1002,2002,12,CP\n',encoding='utf-8')
+         api('/api/v9/points/import',{'file_path':str(source)})
+@@ -231,2 +238,5 @@
+                       source_bytes_unchanged=True,project_and_settings_preserved=True)
++    except Exception as exc:
++        report['failure'] = f'{type(exc).__name__}: {exc}'
++        raise
+     finally:
+--- a/RELEASE_NOTES_v9_4_1.md
++++ b/RELEASE_NOTES_v9_4_1.md
+@@ -10,3 +10,3 @@
+ 
+-Pipe grade converts declared horizontal and vertical units before division. Polygon area/centroid uses a local origin and accurate summation at large coordinates. Perfect traverse closure returns a JSON-safe explicit status without perturbing coordinates. Repeated LandXML intake resolves the retained source path. Leveling and Field-to-Finish accept supported PointID header aliases without modifying identifiers. Covered numeric boundaries reject NaN/infinity and invalid tolerances/units.
++Pipe grade converts declared horizontal and vertical units before division. Polygon area/centroid uses a local origin and accurate summation at large coordinates. Perfect traverse closure returns a JSON-safe explicit status without perturbing coordinates. Repeated LandXML intake resolves the retained source path. Canonical project points, Leveling and Field-to-Finish accept supported PointID header aliases without modifying identifiers. Covered numeric boundaries reject NaN/infinity and invalid tolerances/units. Canonical point CSV import validates the entire file before insertion and reports the bad row instead of silently skipping it; ambiguous duplicate headers are rejected.
+ 
