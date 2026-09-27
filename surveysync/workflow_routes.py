@@ -25,7 +25,7 @@ router = APIRouter()
 
 class WorkflowActionIn(BaseModel):
     type: str = Field(min_length=1)
-    params: dict = {}
+    params: dict = Field(default_factory=dict)
 
 
 class WorkflowSaveIn(BaseModel):
@@ -39,7 +39,7 @@ class WorkflowSaveIn(BaseModel):
 
 class WorkflowRunIn(BaseModel):
     workflow_id: str = Field(min_length=1)
-    context: dict = {}
+    context: dict = Field(default_factory=dict)
 
 
 class WorkflowApprovalIn(BaseModel):
