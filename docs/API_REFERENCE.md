@@ -192,3 +192,28 @@ The extended curve engine is adapted from the MIT-licensed Cogokit project and i
 
 High-impact workflow actions remain approval-gated regardless of YAML input.
 
+## v9.4.0 CRS diagnostics
+
+- `POST /api/v9/crs/profile` — CRS datum/axis/unit/area profile from pyproj/PROJ.
+- `POST /api/v9/crs/operations` — available and unavailable source-to-target operations, published accuracy, missing grids, area-of-use evidence, and optional sample transform.
+- `POST /api/v9/crs/project-diagnostics` — project CRS/unit/local-site review plus optional target-operation diagnostics.
+
+## v9.4.0 ReportSync Template Mapper
+
+- `POST /api/v9/reports/templates/inspect` — inspect an Excel workbook and discover placeholders.
+- `GET /api/v9/reports/templates` — list registered project template mappings.
+- `POST /api/v9/reports/templates` — preserve/register an Excel template and optionally save its initial mapping.
+- `POST /api/v9/reports/templates/mapping` — update scalar and canonical-point-table mappings.
+- `POST /api/v9/reports/templates/render` — render a new workbook and register it as a DRAFT ReportSync deliverable.
+- `POST /api/v9/reports/templates/delete` — delete a mapping while preserving immutable template evidence.
+
+## v9.4.0 optional QGIS / GRASS bridges
+
+- `GET /api/v9/gis-bridges/status` — discover installed QGIS/GRASS external runtimes.
+- `GET /api/v9/gis-bridges/qgis/algorithms` — list QGIS processing algorithms.
+- `POST /api/v9/gis-bridges/qgis/help` — return QGIS processing help for one validated algorithm ID.
+- `POST /api/v9/gis-bridges/qgis/run` — run one explicit QGIS processing algorithm.
+- `POST /api/v9/gis-bridges/grass/run` — run a validated GRASS module in a temporary CRS project.
+
+The QGIS/GRASS bridge does not embed those GPL applications and does not use shell command execution.
+
