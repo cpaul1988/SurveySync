@@ -1,9 +1,12 @@
+"""Fail-closed HTTPS updater. Downloads are verified before an atomic handoff."""
 from __future__ import annotations
 
 import hashlib
 import json
 import os
 import re
+import tempfile
+import threading
 import urllib.request
 from pathlib import Path
 from urllib.parse import urlparse
@@ -11,78 +14,158 @@ from urllib.parse import urlparse
 from . import __version__
 from .config import ConfigStore, DEFAULT_UPDATE_MANIFEST_URL
 
+_DOWNLOAD_LOCK = threading.Lock()
+MAX_MANIFEST_BYTES = 1024 * 1024
+MAX_INSTALLER_BYTES = 4 * 1024 * 1024 * 1024
+
 
 def version_tuple(value: str) -> tuple[int, int, int, int]:
-    """Return a normalized four-part numeric version for stable comparisons.
-
-    ``9.1``, ``9.1.0`` and ``9.1.0.0`` therefore compare as the same release.
-    """
-    nums = [int(x) for x in re.findall(r"\d+", str(value or ""))[:4]]
+    """Compare numeric releases without accepting arbitrary text or path characters."""
+    text = str(value or "").strip()
+    if not re.fullmatch(r"\d+(?:\.\d+){0,3}", text):
+        raise ValueError("Release version must contain one to four numeric components.")
+    nums = [int(x) for x in text.split(".")]
+    if any(x > 65535 for x in nums):
+        raise ValueError("Release version component is outside the supported range.")
     nums.extend([0] * (4 - len(nums)))
-    return tuple(nums[:4])  # type: ignore[return-value]
+    return nums[0], nums[1], nums[2], nums[3]
 
 
 def _https(url: str) -> str:
-    u=str(url or "").strip()
-    if not u.lower().startswith("https://"):
-        raise ValueError("Update URLs must use HTTPS.")
-    return u
+    text = str(url or "").strip()
+    parsed = urlparse(text)
+    if (parsed.scheme.lower() != "https" or not parsed.hostname or parsed.username
+            or parsed.password or parsed.fragment or any(ord(c) < 33 for c in text)):
+        raise ValueError("Update URLs must be credential-free HTTPS URLs.")
+    try:
+        parsed.port
+    except ValueError as exc:
+        raise ValueError("Invalid update URL port.") from exc
+    return text
+
+
+class _HTTPSRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        _https(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _open(request, timeout):
+    _https(request.full_url)
+    return urllib.request.build_opener(_HTTPSRedirect()).open(request, timeout=timeout)
 
 
 def fetch_manifest(store: ConfigStore) -> dict:
-    cfg=store.load(); url=_https(cfg.update_manifest_url or DEFAULT_UPDATE_MANIFEST_URL)
-    req=urllib.request.Request(url,headers={"User-Agent":f"SurveySync/{__version__}","Accept":"application/json","Cache-Control":"no-cache"})
-    with urllib.request.urlopen(req,timeout=20) as r:
-        raw=r.read(1024*1024)
-    data=json.loads(raw.decode("utf-8-sig"))
-    if not isinstance(data,dict): raise ValueError("Update manifest must be a JSON object.")
+    cfg = store.load()
+    url = _https(cfg.update_manifest_url or DEFAULT_UPDATE_MANIFEST_URL)
+    req = urllib.request.Request(url, headers={"User-Agent": f"SurveySync/{__version__}",
+                                              "Accept": "application/json", "Cache-Control": "no-cache"})
+    with _open(req, timeout=20) as response:
+        raw = response.read(MAX_MANIFEST_BYTES + 1)
+    if len(raw) > MAX_MANIFEST_BYTES:
+        raise ValueError("Update manifest exceeds the supported size.")
+    data = json.loads(raw.decode("utf-8-sig"))
+    if not isinstance(data, dict):
+        raise ValueError("Update manifest must be a JSON object.")
+    if data.get("product", "SurveySync") != "SurveySync":
+        raise ValueError("Update manifest belongs to a different product.")
     return data
 
 
 def select_release(manifest: dict, channel: str) -> dict:
-    channels=manifest.get("channels")
-    if isinstance(channels,dict): rel=channels.get(channel)
-    else: rel=manifest if str(manifest.get("channel") or "stable")==channel else None
-    if not isinstance(rel,dict): raise ValueError(f"Manifest does not contain release channel '{channel}'.")
-    version=str(rel.get("version") or "").strip(); url=_https(str(rel.get("installer_url") or "")); sha=str(rel.get("sha256") or "").lower().strip(); size=int(rel.get("size_bytes") or 0)
-    if not version: raise ValueError("Release version is missing.")
-    if not re.fullmatch(r"[0-9a-f]{64}",sha): raise ValueError("Release SHA-256 is invalid.")
-    if size<=0: raise ValueError("Release size_bytes must be positive.")
-    return {**rel,"version":version,"installer_url":url,"sha256":sha,"size_bytes":size,"channel":channel,"update_available":version_tuple(version)>version_tuple(__version__)}
+    if channel not in {"stable", "beta", "developer"}:
+        raise ValueError("Unknown release channel.")
+    channels = manifest.get("channels")
+    rel = channels.get(channel) if isinstance(channels, dict) else (
+        manifest if str(manifest.get("channel") or "stable") == channel else None)
+    if not isinstance(rel, dict):
+        raise ValueError(f"Manifest does not contain release channel '{channel}'.")
+    version = str(rel.get("version") or "").strip()
+    numeric_version = version_tuple(version)
+    url = _https(str(rel.get("installer_url") or ""))
+    sha = str(rel.get("sha256") or "").lower().strip()
+    size = rel.get("size_bytes")
+    if not re.fullmatch(r"[0-9a-f]{64}", sha):
+        raise ValueError("Release SHA-256 is invalid.")
+    if isinstance(size, bool) or not isinstance(size, int) or not 0 < size <= MAX_INSTALLER_BYTES:
+        raise ValueError("Release size_bytes must be a positive bounded integer.")
+    return {**rel, "version": version, "installer_url": url, "sha256": sha,
+            "size_bytes": size, "channel": channel,
+            "update_available": numeric_version > version_tuple(__version__)}
 
 
 def check(store: ConfigStore) -> dict:
-    cfg=store.load()
-    rel=select_release(fetch_manifest(store),cfg.release_channel)
-    return {"configured":True,"current_version":__version__,**rel}
+    cfg = store.load()
+    rel = select_release(fetch_manifest(store), cfg.release_channel)
+    return {"configured": True, "current_version": __version__, **rel}
 
 
 def stage(store: ConfigStore) -> dict:
-    rel=check(store)
-    if not rel.get("configured"): raise ValueError(rel["message"])
-    if not rel.get("update_available"): raise ValueError("No newer SurveySync release is available on the selected channel.")
-    root=store.root/"updates";root.mkdir(parents=True,exist_ok=True)
-    name=f"SurveySync_Setup_{rel['version'].replace('.','_')}.exe"; dest=root/name; tmp=dest.with_suffix('.download')
-    req=urllib.request.Request(rel["installer_url"],headers={"User-Agent":f"SurveySync/{__version__}"})
-    h=hashlib.sha256();total=0
+    if not _DOWNLOAD_LOCK.acquire(blocking=False):
+        raise ValueError("An update download is already in progress.")
     try:
-        with urllib.request.urlopen(req,timeout=60) as r, tmp.open('wb') as f:
-            while True:
-                chunk=r.read(1024*1024)
-                if not chunk:break
-                total+=len(chunk);h.update(chunk);f.write(chunk)
-                if total>rel['size_bytes']+1024*1024:
-                    raise ValueError("Downloaded installer exceeded manifest size.")
-    except Exception:
-        # Clean only after file handles are closed so this works on Windows too.
-        tmp.unlink(missing_ok=True)
-        raise
-    digest=h.hexdigest()
-    if total!=rel['size_bytes'] or digest.lower()!=rel['sha256'].lower():
-        tmp.unlink(missing_ok=True);raise ValueError("Downloaded installer failed size/SHA-256 verification.")
-    with tmp.open('rb') as f:
-        if f.read(2)!=b'MZ': tmp.unlink(missing_ok=True);raise ValueError("Downloaded file is not a Windows executable.")
-    tmp.replace(dest)
-    pending={"version":rel['version'],"installer_path":str(dest),"sha256":digest,"size_bytes":total}
-    p=store.root/'pending_update.json';t=p.with_suffix('.tmp');t.write_text(json.dumps(pending,indent=2),encoding='utf-8');t.replace(p)
-    return {"staged":True,"pending_file":str(p),**pending}
+        return _stage(store)
+    finally:
+        _DOWNLOAD_LOCK.release()
+
+
+def _stage(store: ConfigStore) -> dict:
+    cfg = store.load()
+    selected = (cfg.release_channel, cfg.update_manifest_url)
+    rel = check(store)
+    if not rel.get("update_available"):
+        raise ValueError("No newer SurveySync release is available on the selected channel.")
+    root = store.root / "updates"
+    root.mkdir(parents=True, exist_ok=True)
+    if not root.resolve().is_relative_to(store.root.resolve()):
+        raise ValueError("Updates directory escapes the application data root.")
+    # All filename inputs have already been strictly validated; distinct hashes do
+    # not overwrite a previously approved executable with the same version label.
+    name = f"SurveySync_Setup_{rel['version'].replace('.', '_')}_{rel['sha256'][:12]}.exe"
+    dest = root / name
+    request = urllib.request.Request(rel["installer_url"], headers={"User-Agent": f"SurveySync/{__version__}"})
+    temporary = None
+    handoff_tmp = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=root, prefix="stage-", suffix=".download", delete=False) as out:
+            temporary = Path(out.name)
+            digest = hashlib.sha256()
+            total = 0
+            header = b""
+            with _open(request, timeout=60) as response:
+                while chunk := response.read(1024 * 1024):
+                    total += len(chunk)
+                    if total > rel["size_bytes"]:
+                        raise ValueError("Downloaded installer exceeded manifest size.")
+                    if len(header) < 2:
+                        header = (header + chunk)[:2]
+                    digest.update(chunk)
+                    out.write(chunk)
+            out.flush()
+            os.fsync(out.fileno())
+        # Every handle is closed before cleanup/replacement, including invalid MZ.
+        if total != rel["size_bytes"] or digest.hexdigest() != rel["sha256"]:
+            raise ValueError("Downloaded installer failed size/SHA-256 verification.")
+        if header != b"MZ":
+            raise ValueError("Downloaded file is not a Windows executable.")
+        current = store.load()
+        if (current.release_channel, current.update_manifest_url) != selected:
+            raise ValueError("Update configuration changed during download; check again.")
+        temporary.replace(dest)
+        temporary = None
+        pending = {"version": rel["version"], "installer_path": str(dest),
+                   "sha256": rel["sha256"], "size_bytes": total}
+        handoff = store.root / "pending_update.json"
+        with tempfile.NamedTemporaryFile(mode="w", dir=store.root, prefix="pending-", suffix=".tmp",
+                                         encoding="utf-8", delete=False) as out:
+            handoff_tmp = Path(out.name)
+            json.dump(pending, out, indent=2)
+            out.flush()
+            os.fsync(out.fileno())
+        handoff_tmp.replace(handoff)
+        handoff_tmp = None
+        return {"staged": True, "pending_file": str(handoff), **pending}
+    finally:
+        for path in (temporary, handoff_tmp):
+            if path is not None:
+                path.unlink(missing_ok=True)

@@ -1,3 +1,7 @@
+# 9.4.1 — Verified audit repairs
+
+Control integrity, numeric/unit calculations, import headers/repeats, native lifecycle, Windows recovery and verified update handoff. See RELEASE_NOTES_v9_4_1.md for scope and limits.
+
 # 9.4.0 — Open-source integration, automation, interoperability, and brand refresh
 
 ## Beta.4 — Theme-only EDSI co-branding

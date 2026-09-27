@@ -55,23 +55,30 @@ class AnalysisJobStore:
         try:
             self._open_connection()
             self._init_db()
-        except sqlite3.DatabaseError:
-            # A damaged reliability ledger must never make FieldBook Sync itself
-            # unlaunchable. Preserve it for diagnostics, then start a clean ledger.
+        except sqlite3.DatabaseError as exc:
             self.close()
-            stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            if (getattr(exc, "sqlite_errorcode", 0) & 255) not in (sqlite3.SQLITE_CORRUPT, sqlite3.SQLITE_NOTADB):
+                raise
+            stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f") + "_" + uuid4().hex
             corrupt = self.path.with_name(f"{self.path.stem}.corrupt_{stamp}{self.path.suffix}")
+            moved = []
             try:
-                if self.path.exists():
-                    self.path.replace(corrupt)
-                for suffix in ("-wal", "-shm"):
-                    sidecar = Path(str(self.path) + suffix)
-                    if sidecar.exists():
-                        sidecar.unlink(missing_ok=True)
+                for suffix in ("", "-wal", "-shm"):
+                    original = Path(str(self.path) + suffix)
+                    target = Path(str(corrupt) + suffix)
+                    if original.exists():
+                        original.replace(target)
+                        moved.append((original, target))
             except OSError:
-                pass
-            self._open_connection()
-            self._init_db()
+                for original, target in reversed(moved):
+                    target.replace(original)
+                raise
+            try:
+                self._open_connection()
+                self._init_db()
+            except (sqlite3.Error, OSError):
+                self.close()
+                raise
 
     def _open_connection(self) -> sqlite3.Connection:
         """Open/configure the one process-local ledger connection.
@@ -85,11 +92,15 @@ class AnalysisJobStore:
         if self._conn is not None:
             return self._conn
         conn = sqlite3.connect(self.path, timeout=10.0, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        conn.execute("PRAGMA busy_timeout=10000")
+        try:
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA foreign_keys=ON")
+            conn.execute("PRAGMA busy_timeout=10000")
+        except BaseException:
+            conn.close()
+            raise
         self._conn = conn
         return conn
 

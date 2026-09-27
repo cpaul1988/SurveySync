@@ -186,6 +186,11 @@ def write_ron_control_deliverables(
     qc_path = folder / f"Ron_Control_{safe}_{stamp}_QC.txt"
     residuals = list(result.get("residuals") or [])
     source_ids = [str(x) for x in source_point_ids]
+    identified = [str(r.get("point_id") or "") for r in residuals]
+    if any(identified) and (
+        len(identified) != len(source_ids) or sorted(identified) != sorted(source_ids)
+    ):
+        raise ValueError("Residual PointIDs do not match the selected source shots.")
     lines = [
         "SurveySync - Ron 3-Point Control Average / QC",
         f"Control ID: {control_id}",
@@ -209,7 +214,10 @@ def write_ron_control_deliverables(
     ]
     failed: list[tuple[str, dict]] = []
     for idx, residual in enumerate(residuals):
-        pid = source_ids[idx] if idx < len(source_ids) else f"Shot {idx + 1}"
+        pid = str(
+            residual.get("point_id")
+            or (source_ids[idx] if idx < len(source_ids) else f"Shot {idx + 1}")
+        )
         h = float(residual.get("horizontal") or 0)
         dz = residual.get("dz")
         status = "PASS" if residual.get("pass") else "RESHOOT"
@@ -230,6 +238,7 @@ def write_ron_control_deliverables(
             else "Elevation: N/A",
             "Method: Ron 3-Point Workbook",
             "Source PointIDs: " + ", ".join(source_ids),
+            "Code: " + str(result.get("code") or ""),
             f"Solution ID: {result.get('solution_id', '')}",
             f"Revision: {result.get('revision', '')}",
             f"Timestamp UTC: {utc_now()}",

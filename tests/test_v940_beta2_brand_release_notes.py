@@ -17,8 +17,8 @@ def test_beta2_release_notes_have_release_specific_identity():
 
     assert response.status_code == 200
     body = response.json()
-    assert body["version"] == "9.4.0"
-    assert body["release_id"] == "9.4.0-beta.4"
+    assert body["version"] == "9.4.1"
+    assert body["release_id"] == "9.4.1"
     assert any("globe" in note.lower() for note in body["notes"])
     assert any("release notes" in note.lower() for note in body["notes"])
 

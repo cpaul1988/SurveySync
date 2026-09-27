@@ -162,6 +162,7 @@ def level_solve(payload: LevelSolveIn):
             closure_tolerance=payload.closure_tolerance,
             stadia_multiplier=payload.stadia_multiplier,
             calculation_profile=payload.calculation_profile,
+            row_layout=payload.row_layout,
         )
     except Exception as exc:
         raise HTTPException(400, str(exc))
@@ -440,7 +441,12 @@ def utility_analyze(payload: UtilityAnalyzeIn):
         )
         return {
             "connections": supported,
-            "grades": pipe_grades(structures, supported),
+            "grades": pipe_grades(
+                structures,
+                supported,
+                horizontal_units=p.manifest.get("horizontal_units", ""),
+                vertical_units=p.manifest.get("vertical_units", ""),
+            ),
             "gis_is_reference_only": True,
         }
     except Exception as exc:

@@ -162,24 +162,18 @@ core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
-SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.4"
+SURVEYSYNC_RELEASE_NOTES_ID = "9.4.1"
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "Beta.4 makes EDSI branding theme-only: normal themes show the SurveySync globe alone; EDSI Adaptive, EDSI Dark and EDSI Light show the globe and EDSI logo side by side throughout both shells.",
-    "Switching themes immediately updates headers, sidebars, Home, About and release notes. The Windows icon and installer retain the SurveySync globe; project data and saved theme preferences are unchanged.",
-    "Beta.3 makes FieldBookSync the visual standard for Home and every module: shared palettes, toolbars, sidebars, cards, controls, spacing, and readable typography.",
-    "Fixes the module-icon startup exception and the static route that rejected workflow-icon subfolders; release notes no longer depend on successful project/status initialization.",
-    "Globe branding is generated from one source for application icons and both installer wizard images. Dark-mode wordmarks use light lettering without inverting the globe colors.",
-    "Release notes identify this build as 9.4.0-beta.4, remain unread until Continue, and include a visible retry action on failure. Existing project data and saved theme preferences are retained.",
-    "9.4.0 completes the open-source integration roadmap while preserving SurveySync's validated ControlSync, leveling, audit, and source-evidence workflows.",
-    "ControlSync network adjustment now has an independent pySurveying-style numerical validation engine with residual, redundancy, sigma0, and error-ellipse cross-checks.",
-    "Trimble JobXML/JXL intake is more tolerant across Access/TBC generations while structurally corrupt XML still fails closed.",
-    "TopoSync adds optional LAS/LAZ point-cloud intake with built-in LAS metadata and optional laspy/PDAL support.",
-    "SurveySync adds project-scoped YAML workflow automation with persistent run state and explicit human approval for final deliverables and stakeholder notifications.",
-    "GISSync adds PROJ-based CRS diagnostics plus optional external QGIS and GRASS processing bridges.",
-    "ReportSync adds immutable Excel template mapping/rendering for company and client workbooks, with rendered outputs registered as DRAFT deliverables.",
-    "SurveySync 9.4 introduces the new Surveying Navy / Topographic Gold / Canvas Cream product identity and unified workflow icon system.",
+    "9.4.1 is the verified audit-repair update. Ron's manual three-point control now preserves source PointIDs, source codes and residual attribution; repeated calculations create separate revisions and preserve previous valid results on handled failures.",
+    "Pipe grades normalize horizontal and vertical units. Polygon area and centroid calculations use a local origin for accuracy at large survey coordinates. Perfect traverse closure returns a valid result without changing the geometry.",
+    "Repeat LandXML import, PointID column aliases, and rejection of non-finite numeric inputs are repaired. Level books have an explicit row-layout choice that distinguishes point elevations from instrument heights and preserves Ron's reduction conventions.",
+    "Survey Data, Data Inspector, Support Center and File Exit commands are repaired. Native shutdown follows project switching; damaged analysis-job ledgers are preserved during Windows recovery.",
+    "Update downloads validate HTTPS redirects, version labels, exact size, checksum and executable headers before creating a handoff. Native launchers follow the selected data location, and the updater records Setup completion rather than just process startup.",
+    "The approved globe branding and theme-only EDSI companion are unchanged. These release notes remain available after installation and are acknowledged only by Continue.",
+    "Backend-only point-cloud, YAML automation, new CRS diagnostics, Excel mapping and external GIS workflows remain incomplete in the desktop. Live OCR/provider accuracy, optional Trimble/GIS execution and rod-height field calibration are not claimed as verified by this release.",
 ]
+
 
 
 def _fieldbook_app_module():
@@ -726,43 +720,12 @@ def control_import_and_analyze(payload: ControlImportAnalyzeIn):
 
 @router.post("/api/v9/control/ron-three-point")
 def control_ron_three_point(payload: RonControlFromPointsIn):
-    p=require_project()
-    final_id=str(payload.control_id or "").strip()
-    point_ids=[str(x or "").strip() for x in (payload.point_ids or []) if str(x or "").strip()]
-    if not final_id:
-        raise HTTPException(400,"Final control ID is required.")
-    if len(point_ids)!=3 or len(set(point_ids))!=3:
-        raise HTTPException(400,"Ron 3-point control profile requires exactly three distinct source survey PointIDs.")
-    observations=[]
-    with p.db.connect() as conn:
-        for source_pid in point_ids:
-            rows=conn.execute("SELECT * FROM canonical_points WHERE point_id=? ORDER BY modified_utc DESC, created_utc DESC",(source_pid,)).fetchall()
-            if not rows:
-                raise HTTPException(400,f"Survey PointID {source_pid} was not found in the current project.")
-            if len(rows)>1:
-                # Duplicate PointIDs are unsafe for an averaging workflow because the spreadsheet VLOOKUP
-                # assumes one authoritative source row. Require review rather than silently choosing one.
-                raise HTTPException(400,f"Survey PointID {source_pid} is duplicated in the project; resolve the duplicate before control averaging.")
-            r=dict(rows[0])
-            if r.get("elevation") is None:
-                raise HTTPException(400,f"Survey PointID {source_pid} has no elevation; the Ron workbook profile requires N/E/Z for all three shots.")
-            observations.append({
-                "control_id":final_id,"northing":r["northing"],"easting":r["easting"],"elevation":r["elevation"],
-                "h_sigma":None,"v_sigma":None,"method":"RON_3_POINT_WORKBOOK","source_id":r.get("source_id"),
-                "notes":f"Source survey PointID {source_pid}",
-            })
-    # Each press intentionally creates a new auditable observation set and immutable solution revision.
-    # Prior Ron-profile shots remain in history but are excluded so the active solution always mirrors
-    # the workbook's exactly-three-shot assumption.
-    with p.db.connect() as conn:
-        conn.execute("UPDATE control_observations SET include=0 WHERE control_id=? AND method='RON_3_POINT_WORKBOOK' AND include=1",(final_id,))
-    import_observations(p.db,observations)
-    result=solve_control(p.db,final_id,"ron_spreadsheet",payload.horizontal_tolerance,payload.vertical_tolerance)
-    result["source_point_ids"]=point_ids
-    deliverables=write_ron_control_deliverables(result,point_ids,p.paths.reports)
-    result["deliverables"]=deliverables
-    p.db.audit("ControlSync","RON_3_POINT_FROM_PROJECT_POINTS",object_type="control",object_id=final_id,details={"source_point_ids":point_ids,"solution_id":result.get("solution_id"),"revision":result.get("revision"),"pass":result.get("pass"),"deliverables":deliverables})
-    return result
+    from .manual_control import from_project_points
+    try:
+        return from_project_points(require_project(), payload)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+
 
 @router.post("/api/v9/control/solve")
 def control_solve(payload: ControlSolveIn):
@@ -780,30 +743,19 @@ def control_solve(payload: ControlSolveIn):
 def points_import(payload: PointImportIn):
     p=require_project(); path=Path(payload.file_path).expanduser().resolve()
     if not path.is_file(): raise HTTPException(400,"Point file was not found.")
+    from .point_import import parse_canonical_points
+    try: rows=parse_canonical_points(path)
+    except (ValueError, OSError) as exc: raise HTTPException(400,str(exc)) from exc
     source_id=payload.source_id
     if not source_id:
         try: source_id=p.import_source(path,"Core","Canonical point import")["source_id"]
         except Exception as exc: raise HTTPException(400,str(exc))
-    text=path.read_text(encoding="utf-8-sig",errors="replace")
-    try: dialect=csv.Sniffer().sniff(text[:4096],delimiters=",\t;")
-    except Exception: dialect=csv.excel
-    reader=csv.DictReader(text.splitlines(),dialect=dialect)
-    fields={str(f).strip().lower().replace(' ','_'):f for f in (reader.fieldnames or [])}
-    def pick(*names):
-        for n in names:
-            if n in fields:return fields[n]
-        return None
-    fp=pick('point_id','point','pt','name'); fn=pick('northing','north','n','y'); fe=pick('easting','east','e','x'); fz=pick('elevation','elev','z'); fd=pick('description','desc','code')
-    if not fp or not fn or not fe: raise HTTPException(400,"Point file requires Point ID, Northing and Easting columns.")
     now=utc_now(); count=0
     with p.db.connect() as conn:
-        for row in reader:
-            pid=str(row.get(fp,'')).strip()
-            if not pid: continue
-            try: n=float(row[fn]); e=float(row[fe]); z=float(row[fz]) if fz and str(row.get(fz,'')).strip() else None
-            except Exception: continue
+        for row in rows:
+            pid=row['point_id']; n=row['northing']; e=row['easting']; z=row['elevation']
             conn.execute("INSERT INTO canonical_points(point_uuid,point_id,northing,easting,elevation,description,point_class,source_id,derived_from_json,crs,horizontal_units,vertical_units,review_state,revision,created_utc,modified_utc) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (uuid4().hex,pid,n,e,z,str(row.get(fd,'') if fd else ''),payload.point_class,source_id,'[]',p.manifest.get('crs',''),p.manifest.get('horizontal_units',''),p.manifest.get('vertical_units',''),'UNREVIEWED',1,now,now)); count+=1
+                (uuid4().hex,pid,n,e,z,row['description'],payload.point_class,source_id,'[]',p.manifest.get('crs',''),p.manifest.get('horizontal_units',''),p.manifest.get('vertical_units',''),'UNREVIEWED',1,now,now)); count+=1
     p.db.audit("Core","CANONICAL_POINTS_IMPORTED",object_type="source",object_id=source_id,details={"count":count})
     return {"count":count,"source_id":source_id}
 

@@ -17,7 +17,8 @@ import (
 	"unsafe"
 )
 
-const appVersion = "9.4.0"
+var appVersion = "9.4.1"
+
 const productName = "SurveySync"
 
 const (
@@ -81,11 +82,7 @@ func messageBox(title, text string, flags uintptr) {
 }
 
 func dataLogPath() string {
-	base := strings.TrimSpace(os.Getenv("LOCALAPPDATA"))
-	if base == "" {
-		base = os.TempDir()
-	}
-	dir := filepath.Join(base, "SurveySync", "logs")
+	dir := filepath.Join(updateDataRoot(), "logs")
 	_ = os.MkdirAll(dir, 0755)
 	return filepath.Join(dir, "launcher.log")
 }
@@ -107,6 +104,11 @@ type pendingUpdate struct {
 }
 
 func updateDataRoot() string {
+	if override := strings.TrimSpace(os.Getenv("SURVEYSYNC_CONFIG_ROOT")); override != "" {
+		if absolute, err := filepath.Abs(override); err == nil {
+			return absolute
+		}
+	}
 	base := strings.TrimSpace(os.Getenv("LOCALAPPDATA"))
 	if base == "" {
 		base = os.TempDir()
@@ -245,6 +247,14 @@ func verifyPendingInstaller(pending pendingUpdate) (string, string, int64, error
 	if err != nil {
 		return "", "", 0, fmt.Errorf("resolve update directory: %w", err)
 	}
+	updatesRoot, err = filepath.EvalSymlinks(updatesRoot)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("resolve updates folder links: %w", err)
+	}
+	absInstaller, err = filepath.EvalSymlinks(absInstaller)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("resolve installer links: %w", err)
+	}
 	rootPrefix := strings.ToLower(updatesRoot + string(os.PathSeparator))
 	if !strings.HasPrefix(strings.ToLower(absInstaller), rootPrefix) {
 		return "", "", 0, fmt.Errorf("pending installer is outside the SurveySync updates folder")
@@ -310,6 +320,19 @@ func launchPendingUpdate(logFile string) (bool, error) {
 	if _, err := os.Stat(helperExe); err != nil {
 		return false, fmt.Errorf("native updater helper is missing: %s", helperExe)
 	}
+	helperBytes, err := os.ReadFile(helperExe)
+	if err != nil {
+		return false, fmt.Errorf("read native helper: %w", err)
+	}
+	helperCopy := filepath.Join(updateDataRoot(), "updates", fmt.Sprintf("SurveySyncUpdater-%d.exe", os.Getpid()))
+	if err := os.WriteFile(helperCopy, helperBytes, 0600); err != nil {
+		return false, fmt.Errorf("stage detached helper: %w", err)
+	}
+	copied, err := os.ReadFile(helperCopy)
+	if err != nil || sha256.Sum256(copied) != sha256.Sum256(helperBytes) {
+		return false, fmt.Errorf("staged helper verification failed")
+	}
+	helperExe = helperCopy
 	helperLog := filepath.Join(updateDataRoot(), "logs", "update_helper.log")
 	statusPath := filepath.Join(updateDataRoot(), "updates", "update_helper_status.json")
 	_ = os.Remove(statusPath)
@@ -317,6 +340,7 @@ func launchPendingUpdate(logFile string) (bool, error) {
 	args := []string{
 		"--launcher-pid", fmt.Sprintf("%d", os.Getpid()),
 		"--pending-file", pendingPath,
+		"--install-dir", filepath.Dir(exePath),
 		"--status-file", statusPath,
 		"--log-file", helperLog,
 	}

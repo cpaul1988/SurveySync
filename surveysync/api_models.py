@@ -403,6 +403,7 @@ class LevelSolveIn(BaseModel):
     closure_tolerance: Optional[float] = None
     stadia_multiplier: float = 100.0
     calculation_profile: str = "ron_workbook"
+    row_layout: str = "auto"
 
 
 class LevelRevisionSelectIn(BaseModel):

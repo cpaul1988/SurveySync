@@ -15,7 +15,7 @@ from fieldbook_sync import app as field_app
 from fieldbook_sync.app import load_project_path_into_runtime
 from file_association import register as register_fbs, unregister as unregister_fbs
 
-APP_NAME = "SurveySync v9.4.0"
+APP_NAME = "SurveySync v9.4.1"
 
 
 class NativeBridge:
@@ -134,7 +134,14 @@ def main()->None:
             except Exception:pass
     bridge._shutdown_callback=shutdown
     window.events.closed += lambda: shutdown(False)
+    def watch_shutdown():
+        # Project switching replaces Runtime and its Event. Do not wait forever
+        # on the first project's event; follow the current runtime each interval.
+        while not field_app.runtime.shutdown_event.wait(timeout=0.2):
+            pass
+        shutdown()
     webview.start(
+        watch_shutdown,
         gui="edgechromium" if sys.platform=="win32" else None,
         debug=False,
         icon=str(window_icon) if window_icon.exists() else None,

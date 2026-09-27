@@ -5,12 +5,13 @@ import io
 import re
 from collections import defaultdict
 from pathlib import Path
+from .survey_validation import finite_number, normalize_header
 
 CODE_RE = re.compile(r"^(?P<line>\d+)(?:-(?P<event>BS|ES|PC|PT|CL))?$", re.I)
 
 
 def _norm_header(v: str) -> str:
-    return str(v or "").strip().lower().replace(" ", "_").replace("-", "_")
+    return normalize_header(v)
 
 
 def parse_coded_points(path: Path) -> list[dict]:
@@ -21,7 +22,7 @@ def parse_coded_points(path: Path) -> list[dict]:
     if not reader.fieldnames: raise ValueError("Coded point file does not contain a header row.")
     normalized={_norm_header(f):f for f in reader.fieldnames}
     def pick(*names):
-        return next((normalized[n] for n in names if n in normalized), None)
+        return next((normalized[_norm_header(n)] for n in names if _norm_header(n) in normalized), None)
     f_id=pick("point_id","point","pt","number","pnt")
     f_n=pick("northing","north","n","y")
     f_e=pick("easting","east","e","x")
@@ -34,7 +35,7 @@ def parse_coded_points(path: Path) -> list[dict]:
         code=str(row.get(f_code,"") or "").strip()
         if not code: continue
         try:
-            out.append({"point_id":str(row.get(f_id,"") or "").strip(),"northing":float(row[f_n]),"easting":float(row[f_e]),"elevation":float(row[f_z]) if f_z and str(row.get(f_z,"")).strip() else None,"code":code,"source_row":row_no})
+            out.append({"point_id":str(row.get(f_id,"") or "").strip(),"northing":finite_number(row[f_n]),"easting":finite_number(row[f_e]),"elevation":finite_number(row[f_z]) if f_z and str(row.get(f_z,"")).strip() else None,"code":code,"source_row":row_no})
         except Exception as exc:
             raise ValueError(f"Invalid coded point on row {row_no}: {exc}") from exc
     if not out: raise ValueError("No coded points were found.")

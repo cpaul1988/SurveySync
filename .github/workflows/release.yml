@@ -1,5 +1,8 @@
 name: SurveySync Release
 on:
+  push:
+    branches: [fix-v9.4.0-verified-audit]
+    paths: ['.github/release-941.json']
   workflow_dispatch:
     inputs:
       version:
@@ -25,6 +28,27 @@ env:
   BETA_SUFFIX: ${{ inputs.beta_suffix }}
 
 jobs:
+  verified_patch:
+    name: Publish independently accepted 9.4.1 (no rebuild)
+    if: github.event_name == 'push' && github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/fix-v9.4.0-verified-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify publisher safeguards offline
+        run: python -m unittest discover -s .github/scripts/tests -p test_publish_verified_941.py -v
+      - name: Verify Windows provenance and publish exact accepted installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/publish_verified_941.py
+
   beta_approved:
     name: Publish approved Beta.4 (no rebuild)
     if: ${{ inputs.action == 'publish_beta' && inputs.version == '9.4.0' && inputs.beta_suffix == 'beta.4' }}
@@ -198,7 +222,14 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add update.json
-          git commit -m "Promote SurveySync $env:RELEASE_VERSION $env:BETA_SUFFIX artifact to stable"
-          if ($LASTEXITCODE -ne 0) { throw 'Manifest commit failed.' }
-          git push
-          if ($LASTEXITCODE -ne 0) { throw 'Manifest push failed.' }
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "Promote SurveySync $env:RELEASE_VERSION $env:BETA_SUFFIX artifact to stable"
+            if ($LASTEXITCODE -ne 0) { throw 'Manifest commit failed.' }
+            git push
+            if ($LASTEXITCODE -ne 0) { throw 'Manifest push failed.' }
+          }
+          gh release edit $tag --repo $env:RELEASE_REPO --prerelease=false --latest --title "SurveySync $env:RELEASE_VERSION [stable]"
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release-status promotion failed.' }
+          $latest = gh api "repos/$env:RELEASE_REPO/releases/latest" --jq '.tag_name'
+          if ($LASTEXITCODE -ne 0 -or $latest -ne $tag) { throw 'GitHub Latest verification failed.' }

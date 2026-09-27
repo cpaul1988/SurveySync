@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -613,6 +614,7 @@ CREATE TABLE IF NOT EXISTS audit_chain_meta (
 
 class AuditDB:
     def __init__(self, path: Path):
+        self._transactions = threading.local()
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as conn:
@@ -730,13 +732,41 @@ class AuditDB:
 
     @contextmanager
     def connect(self):
+        active = getattr(self._transactions, "connection", None)
+        if active is not None:
+            try:
+                yield active
+            except BaseException:
+                self._transactions.failed = True
+                raise
+            return
         conn = sqlite3.connect(str(self.path), timeout=30)
         conn.row_factory = sqlite3.Row
         try:
             yield conn
             conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
         finally:
             conn.close()
+
+    @contextmanager
+    def transaction(self):
+        """Compose existing DB methods atomically on this thread, never other threads."""
+        if getattr(self._transactions, "connection", None) is not None:
+            raise RuntimeError("Nested explicit transactions are not supported.")
+        with self.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            self._transactions.connection = conn
+            self._transactions.failed = False
+            try:
+                yield conn
+                if self._transactions.failed:
+                    raise RuntimeError("Transaction aborted by an earlier database operation.")
+            finally:
+                self._transactions.connection = None
+
 
     def audit(self, module: str, action: str, *, actor: str = "local-user", object_type: str = "", object_id: str = "", revision: int = 0, details: dict | None = None) -> str:
         event_id = uuid4().hex
@@ -745,7 +775,8 @@ class AuditDB:
         with self.connect() as conn:
             # Serialize chain appends across SurveySync background threads. A deferred
             # read transaction could otherwise let two writers choose the same seq.
-            conn.execute("BEGIN IMMEDIATE")
+            if not conn.in_transaction:
+                conn.execute("BEGIN IMMEDIATE")
             try:
                 chain_id = self._audit_chain_id(conn)
                 head = conn.execute(

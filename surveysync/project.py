@@ -280,7 +280,7 @@ class SurveyProject:
         with self.db.connect() as conn:
             prior = conn.execute("SELECT * FROM source_registry WHERE sha256=? AND stored_path=?", (digest, str(dest.relative_to(self.paths.root)))).fetchone()
             if prior:
-                return dict(prior)
+                return {**dict(prior), "stored_path": str(dest)}
             conn.execute(
                 "INSERT INTO source_registry(source_id,added_utc,module,original_name,sha256,stored_path,media_type,byte_size,notes) VALUES(?,?,?,?,?,?,?,?,?)",
                 (source_id, utc_now(), module, src.name, digest, str(dest.relative_to(self.paths.root)), mimetypes.guess_type(src.name)[0] or "", src.stat().st_size, notes),

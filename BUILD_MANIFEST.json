@@ -1,99 +1,25 @@
 {
   "product": "SurveySync",
-  "version": "9.4.0",
-  "build_type": "beta.2-candidate-globe-branding-release-notes",
-  "generated_utc": "2026-09-27T01:08:00Z",
-  "baseline": "SurveySync 9.3.2 integration line",
-  "source_branch": "v9.4.0-development",
-  "candidate_branch": "v9.4.0-beta2-brand-release-notes",
+  "version": "9.4.1",
+  "build_type": "verified-audit-repair",
+  "baseline": "9.4.0 Stable plus PR #12 verified repairs",
+  "candidate_branch": "fix-v9.4.0-verified-audit",
   "feedback": {
     "checked_before_build": true,
-    "checked_local_date": "2026-09-26",
+    "checked_local_date": "2026-09-27",
     "latest_intake": "FBR-0016",
-    "latest_intake_title": "Rod Height Bust Tool",
     "newer_intake_items": 0,
-    "error_tracker_entries": 0,
-    "open_errors": 0,
-    "critical_errors": 0,
-    "retry_queue_entries": 0,
-    "note": "Live Intake, Error Dashboard, Errors, and Retry Queue checked again before 9.4.0 Beta.2 preparation. No item newer than FBR-0016; 0 total/open errors; retry queue empty."
+    "note": "Read connected Intake A1:F1001. No live test submission or provider calls. Error tracker has not been rechecked in this continuation."
   },
   "qa": {
-    "feature_complete_quality_run_id": 36283699520,
-    "feature_complete_quality_run_number": 158,
-    "tests_passed": 362,
-    "tests_skipped": 1,
-    "tests_failed": 0,
-    "line_coverage_percent": 59.35,
+    "status": "Pending versioned Windows acceptance",
     "coverage_floor_percent": 54,
-    "documentation_gate": true,
-    "static_safety_gate": true,
-    "ruff_checks": true,
-    "ruff_format": true,
-    "mypy": true,
-    "mypy_source_files": 29,
-    "python_compileall": true,
-    "javascript_syntax": true,
-    "dependency_lock_audit": true,
-    "candidate_quality_gate_status": "passed_windows_ci",
-    "windows_runtime_field_test_completed": false,
-    "installer_compiled_for_9_4_0": false,
-    "installed_beta_acceptance_completed": false,
-    "candidate_quality_run_id": 36285028740,
-    "candidate_quality_run_number": 160,
-    "candidate_tests_passed": 362,
-    "candidate_tests_skipped": 1,
-    "candidate_tests_failed": 0,
-    "candidate_line_coverage_percent": 59.35,
-    "candidate_mypy_source_files": 29,
-    "candidate_evidence_note": "Run #160 passed on the versioned 9.4.0 candidate before this documentation-only evidence update; the branch head must be revalidated after this commit.",
-    "beta1_installed_acceptance": "rejected_presentation_update_ux",
-    "beta1_acceptance_findings": [
-      "Generated Windows product icon used S/monogram instead of intended globe.",
-      "First-launch release notes did not appear on the installed Beta.1 workstation."
-    ],
-    "beta1_promotable": false,
-    "beta2_scope": [
-      "Generate Windows ICO from canonical SurveySync globe PNG.",
-      "Use globe for active SurveySync product branding surfaces.",
-      "Use release-specific release-notes acknowledgement ID.",
-      "Mark release notes seen only after Continue."
-    ],
-    "beta2_quality_gate_status": "passed_windows_ci_before_evidence_commit",
-    "beta2_quality_run_id": 36287654750,
-    "beta2_quality_run_number": 165,
-    "beta2_tests_passed": 365,
-    "beta2_tests_skipped": 1,
-    "beta2_tests_failed": 0,
-    "beta2_line_coverage_percent": 59.35,
-    "beta2_globe_icon_bytes": 133338,
-    "beta2_globe_icon_frames": 7,
-    "beta2_evidence_note": "Run #165 passed on the Beta.2 implementation head before this documentation-only evidence update. Final branch head must be revalidated before tagging."
+    "prior_repair_checkpoint": "c79f37c1b6c9e4b342775a081b46315359457038",
+    "prior_tests_passed": 471,
+    "prior_tests_skipped": 1
   },
-  "roadmap": {
-    "items_1_through_8_implemented": true,
-    "independent_network_validation": true,
-    "jobxml_compatibility": true,
-    "optional_pointcloud": true,
-    "workflow_automation": true,
-    "crs_diagnostics": true,
-    "reportsync_template_mapper": true,
-    "optional_qgis_grass_bridges": true,
-    "brand_refresh": true
-  },
-  "release_constraints": [
-    "Beta.1 is not promotable because installed acceptance found incorrect product icon branding and missing first-launch release notes.",
-    "Beta.2 must pass the shared Windows quality gate and release workflow before installed acceptance.",
-    "Beta.2 tag must be pre-created at the exact tested candidate SHA.",
-    "Installed Windows/WebView acceptance is required before Stable promotion.",
-    "Stable promotion must reuse the exact tested Beta.2 installer/hash rather than rebuild.",
-    "QGIS, GRASS, laspy, PDAL, and Trimble conversion components remain optional external capabilities.",
-    "Real field-positive and field-negative rod-height datasets remain required for production calibration.",
-    "Authenticode and cryptographically signed update manifests are not configured."
-  ],
-  "dependency_locks": [
-    "requirements.lock",
-    "requirements-dev.lock",
-    "requirements-windows-ai.lock"
-  ]
+  "release": {
+    "published": false,
+    "require_exact_tested_installer": true
+  }
 }

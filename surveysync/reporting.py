@@ -171,7 +171,7 @@ def control_report(project: SurveyProject, output_path: Path, *, title: str='Pro
     if not levels:_text(page,fitz.Rect(MARGIN,y,PAGE_W-MARGIN,y+20),'No level runs stored.',size=9);y+=24
     y+=12;_text(page,fitz.Rect(MARGIN,y,PAGE_W-MARGIN,y+22),'Traverse Runs',size=11,bold=True);y+=24
     for t in traverses:
-        prec=t.get('precision_ratio');prec_txt=f"1:{prec:.0f}" if isinstance(prec,(int,float)) and prec else '—'
+        prec=t.get('precision_ratio');prec_txt='Perfect closure' if t.get('linear_closure') == 0 else f"1:{prec:.0f}" if isinstance(prec,(int,float)) and prec else '—'
         line=f"{t['name']}  |  {t.get('status') or ''}  |  Rev {t.get('revision') or '—'}  |  Closure {t.get('linear_closure') if t.get('linear_closure') is not None else '—'}  |  Precision {prec_txt}  |  {t.get('method') or '—'}"
         _text(page,fitz.Rect(MARGIN,y,PAGE_W-MARGIN,y+16),line,size=8.5);y+=18
     if not traverses:_text(page,fitz.Rect(MARGIN,y,PAGE_W-MARGIN,y+20),'No traverse runs stored.',size=9)
