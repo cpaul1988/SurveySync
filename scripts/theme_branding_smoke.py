@@ -36,12 +36,33 @@ def request(path, data=None):
         return json.load(result)
 
 
+def navigate(page, url, reload=False):
+    """Wait for the real shell initialization, not just parsed initial HTML.
+
+    FieldBookSync restores Dashboard after its startup API calls. Testing Options
+    before that completes races the restore and is not an interactive-ready test.
+    """
+    fieldbook = '/fieldbook' in url
+    if fieldbook:
+        with page.expect_response(lambda response: response.url == BASE + '/api/startup/ready'
+                                  and response.request.method == 'POST', timeout=20000) as ready:
+            if reload:
+                page.reload(wait_until='domcontentloaded')
+            else:
+                page.goto(url, wait_until='domcontentloaded')
+        assert ready.value.ok
+    elif reload:
+        page.reload(wait_until='domcontentloaded')
+    else:
+        page.goto(url, wait_until='domcontentloaded')
+    expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)
+
+
 def assert_brand(page, client):
     """Verify every visible product mark without transient :visible reindexing."""
     expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)
     expect(page.locator('#startupSplash')).to_be_hidden(timeout=15000)
-    # nth() locators filtered by :visible can change identity while a splash fades.
-    # Enumerate stable DOM positions, then inspect visibility individually.
+    # Stable DOM positions do not reindex as a startup splash disappears.
     marks = page.locator('[data-ss-brand]')
     visible_clients = 0
     visible_marks = 0
@@ -112,37 +133,33 @@ def main():
                 with sync_playwright() as pw:
                     browser = pw.chromium.launch(executable_path=os.getenv('SURVEYSYNC_BROWSER_EXECUTABLE') or None)
                     context = browser.new_context(viewport={'width': 1488, 'height': 940})
-                    # Do not access localStorage in about:blank or sandboxed frames.
                     context.add_init_script(f"if(window===window.top&&location.origin==='{BASE}'){{localStorage.setItem('surveysync-release-notes-seen-v2','{RELEASE}')}}")
                     errors = []
                     context.on('page', lambda page: page.on('pageerror', lambda error: errors.append(str(error))))
                     page = context.new_page()
                     try:
-                        page.goto(BASE, wait_until='domcontentloaded')
+                        navigate(page, BASE)
                         expect(page.locator('#whatsNewVersion')).to_have_text('v' + RELEASE)
-                        expect(page.locator('#productSplash')).to_be_hidden()
                         expect(page.locator('html')).to_have_attribute('data-product-theme', 'classic')
                         assert_brand(page, False)
                         result['checks'].append('Fresh configuration is globe-only')
                         for fieldbook in (False, True):
-                            page.goto(BASE + ('/fieldbook' if fieldbook else '/'), wait_until='domcontentloaded')
-                            if not fieldbook:
-                                expect(page.locator('#productSplash')).to_be_hidden()
+                            navigate(page, BASE + ('/fieldbook' if fieldbook else '/'))
                             for key in NORMAL_THEMES:
                                 choose_theme(page, 'edsi', fieldbook)
                                 choose_theme(page, key, fieldbook)
                             for key in CLIENT_THEMES:
                                 choose_theme(page, key, fieldbook)
-                                page.reload(wait_until='domcontentloaded')
+                                navigate(page, page.url, reload=True)
                                 expect(page.locator('html')).to_have_attribute('data-product-theme', key)
                                 assert_brand(page, True)
                             result['checks'].append(('FieldBookSync' if fieldbook else 'Home') +
                                 ': all 16 themes, EDSI-to-normal removal, and persisted client themes')
 
-                        page.goto(BASE, wait_until='domcontentloaded')
+                        navigate(page, BASE)
                         expect(page.locator('#whatsNewVersion')).to_have_text('v' + RELEASE)
                         field = context.new_page()
-                        field.goto(BASE + '/fieldbook', wait_until='domcontentloaded')
+                        navigate(field, BASE + '/fieldbook')
                         expect(field.locator('html')).to_have_attribute('data-product-theme', 'edsilight')
                         choose_theme(page, 'classic')
                         expect(field.locator('html')).to_have_attribute('data-product-theme', 'classic')
@@ -156,10 +173,9 @@ def main():
                         for key in ('edsi', 'classic'):
                             choose_theme(page, key)
                             for module in MODULES:
-                                page.goto(BASE + '/?module=' + module, wait_until='domcontentloaded')
+                                navigate(page, BASE + '/?module=' + module)
                                 expect(page.locator('#whatsNewVersion')).to_have_text('v' + RELEASE)
                                 expect(page.locator('html')).to_have_attribute('data-product-theme', key)
-                                expect(page.locator('#productSplash')).to_be_hidden()
                                 assert_brand(page, key in CLIENT_THEMES)
                             page.evaluate('openAboutSurveySync()')
                             assert_brand(page, key in CLIENT_THEMES)
@@ -174,19 +190,15 @@ def main():
                             for mode in ('dark', 'light'):
                                 request('/api/v9/config/ui', {'appearance': mode, 'theme': key, 'accent': 'default'})
                                 for route, name in (('/', 'Home'), ('/fieldbook', 'FieldBookSync')):
-                                    page.goto(BASE + route, wait_until='domcontentloaded')
+                                    navigate(page, BASE + route)
                                     expect(page.locator('html')).to_have_attribute('data-theme', mode)
                                     expect(page.locator('html')).to_have_attribute('data-product-theme', key)
-                                    if route == '/':
-                                        expect(page.locator('#productSplash')).to_be_hidden()
                                     assert_brand(page, key in CLIENT_THEMES)
                                     page.screenshot(path=str(OUT / f'Brand-{name}-{key}-{mode}.png'))
                         for width in (1024, 1366, 900):
                             page.set_viewport_size({'width': width, 'height': 768})
                             for route in ('/', '/fieldbook'):
-                                page.goto(BASE + route, wait_until='domcontentloaded')
-                                if route == '/':
-                                    expect(page.locator('#productSplash')).to_be_hidden()
+                                navigate(page, BASE + route)
                                 assert_brand(page, True)
                         result['checks'].append('Co-branding light/dark previews and 900/1024/1366px layouts')
                         assert not errors, errors
