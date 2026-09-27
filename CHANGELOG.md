@@ -1,5 +1,16 @@
 # 9.4.0 — Open-source integration, automation, interoperability, and brand refresh
 
+## Beta.4 — Theme-only EDSI co-branding
+
+- Non-EDSI themes use the SurveySync globe alone, including FieldBookSync.
+- EDSI Adaptive, EDSI Dark and EDSI Light show the EDSI logo beside the globe in both shells: headers, sidebars, Home, splash markup, About and release notes.
+- Switching away from an EDSI theme removes the companion immediately; saved preferences and project data are retained.
+- Dark-mode client lettering remains readable without changing the globe colors. Windows icons and the installer remain SurveySync-branded.
+- Adds live Options-switch, persistence, cross-window, module, dialog and responsive regression coverage. Full release quality gates remain required.
+
+See `docs/THEME_BRANDING.md` for behavior and validation. This is a test candidate, not a Stable release or native-Windows acceptance signoff.
+
+
 - **Beta.2 correction:** replaced the generated S/monogram product icon with the canonical SurveySync globe across Windows and shared product-brand surfaces, and made first-launch release notes release-specific so later 9.4 candidates are not suppressed by earlier 9.4 sessions.
 
 - Adopted the new SurveySync **Surveying Navy / Topographic Gold / Canvas Cream** product identity and **UNIFYING GLOBAL DATA** tagline across the main SurveySync shell.

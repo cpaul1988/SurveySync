@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'ui-evidence'
 BASE = 'http://127.0.0.1:18767'
 SEEN = 'surveysync-release-notes-seen-v2'
-RELEASE = '9.4.0-beta.3'
+RELEASE = '9.4.0-beta.4'
 MODULES = ['Home', 'FieldBookSync', 'ControlSync', 'UtilitySync', 'TopoSync',
            'COGOSync', 'BoundarySync', 'GISSync', 'ReportSync', 'QASync', 'CrewSync']
 
@@ -58,7 +58,7 @@ def main():
                 else:
                     raise RuntimeError('UI server did not become ready')
                 with sync_playwright() as pw:
-                    browser = pw.chromium.launch()
+                    browser = pw.chromium.launch(executable_path=os.getenv('SURVEYSYNC_BROWSER_EXECUTABLE') or None)
                     context = browser.new_context(viewport={'width': 1488, 'height': 940})
                     context.tracing.start(screenshots=True, snapshots=True)
                     page = context.new_page()

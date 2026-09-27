@@ -18,13 +18,14 @@
       document.documentElement.dataset.accent=accent;
     } catch(_) {}
   </script>
-  <link rel="stylesheet" href="/surveysync-static/styles.css?v=9.4.0-beta.3">
-  <link rel="stylesheet" href="/surveysync-static/fieldbook-standard.css?v=9.4.0-beta.3">
+  <link rel="stylesheet" href="/surveysync-static/styles.css?v=9.4.0-beta.4">
+  <link rel="stylesheet" href="/surveysync-static/fieldbook-standard.css?v=9.4.0-beta.4">
+  <link rel="stylesheet" href="/surveysync-static/theme-branding.css?v=9.4.0-beta.4">
 </head>
 <body class="surveysync-workspace" data-active-view="dashboard">
   <div id="productSplash" class="product-splash" aria-label="SurveySync starting">
     <div class="product-splash-card">
-      <img src="/surveysync-static/surveysync_globe.svg" alt="" class="product-splash-icon">
+      <span class="ss-brand-marks ss-brand-splash" data-ss-brand="splash"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span>
       <div class="product-splash-name">SurveySync</div>
       <div class="product-splash-tagline">UNIFYING GLOBAL DATA</div>
       <div class="product-splash-rule"></div>
@@ -33,7 +34,7 @@
 <div id="envBar" class="env-strip"></div>
 <div class="product-shell">
   <nav class="desktop-menubar" aria-label="Application menu">
-    <button id="brandHome" class="product-brand" title="SurveySync Home"><img class="brand-globe" src="/surveysync-static/surveysync_globe.svg" alt=""><span>SurveySync</span></button>
+    <button id="brandHome" class="product-brand" title="SurveySync Home"><span class="ss-brand-marks ss-brand-compact" data-ss-brand="compact"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span><span>SurveySync</span></button>
     <span class="menu-divider"></span>
     <button class="menu-trigger" data-menu="fileMenu">File</button>
     <button class="menu-trigger" data-menu="homeMenu">Home</button>
@@ -121,7 +122,7 @@
   <div class="workspace-shell">
     <aside class="module-sidebar">
       <div class="module-heading">
-        <img class="sidebar-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe">
+        <span class="ss-brand-marks ss-brand-sidebar" data-ss-brand="sidebar"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span>
         <span id="moduleKicker" class="eyebrow">SURVEYSYNC</span>
         <h2 id="moduleName">Home</h2>
         <p id="moduleDescription">Project-wide workspace and shared foundation.</p>
@@ -159,7 +160,7 @@
       <div class="content-area">
         <div class="workspace-view-heading"><span id="workspaceModule" class="workspace-module">HOME</span><h1 id="viewTitle">Project Overview</h1><p id="viewSub">Shared project foundation for every Sync module.</p></div>
         <section id="dashboard" class="view active">
-          <div class="hero"><div><div class="brand-lockup"><img class="brand-lockup-icon" src="/surveysync-static/surveysync_globe.svg" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><span class="eyebrow">ONE CONNECTED SURVEY WORKSPACE</span><h2>One project. Every survey workflow.</h2><p>Modules share project identity, points, coordinate reference system, units, audit history and QA/QC without becoming separate programs.</p></div><button class="btn secondary" data-jump-module="FieldBookSync">Open FieldBookSync</button></div>
+          <div class="hero"><div><div class="brand-lockup"><span class="ss-brand-marks ss-brand-regular" data-ss-brand="regular"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><span class="eyebrow">ONE CONNECTED SURVEY WORKSPACE</span><h2>One project. Every survey workflow.</h2><p>Modules share project identity, points, coordinate reference system, units, audit history and QA/QC without becoming separate programs.</p></div><button class="btn secondary" data-jump-module="FieldBookSync">Open FieldBookSync</button></div>
           <div id="metrics" class="metrics"></div>
           <div class="workflow-section-head"><div><span class="eyebrow">CONNECTED WORKSPACE</span><h3>Survey workflow</h3></div><span class="brand-badge">Shared project data</span></div>
           <div class="home-workflow-grid">
@@ -370,7 +371,7 @@ BM-A,BM-C,2.010,0.01</textarea></label></div><div class="formgrid"><label><input
           <div class="card"><div class="card-title"><div><span class="eyebrow">FEEDBACK LOOP</span><h3>Submitted Feedback</h3></div><button id="supportRefreshFeedback" class="secondary">Refresh Tracker Status</button></div><p class="muted">Tracker states are read-only here. Submission compatibility remains unchanged for older SurveySync/FieldBookSync builds.</p><div id="supportFeedback"></div></div>
         </section>
 
-        <section id="foundation" class="view"><div class="foundation-hero"><div id="foundationIcon" class="foundation-icon"><img src="/surveysync-static/surveysync_globe.svg" alt="SurveySync"></div><div><span id="foundationKicker" class="eyebrow">MODULE FOUNDATION</span><h2 id="foundationTitle">Module</h2><p id="foundationText">This module is connected to the shared SurveySync project foundation.</p></div></div><div id="foundationCards" class="module-card-grid"></div></section>
+        <section id="foundation" class="view"><div class="foundation-hero"><div id="foundationIcon" class="foundation-icon"><span class="ss-brand-marks ss-brand-regular" data-ss-brand="regular"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span></div><div><span id="foundationKicker" class="eyebrow">MODULE FOUNDATION</span><h2 id="foundationTitle">Module</h2><p id="foundationText">This module is connected to the shared SurveySync project foundation.</p></div></div><div id="foundationCards" class="module-card-grid"></div></section>
 
         <section id="settings" class="view">
           <div class="card"><div class="card-title"><div><span class="eyebrow">APPLICATION APPEARANCE</span><h3>Theme & appearance</h3></div><span id="themeScopeBadge" class="brand-badge">All modules</span></div><p class="muted">These settings are shared across Home, every SurveySync module, and FieldBookSync.</p><div class="theme-settings"><label>Application theme<select id="globalTheme"></select></label><label>Accent<select id="globalAccent"><option value="default">Theme default</option><option value="azure">Azure</option><option value="teal">Teal</option><option value="emerald">Emerald</option><option value="violet">Violet</option><option value="amber">Amber</option><option value="rose">Rose</option></select></label><div><label>Appearance</label><div class="appearance-segment"><button type="button" data-global-appearance="system">System</button><button type="button" data-global-appearance="light">Light</button><button type="button" data-global-appearance="dark">Dark</button></div></div></div></div>
@@ -380,16 +381,16 @@ BM-A,BM-C,2.010,0.01</textarea></label></div><div class="formgrid"><label><input
           <div class="card"><div class="card-title"><div><span class="eyebrow">SUPPORT</span><h3>SurveySync Feedback Wizard</h3></div><span class="brand-badge">No project required</span></div><p class="muted">Report a bug, request a feature, suggest an improvement, or ask a question at any time. A SurveySync project does not need to be open. Reports are saved locally first before shared Intake sync is attempted.</p><div class="row"><button id="openFeedbackWizard" class="primary">Open Feedback Wizard</button><button id="openFeedbackLog" class="secondary">Feedback Log</button></div><div id="fbResult" class="muted"></div></div>
         </section>
       </div>
-      <footer class="desktop-statusbar"><span id="workspaceStatusProject">Project: No project open</span><span class="status-spacer"></span><span id="workspaceStatusTheme">Theme: FieldBook Classic</span><span id="workspaceBuild">SurveySync v9.4.0-beta.3</span></footer>
+      <footer class="desktop-statusbar"><span id="workspaceStatusProject">Project: No project open</span><span class="status-spacer"></span><span id="workspaceStatusTheme">Theme: FieldBook Classic</span><span id="workspaceBuild">SurveySync v9.4.0-beta.4</span></footer>
     </main>
   </div>
 </div>
 
 <div id="modal" class="modal hidden"><div class="dialog"><button id="modalClose" class="x">×</button><div id="modalBody"></div></div></div>
 <div id="toast" class="toast hidden"></div>
-<script src="/surveysync-static/app.js?v=9.4.0-beta.3"></script>
-<script src="/surveysync-static/support_center.js?v=9.4.0-beta.3"></script>
-<script src="/surveysync-static/data_inspector.js?v=9.4.0-beta.3"></script>
-<script src="/surveysync-static/topo_qc.js?v=9.4.0-beta.3"></script>
+<script src="/surveysync-static/app.js?v=9.4.0-beta.4"></script>
+<script src="/surveysync-static/support_center.js?v=9.4.0-beta.4"></script>
+<script src="/surveysync-static/data_inspector.js?v=9.4.0-beta.4"></script>
+<script src="/surveysync-static/topo_qc.js?v=9.4.0-beta.4"></script>
 </body>
 </html>
