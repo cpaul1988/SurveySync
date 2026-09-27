@@ -743,30 +743,19 @@ def control_solve(payload: ControlSolveIn):
 def points_import(payload: PointImportIn):
     p=require_project(); path=Path(payload.file_path).expanduser().resolve()
     if not path.is_file(): raise HTTPException(400,"Point file was not found.")
+    from .point_import import parse_canonical_points
+    try: rows=parse_canonical_points(path)
+    except (ValueError, OSError) as exc: raise HTTPException(400,str(exc)) from exc
     source_id=payload.source_id
     if not source_id:
         try: source_id=p.import_source(path,"Core","Canonical point import")["source_id"]
         except Exception as exc: raise HTTPException(400,str(exc))
-    text=path.read_text(encoding="utf-8-sig",errors="replace")
-    try: dialect=csv.Sniffer().sniff(text[:4096],delimiters=",\t;")
-    except Exception: dialect=csv.excel
-    reader=csv.DictReader(text.splitlines(),dialect=dialect)
-    fields={str(f).strip().lower().replace(' ','_'):f for f in (reader.fieldnames or [])}
-    def pick(*names):
-        for n in names:
-            if n in fields:return fields[n]
-        return None
-    fp=pick('point_id','point','pt','name'); fn=pick('northing','north','n','y'); fe=pick('easting','east','e','x'); fz=pick('elevation','elev','z'); fd=pick('description','desc','code')
-    if not fp or not fn or not fe: raise HTTPException(400,"Point file requires Point ID, Northing and Easting columns.")
     now=utc_now(); count=0
     with p.db.connect() as conn:
-        for row in reader:
-            pid=str(row.get(fp,'')).strip()
-            if not pid: continue
-            try: n=float(row[fn]); e=float(row[fe]); z=float(row[fz]) if fz and str(row.get(fz,'')).strip() else None
-            except Exception: continue
+        for row in rows:
+            pid=row['point_id']; n=row['northing']; e=row['easting']; z=row['elevation']
             conn.execute("INSERT INTO canonical_points(point_uuid,point_id,northing,easting,elevation,description,point_class,source_id,derived_from_json,crs,horizontal_units,vertical_units,review_state,revision,created_utc,modified_utc) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (uuid4().hex,pid,n,e,z,str(row.get(fd,'') if fd else ''),payload.point_class,source_id,'[]',p.manifest.get('crs',''),p.manifest.get('horizontal_units',''),p.manifest.get('vertical_units',''),'UNREVIEWED',1,now,now)); count+=1
+                (uuid4().hex,pid,n,e,z,row['description'],payload.point_class,source_id,'[]',p.manifest.get('crs',''),p.manifest.get('horizontal_units',''),p.manifest.get('vertical_units',''),'UNREVIEWED',1,now,now)); count+=1
     p.db.audit("Core","CANONICAL_POINTS_IMPORTED",object_type="source",object_id=source_id,details={"count":count})
     return {"count":count,"source_id":source_id}
 

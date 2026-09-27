@@ -24,6 +24,7 @@ import sys
 import threading
 import time
 import urllib.request
+import urllib.error
 
 import psutil
 from cryptography import x509
@@ -41,8 +42,12 @@ TARGET = '9.4.1'
 def api(path, data=None):
     req = urllib.request.Request(BASE+path, data=None if data is None else json.dumps(data).encode(),
                                  headers={'Content-Type':'application/json'})
-    with urllib.request.urlopen(req, timeout=90) as response:
-        return json.load(response)
+    try:
+        with urllib.request.urlopen(req, timeout=90) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as exc:
+        message = exc.read().decode('utf-8', errors='replace')
+        raise RuntimeError(f'{path}: HTTP {exc.code}: {message}') from exc
 
 
 def ready(version, timeout=90):
@@ -168,7 +173,9 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
         ready('9.4.0')
         api('/api/v9/project/create',{'parent_folder':str(state/'projects'),'name':'UpdatePreservation','crs':'EPSG:2278'})
         project=next((state/'projects').rglob('survey_sync_project.json')).parent
-        source=state/'source.csv';source.write_text('PointID,Northing,Easting,Elevation,Code\n001A,1000,2000,10,CP\n001B,1001,2001,11,CP\n001C,1002,2002,12,CP\n',encoding='utf-8')
+        source=state/'source.csv'
+        header = 'point_id' if name=='released-9.4.0-migration' else 'PointID'
+        source.write_text(header+',Northing,Easting,Elevation,Code\n001A,1000,2000,10,CP\n001B,1001,2001,11,CP\n001C,1002,2002,12,CP\n',encoding='utf-8')
         api('/api/v9/points/import',{'file_path':str(source)})
         prior=point_snapshot(project)
         sentinel=project/'user-preservation-note.txt';sentinel.write_text('User data must survive replacement.',encoding='utf-8')
@@ -229,6 +236,9 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
         assert no_service()
         report.update(status='PASS',target_version=TARGET,installer_sha256=sha(candidate),canonical_points=prior,
                       source_bytes_unchanged=True,project_and_settings_preserved=True)
+    except Exception as exc:
+        report['failure'] = f'{type(exc).__name__}: {exc}'
+        raise
     finally:
         kill_owned_install(destination)
         log=config/'logs/update_helper.log'

@@ -8,7 +8,7 @@ Manual three-point averaging retains exact PointIDs, source selection order, fir
 
 ## Calculations and data intake
 
-Pipe grade converts declared horizontal and vertical units before division. Polygon area/centroid uses a local origin and accurate summation at large coordinates. Perfect traverse closure returns a JSON-safe explicit status without perturbing coordinates. Repeated LandXML intake resolves the retained source path. Leveling and Field-to-Finish accept supported PointID header aliases without modifying identifiers. Covered numeric boundaries reject NaN/infinity and invalid tolerances/units.
+Pipe grade converts declared horizontal and vertical units before division. Polygon area/centroid uses a local origin and accurate summation at large coordinates. Perfect traverse closure returns a JSON-safe explicit status without perturbing coordinates. Repeated LandXML intake resolves the retained source path. Canonical project points, Leveling and Field-to-Finish accept supported PointID header aliases without modifying identifiers. Covered numeric boundaries reject NaN/infinity and invalid tolerances/units. Canonical point CSV import validates the entire file before insertion and reports the bad row instead of silently skipping it; ambiguous duplicate headers are rejected.
 
 Level-book row layout is explicit: paired setups, separate sights, or station/turning-point rows. Ambiguous rows require selection. Point elevations and instrument heights are distinct, the starting benchmark remains fixed and adjustment is only applied when selected. Ron's three-wire reduction is retained.
 
