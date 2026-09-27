@@ -90,6 +90,7 @@ def main():
     OUT.mkdir(exist_ok=True)
     result = {'status': 'FAIL', 'checks': [], 'errors': []}
     process = subprocess.Popen([str(install / 'SurveySync.exe')], cwd=install, env=env)
+    page = None
     try:
         with sync_playwright() as pw:
             deadline = time.monotonic() + 90
@@ -101,12 +102,21 @@ def main():
             assert marker.is_file(), 'The isolated debugging hook did not initialize'
             result['debug_hook'] = json.loads(marker.read_text(encoding='utf-8'))
             browser = pw.chromium.connect_over_cdp(f'http://127.0.0.1:{CDP_PORT}')
-            page = None
-            while page is None and time.monotonic() < deadline:
-                page = next((p for c in browser.contexts for p in c.pages if p.url.startswith(BASE)), None)
-                if page is None:
-                    time.sleep(.2)
-            assert page is not None, 'Production application page was not created'
+            # Drive Playwright's event loop while the already-created WebView
+            # navigates from about:blank. Polling page.url with time.sleep leaves
+            # navigation events unprocessed in the synchronous Playwright API.
+            assert browser.contexts, 'Native WebView2 has no browser context'
+            context = browser.contexts[0]
+            pages = context.pages
+            result['initial_cdp_pages'] = [p.url for p in pages]
+            if pages:
+                assert len(pages) == 1, 'Ambiguous native WebView2 page selection'
+                page = pages[0]
+            else:
+                page = context.wait_for_event('page', timeout=30000)
+            page.wait_for_url(re.compile(r'^http://127\.0\.0\.1:8765(?:/|$)'),
+                              timeout=60000, wait_until='domcontentloaded')
+            result['native_page_url'] = page.url
             page.on('pageerror', lambda error: result['errors'].append(str(error)))
             try:
                 page.wait_for_function("typeof window.pywebview?.api?.choose_file === 'function'", timeout=20000)
@@ -180,6 +190,11 @@ def main():
                     pass
                 raise
     finally:
+        if page is not None:
+            try:
+                result['last_page_url'] = page.url
+            except Error:
+                pass
         if process.poll() is None:
             try:
                 result['owned_processes'] = [p.as_dict(attrs=['pid','name','cmdline']) for p in psutil.Process(process.pid).children(recursive=True)]
