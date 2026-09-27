@@ -162,13 +162,14 @@ project_lock = RLock()
 current_project: SurveyProject | None = None
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.3.2: expands COGOSync and ControlSync with production-oriented open-source integrations while preserving SurveySync's existing validated workflows.",
-    "COGOSync now includes continuous tangent/circular-curve alignments, station/offset stake-point calculations, vertical curves, cross-section cut/fill, earthwork, and 2D slope-catch tools.",
-    "LandXML 1.2 import/export supports CgPoints, parcel line geometry, and tangent/circular-curve alignments; imported LandXML is preserved as immutable SHA-256 project source evidence.",
-    "ControlSync adds a separate weighted least-squares 2D network adjustment with covariance, redundancy, standardized residuals, 95% error ellipses, and optional Huber robust weighting.",
-    "Leveling adds a separate weighted benchmark-network adjustment without changing Ronald's validated three-wire workbook workflow.",
-    "Project audit history is now project-bound and tamper-evident with SHA-256 chaining, Project Health verification, and deliverable-manifest audit heads.",
-    "The release pipeline now separates tested Beta candidates from exact-artifact Stable promotion to prevent branch/version ambiguity.",
+    "9.4.0 completes the open-source integration roadmap while preserving SurveySync's validated ControlSync, leveling, audit, and source-evidence workflows.",
+    "ControlSync network adjustment now has an independent pySurveying-style numerical validation engine with residual, redundancy, sigma0, and error-ellipse cross-checks.",
+    "Trimble JobXML/JXL intake is more tolerant across Access/TBC generations while structurally corrupt XML still fails closed.",
+    "TopoSync adds optional LAS/LAZ point-cloud intake with built-in LAS metadata and optional laspy/PDAL support.",
+    "SurveySync adds project-scoped YAML workflow automation with persistent run state and explicit human approval for final deliverables and stakeholder notifications.",
+    "GISSync adds PROJ-based CRS diagnostics plus optional external QGIS and GRASS processing bridges.",
+    "ReportSync adds immutable Excel template mapping/rendering for company and client workbooks, with rendered outputs registered as DRAFT deliverables.",
+    "SurveySync 9.4 introduces the new Surveying Navy / Topographic Gold / Canvas Cream product identity and unified workflow icon system.",
 ]
 
 
