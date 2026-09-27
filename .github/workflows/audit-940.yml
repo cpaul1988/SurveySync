@@ -1,0 +1,125 @@
+name: SurveySync 9.4 Functional Audit
+on:
+  push:
+    branches: [audit-v9.4.0-functional-review]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: surveysync-940-audit
+  cancel-in-progress: false
+jobs:
+  source-and-functional:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Record exact source scope and isolate test state
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force audit-evidence | Out-Null
+          git diff 1382bff0dc5b6bc452d7d64be5f6ac17cd2177a0 HEAD --name-only > audit-evidence/audit-only-changes.txt
+          "SURVEYSYNC_CONFIG_ROOT=$env:RUNNER_TEMP\ss940-audit-config" >> $env:GITHUB_ENV
+          "SURVEYSYNC_FIELD_ROOT=$env:RUNNER_TEMP\ss940-audit-field" >> $env:GITHUB_ENV
+      - name: Install unchanged locked release development dependencies
+        run: python -m pip install --require-hashes -r requirements-dev.lock
+      - name: Full existing release gate including security audit
+        shell: pwsh
+        run: |
+          python scripts/release_gate.py *> audit-evidence/release-gate.log
+          $exit = $LASTEXITCODE
+          Get-Content audit-evidence/release-gate.log -Tail 60
+          exit $exit
+      - name: Independent numerical and API regression probes
+        if: always()
+        shell: pwsh
+        run: |
+          python audit_suite/independent_probes.py *> audit-evidence/independent-probes.log
+          $exit = $LASTEXITCODE
+          Get-Content audit-evidence/independent-probes.log -Tail 80
+          exit $exit
+      - name: Run legacy tests outside the present release gate
+        if: always()
+        shell: pwsh
+        run: |
+          python -m pytest -q legacy_tests --continue-on-collection-errors -o addopts='' --junitxml=audit-evidence/legacy.xml *> audit-evidence/legacy.log
+          $exit = $LASTEXITCODE
+          Get-Content audit-evidence/legacy.log -Tail 45
+          exit $exit
+      - name: Install isolated browser test tooling
+        if: always()
+        run: python -m pip install playwright==1.57.0
+      - name: Install Chromium
+        if: always()
+        run: python -m playwright install chromium
+      - name: Original released light and dark screen tests
+        if: always()
+        run: python scripts/ui_browser_smoke.py
+      - name: Original released theme-switch regression tests
+        if: always()
+        run: python scripts/theme_branding_smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SurveySync_940_Source_Audit_Evidence
+          path: |
+            audit-evidence/
+            ui-evidence/
+            coverage.xml
+          retention-days: 14
+  installed-windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '10923766429'
+          run-id: '36294542913'
+          github-token: ${{ github.token }}
+          repository: cpaul1988/SurveySync
+          merge-multiple: true
+          path: approved-installer
+      - name: Verify and install exact approved EXE into disposable runner
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force audit-evidence | Out-Null
+          $files = @(Get-ChildItem approved-installer -Recurse -Filter SurveySync_Setup_9.4.0.exe)
+          if ($files.Count -ne 1) { throw 'Expected exactly one approved installer.' }
+          $exe=$files[0].FullName
+          $digest=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($digest -ne '1660d9bdb329e61242c48b0dfe6d4a254d2d05220829a83cf54b901a10a5ae17') { throw 'Installer hash mismatch.' }
+          $dest=Join-Path $env:RUNNER_TEMP 'SurveySync940InstalledAudit'
+          $log=Join-Path $PWD 'audit-evidence\setup.log'
+          "SS_AUDIT_INSTALL=$dest" >> $env:GITHUB_ENV
+          $args=@('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-','/NOICONS','/TASKS=""',('/DIR="'+$dest+'"'),('/LOG="'+$log+'"'))
+          $p=Start-Process -FilePath $exe -ArgumentList $args -Wait -PassThru
+          "Installer SHA256: $digest; Setup exit: $($p.ExitCode)" | Set-Content audit-evidence/installer-identity.txt
+          if ($p.ExitCode -ne 0) { throw "Approved setup failed: $($p.ExitCode)" }
+          & (Join-Path $dest '.venv\Scripts\python.exe') -c "import surveysync.router,webview;from surveysync import __version__;print('INSTALLED RUNTIME',__version__)"
+          if ($LASTEXITCODE -ne 0) { throw 'Installed production imports failed.' }
+      - name: Start approved native EXE and probe project and shutdown behavior
+        shell: pwsh
+        run: python audit_suite/native_install_probe.py
+      - name: Copy generated installer and native logs
+        if: always()
+        shell: pwsh
+        run: |
+          $logs=Join-Path $env:LOCALAPPDATA 'SurveySync\logs'
+          if(Test-Path $logs){Copy-Item $logs audit-evidence/runtime-logs -Recurse -Force}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: SurveySync_940_Installed_Windows_Audit_Evidence
+          path: audit-evidence/
+          retention-days: 14
