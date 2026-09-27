@@ -261,7 +261,7 @@ def sample_points(path: str | Path, *, max_points: int = 1000) -> dict[str, Any]
             "Point sampling requires optional laspy. Metadata-only LAS inspection remains available."
         )
     try:
-        import laspy  # type: ignore
+        import laspy
 
         with laspy.open(source) as reader:
             points = reader.read_points(limit)
