@@ -14,23 +14,27 @@ function openModalShell(key='default',large=false){applyModalSize(key,large);$('
 function closeModalShell(){rememberModalSize();const modal=$('#modal');modal.classList.add('hidden');modal.classList.remove('crs-open');modal.dataset.modalKey='default'}
 window.addEventListener('beforeunload',rememberModalSize);window.addEventListener('load',()=>setTimeout(dismissProductSplash,120));
 
-const SS_RELEASE_SEEN_KEY='surveysync-release-notes-seen';
-let releaseNotesData={version:'',notes:[]};
+const SS_RELEASE_SEEN_KEY='surveysync-release-notes-seen-v2';
+let releaseNotesData={version:'',release_id:'',notes:[]};
 async function loadReleaseNotes(showOnUpgrade=true){
   try{
     const d=await api('/api/v9/release-notes');releaseNotesData=d||{};
-    const version=String(d.version||'').trim();const notes=Array.isArray(d.notes)?d.notes:[];
+    const version=String(d.version||'').trim();
+    const releaseId=String(d.release_id||version).trim();
+    const notes=Array.isArray(d.notes)?d.notes:[];
     if($('#whatsNewTitle'))$('#whatsNewTitle').textContent=`What's new in SurveySync ${version?`v${version}`:''}`;
     if($('#whatsNewVersion'))$('#whatsNewVersion').textContent=version?`v${version}`:'Latest';
     if($('#whatsNewList'))$('#whatsNewList').innerHTML=notes.map(x=>`<li>${esc(x)}</li>`).join('')||'<li>No release notes available.</li>';
-    if(showOnUpgrade&&version&&localStorage.getItem(SS_RELEASE_SEEN_KEY)!==version){openReleaseNotes(true)}
+    if(showOnUpgrade&&releaseId&&localStorage.getItem(SS_RELEASE_SEEN_KEY)!==releaseId){openReleaseNotes(true)}
   }catch(e){if($('#whatsNewList'))$('#whatsNewList').innerHTML=`<li>${esc(e.message)}</li>`}
 }
 function openReleaseNotes(markSeen=false){
-  const d=releaseNotesData||{},version=String(d.version||'').trim(),notes=Array.isArray(d.notes)?d.notes:[];
-  openModalShell('release-notes');$('#modalBody').innerHTML=`<div class="release-dialog"><div class="brand-lockup"><img class="brand-lockup-icon" src="/surveysync-static/surveysync_globe.svg" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><div class="eyebrow">WHAT'S NEW</div><h2>SurveySync ${version?`v${esc(version)}`:''}</h2><p class="muted">Latest application-wide update.</p><ul class="release-list">${notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div class="row"><button id="releaseDone" class="primary">Continue</button></div></div>`;
-  if(markSeen&&version)localStorage.setItem(SS_RELEASE_SEEN_KEY,version);
-  $('#releaseDone').onclick=closeModalShell;
+  const d=releaseNotesData||{};
+  const version=String(d.version||'').trim();
+  const releaseId=String(d.release_id||version).trim();
+  const notes=Array.isArray(d.notes)?d.notes:[];
+  openModalShell('release-notes');$('#modalBody').innerHTML=`<div class="release-dialog"><div class="brand-lockup"><img class="brand-lockup-icon" src="/surveysync-static/surveysync_globe.svg" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><div class="eyebrow">WHAT'S NEW</div><h2>SurveySync ${version?`v${esc(version)}`:''}</h2><p class="muted">Latest application-wide update.</p><ul class="release-list">${notes.map(x=>`<li>${esc(x)}</li>`).join('')||'<li>No release notes available.</li>'}</ul><div class="row"><button id="releaseDone" class="primary">Continue</button></div></div>`;
+  $('#releaseDone').onclick=()=>{if(markSeen&&releaseId)localStorage.setItem(SS_RELEASE_SEEN_KEY,releaseId);closeModalShell()};
 }
 function openAboutSurveySync(){
   openModalShell('about-surveysync');
