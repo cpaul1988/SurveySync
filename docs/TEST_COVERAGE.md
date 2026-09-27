@@ -161,3 +161,18 @@ Optional laspy/PDAL availability is not required for the automated gate. Stable
 promotion should still include installed-Windows acceptance with representative LAS
 and, when those optional tools are configured, real LAZ/COPC files.
 
+## v9.4.0 CRS diagnostics, ReportSync Template Mapper, and GIS bridges
+
+`tests/test_v940_crs_report_gis_bridges.py` verifies pyproj/PROJ operation
+inspection with a known EPSG:4326 -> EPSG:3857 sample, project horizontal-unit
+mismatch review behavior, Excel placeholder discovery, immutable template-source
+preservation, reusable point-table mappings, formatting propagation, DRAFT
+deliverable registration, QGIS algorithm parsing/invocation with `shell=False`,
+invalid algorithm rejection, GRASS temporary-project command construction,
+optional-runtime status, audit provenance, and API route registration.
+
+The QGIS/GRASS tests mock their external executables so those GPL applications
+remain optional in CI and in the normal SurveySync runtime. Installed-Windows
+acceptance should additionally exercise real QGIS/GRASS installations when those
+bridges will be used in production.
+
