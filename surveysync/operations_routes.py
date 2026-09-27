@@ -39,15 +39,42 @@ from .task_queue import (
     list_tasks as list_background_tasks,
     cancel as cancel_background_task,
 )
+from .workflow_engine import WorkflowError, dispatch_trigger
 
 router = APIRouter()
+
+
+def _dispatch_safe(project, trigger: str, context: dict) -> list[dict]:
+    try:
+        return dispatch_trigger(project, trigger, context=context)
+    except (WorkflowError, OSError, ValueError) as exc:
+        project.db.audit(
+            "Core",
+            "WORKFLOW_DISPATCH_FAILED",
+            object_type="workflow_trigger",
+            object_id=trigger,
+            details={"trigger": trigger, "error": str(exc)},
+        )
+        return []
 
 
 @router.post("/api/v9/qa/run")
 def qa_run():
     from . import router as context
 
-    return run_project_qa(context.require_project())
+    project = context.require_project()
+    result = run_project_qa(project)
+    result["workflow_runs"] = _dispatch_safe(
+        project,
+        "qa_completed",
+        {
+            "status": result.get("status"),
+            "readiness": result.get("readiness"),
+            "errors": result.get("errors"),
+            "warnings": result.get("warnings"),
+        },
+    )
+    return result
 
 
 @router.get("/api/v9/qa/issues")
@@ -216,22 +243,46 @@ def export_profile_save(payload: ExportProfileIn):
 def export_profile_run(payload: ExportRunIn):
     from . import router as context
 
+    project = context.require_project()
     try:
-        return run_export_profile(context.require_project(), payload.profile_id)
+        result = run_export_profile(project, payload.profile_id)
     except (ValueError, OSError, RuntimeError, sqlite3.Error) as exc:
         raise HTTPException(400, str(exc))
+    result["workflow_runs"] = _dispatch_safe(
+        project,
+        "export_completed",
+        {
+            "profile_id": payload.profile_id,
+            "folder": result.get("folder"),
+            "files": result.get("files"),
+            "point_count": result.get("point_count"),
+        },
+    )
+    return result
 
 
 @router.post("/api/v9/deliverable-package")
 def deliverable_package(payload: PackageBuildIn):
     from . import router as context
 
+    project = context.require_project()
     try:
-        return build_deliverable_package(
-            context.require_project(), profile_id=payload.profile_id, label=payload.label
+        result = build_deliverable_package(
+            project, profile_id=payload.profile_id, label=payload.label
         )
     except (ValueError, OSError, RuntimeError, sqlite3.Error) as exc:
         raise HTTPException(400, str(exc))
+    result["workflow_runs"] = _dispatch_safe(
+        project,
+        "deliverable_created",
+        {
+            "deliverable_id": result.get("deliverable_id"),
+            "filename": result.get("filename"),
+            "sha256": result.get("sha256"),
+            "label": payload.label,
+        },
+    )
+    return result
 
 
 @router.get("/api/v9/project-map")
