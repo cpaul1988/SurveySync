@@ -315,6 +315,11 @@ deferred because it would impose materially different distribution obligations.
 - **automatic trigger boundaries — implemented** for project open, source import, QA completion, export completion, and deliverable creation without allowing workflow failures to roll back the originating SurveySync operation.
 - **safe action set — implemented** for Project Health, saved export profiles, Review Center items, deliverable packages, and configured stakeholder notifications. Arbitrary commands/code execution are not supported.
 
+### Phase F — 9.4 roadmap items 6–8 implemented
+- **CRS diagnostics via pyproj/PROJ — implemented** with datum/axis/unit metadata, area of use, coordinate-operation accuracy, available/unavailable operation details, missing transformation-grid evidence, project-unit mismatch review flags, and optional sample-point area checks. PROJ remains authoritative and SurveySync does not auto-download grids or silently change CRS.
+- **ReportSync Template Mapper — implemented** for immutable company/client Excel templates, placeholder discovery, reusable scalar-cell mappings, canonical-point table mappings, style-preserving workbook copies, audit/source provenance, and DRAFT deliverable registration.
+- **optional QGIS/GRASS processing bridges — implemented** as external-process integrations only. SurveySync detects installed runtimes, exposes QGIS processing list/help/run, and executes validated GRASS modules in a temporary project. No QGIS/GRASS GPL source is vendored or imported.
+
 ## Production validation
 
 No imported surveying algorithm should be promoted solely because its upstream
