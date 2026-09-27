@@ -169,3 +169,26 @@ Standalone point import, editable code classifications, feature-chain range dete
 
 The extended curve engine is adapted from the MIT-licensed Cogokit project and is attributed in `THIRD_PARTY_NOTICES.md`. The audit-chain design is inspired by Block's Apache-2.0 Buzz audit architecture but implemented natively for SurveySync SQLite projects.
 
+## v9.4.0 point-cloud endpoints
+
+- `GET /api/v9/pointcloud/status` — report native LAS and optional laspy/PDAL capability.
+- `POST /api/v9/pointcloud/inspect` — inspect LAS/LAZ metadata without importing.
+- `POST /api/v9/pointcloud/import` — inspect and preserve the original source immutably under TopoSync.
+- `POST /api/v9/pointcloud/sample` — bounded first-record QA preview when laspy is available.
+- `GET /api/v9/pointcloud/sources` — list imported TopoSync LAS/LAZ sources.
+
+## v9.4.0 workflow endpoints
+
+- `GET /api/v9/workflows/status` — supported triggers/actions and approval policy.
+- `GET /api/v9/workflows` — list normalized project workflow definitions.
+- `POST /api/v9/workflows` — create or update a workflow.
+- `POST /api/v9/workflows/delete` — delete a workflow definition.
+- `POST /api/v9/workflows/run` — start one workflow manually.
+- `POST /api/v9/workflows/approve` — approve or reject the current gated action for a waiting run.
+- `GET /api/v9/workflow-runs` — list persistent run state.
+- `POST /api/v9/workflows/dispatch` — explicitly dispatch a supported trigger.
+- `GET /api/v9/workflows/export-yaml` — export project workflows as YAML.
+- `POST /api/v9/workflows/import-yaml` — replace project workflows from validated YAML.
+
+High-impact workflow actions remain approval-gated regardless of YAML input.
+

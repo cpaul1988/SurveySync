@@ -133,6 +133,7 @@ from .cogo_routes import router as cogo_extended_router
 from .network_routes import router as network_adjustment_router
 from .level_network_routes import router as level_network_adjustment_router
 from .alignment_routes import router as alignment_landxml_router
+from .integration_routes import router as integration_router
 from .diagnostics import (
     build_diagnostic_bundle,
     error_log_path,
@@ -152,6 +153,7 @@ for subrouter in (
     network_adjustment_router,
     level_network_adjustment_router,
     alignment_landxml_router,
+    integration_router,
 ):
     router.include_router(subrouter)
 config_store = ConfigStore()
@@ -223,6 +225,23 @@ def _set_current(project: SurveyProject) -> SurveyProject:
         _remember_project(project.paths.root)
         from .session_recovery import set_project
         set_project(config_store.root, project.paths.root)
+        try:
+            from .workflow_engine import WorkflowError, dispatch_trigger
+            dispatch_trigger(
+                project,
+                "project_opened",
+                context={
+                    "project_id": project.manifest.get("project_id", ""),
+                    "project_name": project.manifest.get("name", ""),
+                    "project_root": str(project.paths.root),
+                },
+            )
+        except (WorkflowError, OSError, ValueError) as exc:
+            core_logger.warning(
+                "Workflow dispatch failed after project open %s: %s",
+                project.paths.root,
+                exc,
+            )
     return project
 
 

@@ -286,6 +286,25 @@ class SurveyProject:
                 (source_id, utc_now(), module, src.name, digest, str(dest.relative_to(self.paths.root)), mimetypes.guess_type(src.name)[0] or "", src.stat().st_size, notes),
             )
         self.db.audit(module, "SOURCE_IMPORTED", object_type="source", object_id=source_id, revision=int(self.manifest.get("revision", 1)), details={"original_name": src.name, "sha256": digest, "stored_path": str(dest.relative_to(self.paths.root))})
+        try:
+            from .workflow_engine import WorkflowError, dispatch_trigger
+            dispatch_trigger(
+                self,
+                "source_imported",
+                context={
+                    "source_id": source_id,
+                    "module": module,
+                    "original_name": src.name,
+                    "sha256": digest,
+                    "stored_path": str(dest.relative_to(self.paths.root)),
+                },
+            )
+        except (WorkflowError, OSError, ValueError) as exc:
+            logger.warning(
+                "Workflow dispatch failed after source import %s: %s",
+                source_id,
+                exc,
+            )
         return {"source_id": source_id, "sha256": digest, "stored_path": str(dest), "original_name": src.name}
 
     def sources(self) -> list[dict]:

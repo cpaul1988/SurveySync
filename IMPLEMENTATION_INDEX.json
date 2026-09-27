@@ -808,6 +808,44 @@
         "docs/TEST_COVERAGE.md",
         "THIRD_PARTY_NOTICES.md"
       ]
+    },
+    "v940_optional_pointcloud": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/pointcloud.py",
+        "surveysync/pointcloud_routes.py",
+        "surveysync/integration_routes.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v940_pointcloud_workflows.py"
+      ],
+      "documentation": [
+        "docs/POINT_CLOUD_SUPPORT.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "v940_workflow_automation": {
+      "introduced": "9.4.0",
+      "implementation": [
+        "surveysync/workflow_engine.py",
+        "surveysync/workflow_routes.py",
+        "surveysync/integration_routes.py",
+        "surveysync/operations_routes.py",
+        "surveysync/project.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_v940_pointcloud_workflows.py"
+      ],
+      "documentation": [
+        "docs/WORKFLOW_AUTOMATION.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
+        "docs/TEST_COVERAGE.md",
+        "THIRD_PARTY_NOTICES.md"
+      ]
     }
   }
 }
