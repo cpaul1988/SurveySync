@@ -236,9 +236,7 @@ def _normalize_mapping(mapping: dict[str, Any]) -> dict[str, Any]:
         start_row = int(table_raw.get("start_row") or 0)
         columns = table_raw.get("columns") or {}
         if not sheet or start_row < 1 or not isinstance(columns, dict) or not columns:
-            raise ReportTemplateError(
-                "point_table requires sheet, start_row >= 1, and columns."
-            )
+            raise ReportTemplateError("point_table requires sheet, start_row >= 1, and columns.")
         normalized_columns: dict[str, str] = {}
         for column, field in columns.items():
             col = str(column or "").strip().upper()
@@ -490,13 +488,17 @@ def render_excel_template(
                 / f"{safe_name(entry['name'])}_{stamp}{extension}"
             )
         if output == template_path:
-            raise ReportTemplateError("Rendered output cannot overwrite immutable template evidence.")
+            raise ReportTemplateError(
+                "Rendered output cannot overwrite immutable template evidence."
+            )
         try:
             output.relative_to(project.paths.source.resolve())
         except ValueError:
             pass
         else:
-            raise ReportTemplateError("Rendered output cannot be written inside the immutable Source folder.")
+            raise ReportTemplateError(
+                "Rendered output cannot be written inside the immutable Source folder."
+            )
         output.parent.mkdir(parents=True, exist_ok=True)
         workbook.save(output)
     finally:
