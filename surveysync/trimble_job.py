@@ -25,6 +25,155 @@ def _local(tag: str) -> str:
     return str(tag or "").rsplit("}", 1)[-1]
 
 
+def _attribute(node: ET.Element | None, *names: str) -> str:
+    """Return the first matching attribute value without depending on namespace/case."""
+    if node is None:
+        return ""
+    wanted = {name.casefold() for name in names}
+    for key, value in node.attrib.items():
+        if _local(key).casefold() in wanted:
+            text = str(value or "").strip()
+            if text:
+                return text
+    return ""
+
+
+def _decode_xml_bytes(raw: bytes) -> tuple[str, str]:
+    """Decode malformed XML for the narrow recovery path.
+
+    ElementTree handles encoding declarations during normal parsing. This helper is
+    only used after strict parsing failed, so it explicitly recognizes the common
+    UTF BOMs/declarations that appear in Trimble JobXML exports.
+    """
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return raw.decode("utf-16"), "utf-16"
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return raw.decode("utf-8-sig"), "utf-8-sig"
+
+    head = raw[:512]
+    match = re.search(
+        br"""<\?xml[^>]*encoding\s*=\s*["']([^"']+)["']""",
+        head,
+        flags=re.IGNORECASE,
+    )
+    if match:
+        encoding = match.group(1).decode("ascii", errors="ignore").strip() or "utf-8"
+        try:
+            return raw.decode(encoding), encoding
+        except (LookupError, UnicodeDecodeError):
+            pass
+
+    # Some controller exports omit a BOM while still writing UTF-16.
+    if len(raw) >= 4:
+        if raw[1:2] == b"\x00" and raw[3:4] == b"\x00":
+            return raw.decode("utf-16-le"), "utf-16-le"
+        if raw[0:1] == b"\x00" and raw[2:3] == b"\x00":
+            return raw.decode("utf-16-be"), "utf-16-be"
+
+    try:
+        return raw.decode("utf-8"), "utf-8"
+    except UnicodeDecodeError:
+        # cp1252 is a practical final fallback for old Windows-authored exports.
+        return raw.decode("cp1252"), "cp1252"
+
+
+def _recover_jobxml_text(text: str) -> tuple[str, list[str]]:
+    """Apply only safe text-level JobXML repairs.
+
+    jxl2txt uses libxml2's recover mode. SurveySync deliberately avoids general
+    structural recovery: it only removes illegal XML control characters and escapes
+    bare ampersands, two field-text defects seen in hand-edited/vendor-generated XML.
+    """
+    actions: list[str] = []
+    repaired = text
+
+    cleaned = "".join(
+        char
+        for char in repaired
+        if char in "\t\n\r" or ord(char) >= 0x20
+    )
+    if cleaned != repaired:
+        repaired = cleaned
+        actions.append("removed_illegal_xml_control_characters")
+
+    bare_ampersand = re.compile(
+        r"&(?!#\d+;|#x[0-9A-Fa-f]+;|amp;|lt;|gt;|apos;|quot;)"
+    )
+    escaped = bare_ampersand.sub("&amp;", repaired)
+    if escaped != repaired:
+        repaired = escaped
+        actions.append("escaped_bare_ampersands")
+
+    # ElementTree receives Unicode in recovery mode, so an encoding declaration
+    # would no longer describe the input byte stream.
+    without_declaration = re.sub(
+        r"^\ufeff?\s*<\?xml[^>]*\?>",
+        "",
+        repaired,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+    if without_declaration != repaired:
+        repaired = without_declaration
+        actions.append("removed_encoding_declaration_for_recovery")
+
+    return repaired, actions
+
+
+def _parse_jobxml_root(source: Path) -> tuple[ET.Element, dict]:
+    """Parse JobXML strictly first, then use a narrow jxl2txt-inspired recovery path."""
+    try:
+        root = ET.parse(source).getroot()
+        parse_meta = {
+            "xml_parse_mode": "strict",
+            "xml_recovery_used": False,
+            "xml_recovery_actions": [],
+            "xml_encoding": "",
+        }
+    except ET.ParseError as strict_error:
+        try:
+            raw = source.read_bytes()
+            text, encoding = _decode_xml_bytes(raw)
+            repaired, actions = _recover_jobxml_text(text)
+            if not actions:
+                raise TrimbleJobError(
+                    f"Trimble JobXML could not be parsed: {strict_error}"
+                ) from strict_error
+            root = ET.fromstring(repaired)
+        except TrimbleJobError:
+            raise
+        except (ET.ParseError, OSError, UnicodeError) as recovery_error:
+            raise TrimbleJobError(
+                "Trimble JobXML could not be parsed strictly or by the safe "
+                f"text-recovery path: {recovery_error}"
+            ) from strict_error
+        parse_meta = {
+            "xml_parse_mode": "recovered_text",
+            "xml_recovery_used": True,
+            "xml_recovery_actions": actions,
+            "xml_encoding": encoding,
+            "strict_parse_error": str(strict_error),
+        }
+
+    root_name = _local(root.tag)
+    if root_name.casefold() not in {"jobfile", "jobxml"}:
+        raise TrimbleJobError(
+            f"Selected XML is not recognized as Trimble JobXML (root element: {root_name or '(blank)'})."
+        )
+    parse_meta["xml_root"] = root_name
+    return root, parse_meta
+
+
+def _first_descendant(node: ET.Element, name: str) -> ET.Element | None:
+    wanted = name.casefold()
+    for child in node.iter():
+        if child is node:
+            continue
+        if _local(child.tag).casefold() == wanted:
+            return child
+    return None
+
+
 def _children(node: ET.Element, name: str) -> list[ET.Element]:
     wanted = name.casefold()
     return [child for child in list(node) if _local(child.tag).casefold() == wanted]
