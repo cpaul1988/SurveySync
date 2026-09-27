@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 import urllib.request
 
 from playwright.sync_api import expect, sync_playwright
@@ -36,11 +37,18 @@ def request(path, data=None):
 
 
 def assert_brand(page, client):
-    """Verify every visible product mark, not just the top-left logo."""
-    marks = page.locator('[data-ss-brand]:visible')
-    assert marks.count() >= 2
+    """Verify every visible product mark without transient :visible reindexing."""
+    expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)
+    expect(page.locator('#startupSplash')).to_be_hidden(timeout=15000)
+    # nth() locators filtered by :visible can change identity while a splash fades.
+    # Enumerate stable DOM positions, then inspect visibility individually.
+    marks = page.locator('[data-ss-brand]')
     visible_clients = 0
+    visible_marks = 0
     for mark in marks.all():
+        if not mark.is_visible():
+            continue
+        visible_marks += 1
         globe = mark.locator('> .ss-brand-globe')
         expect(globe).to_be_visible()
         expect(globe).to_have_attribute('src', '/surveysync-static/surveysync_globe.svg')
@@ -57,12 +65,14 @@ def assert_brand(page, client):
         else:
             expect(edsi).to_be_hidden()
         globe.evaluate('(img)=>img.decode()')
+    assert visible_marks >= 2
     assert page.locator('img[src*="edsi"]:visible').count() == visible_clients
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
 
 
 def choose_theme(page, key, fieldbook=False):
     # Real Options controls invoke the production theme handler.
+    expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)
     if fieldbook:
         page.evaluate("switchTab('options')")
         page.locator(f'[data-theme-choice="{key}"]').click()
@@ -71,7 +81,6 @@ def choose_theme(page, key, fieldbook=False):
         page.locator('#globalTheme').select_option(key)
     expect(page.locator('html')).to_have_attribute('data-product-theme', key)
     assert_brand(page, key in CLIENT_THEMES)
-    page.wait_for_function("key=>document.documentElement.dataset.productTheme===key", arg=key)
     for _ in range(50):
         if request('/api/v9/config/ui')['theme'] == key:
             return
@@ -103,7 +112,8 @@ def main():
                 with sync_playwright() as pw:
                     browser = pw.chromium.launch(executable_path=os.getenv('SURVEYSYNC_BROWSER_EXECUTABLE') or None)
                     context = browser.new_context(viewport={'width': 1488, 'height': 940})
-                    context.add_init_script(f"localStorage.setItem('surveysync-release-notes-seen-v2','{RELEASE}')")
+                    # Do not access localStorage in about:blank or sandboxed frames.
+                    context.add_init_script(f"if(window===window.top&&location.origin==='{BASE}'){{localStorage.setItem('surveysync-release-notes-seen-v2','{RELEASE}')}}")
                     errors = []
                     context.on('page', lambda page: page.on('pageerror', lambda error: errors.append(str(error))))
                     page = context.new_page()
@@ -182,6 +192,9 @@ def main():
                         assert not errors, errors
                         result['result'] = 'PASS'
                     except Exception:
+                        result['exception'] = traceback.format_exc()
+                        result['url'] = page.url
+                        result['theme'] = page.locator('html').get_attribute('data-product-theme')
                         page.screenshot(path=str(OUT / 'theme-branding-failure.png'))
                         raise
                     finally:
