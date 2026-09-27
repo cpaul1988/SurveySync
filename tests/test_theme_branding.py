@@ -29,7 +29,7 @@ class BrandParser(HTMLParser):
 def test_both_shells_load_shared_branding_after_themes(relative):
     parser = BrandParser()
     parser.feed((ROOT / relative).read_text(encoding='utf-8'))
-    assert parser.stylesheets[-1] == '/surveysync-static/theme-branding.css?v=9.4.0-beta.4'
+    assert parser.stylesheets[-1] == '/surveysync-static/theme-branding.css?v=9.4.1'
     clients = [image for image in parser.images if image.get('class') == 'ss-client-logo']
     globes = [image for image in parser.images if image.get('class') == 'ss-brand-globe']
     assert len(clients) == len(globes) >= 3

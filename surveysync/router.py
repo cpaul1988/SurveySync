@@ -162,24 +162,18 @@ core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
-SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.4"
+SURVEYSYNC_RELEASE_NOTES_ID = "9.4.1"
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "Beta.4 makes EDSI branding theme-only: normal themes show the SurveySync globe alone; EDSI Adaptive, EDSI Dark and EDSI Light show the globe and EDSI logo side by side throughout both shells.",
-    "Switching themes immediately updates headers, sidebars, Home, About and release notes. The Windows icon and installer retain the SurveySync globe; project data and saved theme preferences are unchanged.",
-    "Beta.3 makes FieldBookSync the visual standard for Home and every module: shared palettes, toolbars, sidebars, cards, controls, spacing, and readable typography.",
-    "Fixes the module-icon startup exception and the static route that rejected workflow-icon subfolders; release notes no longer depend on successful project/status initialization.",
-    "Globe branding is generated from one source for application icons and both installer wizard images. Dark-mode wordmarks use light lettering without inverting the globe colors.",
-    "Release notes identify this build as 9.4.0-beta.4, remain unread until Continue, and include a visible retry action on failure. Existing project data and saved theme preferences are retained.",
-    "9.4.0 completes the open-source integration roadmap while preserving SurveySync's validated ControlSync, leveling, audit, and source-evidence workflows.",
-    "ControlSync network adjustment now has an independent pySurveying-style numerical validation engine with residual, redundancy, sigma0, and error-ellipse cross-checks.",
-    "Trimble JobXML/JXL intake is more tolerant across Access/TBC generations while structurally corrupt XML still fails closed.",
-    "TopoSync adds optional LAS/LAZ point-cloud intake with built-in LAS metadata and optional laspy/PDAL support.",
-    "SurveySync adds project-scoped YAML workflow automation with persistent run state and explicit human approval for final deliverables and stakeholder notifications.",
-    "GISSync adds PROJ-based CRS diagnostics plus optional external QGIS and GRASS processing bridges.",
-    "ReportSync adds immutable Excel template mapping/rendering for company and client workbooks, with rendered outputs registered as DRAFT deliverables.",
-    "SurveySync 9.4 introduces the new Surveying Navy / Topographic Gold / Canvas Cream product identity and unified workflow icon system.",
+    "9.4.1 is the verified audit-repair update. Ron's manual three-point control now preserves source PointIDs, source codes and residual attribution; repeated calculations create separate revisions and preserve previous valid results on handled failures.",
+    "Pipe grades normalize horizontal and vertical units. Polygon area and centroid calculations use a local origin for accuracy at large survey coordinates. Perfect traverse closure returns a valid result without changing the geometry.",
+    "Repeat LandXML import, PointID column aliases, and rejection of non-finite numeric inputs are repaired. Level books have an explicit row-layout choice that distinguishes point elevations from instrument heights and preserves Ron's reduction conventions.",
+    "Survey Data, Data Inspector, Support Center and File Exit commands are repaired. Native shutdown follows project switching; damaged analysis-job ledgers are preserved during Windows recovery.",
+    "Update downloads validate HTTPS redirects, version labels, exact size, checksum and executable headers before creating a handoff. Native launchers follow the selected data location, and the updater records Setup completion rather than just process startup.",
+    "The approved globe branding and theme-only EDSI companion are unchanged. These release notes remain available after installation and are acknowledged only by Continue.",
+    "Backend-only point-cloud, YAML automation, new CRS diagnostics, Excel mapping and external GIS workflows remain incomplete in the desktop. Live OCR/provider accuracy, optional Trimble/GIS execution and rod-height field calibration are not claimed as verified by this release.",
 ]
+
 
 
 def _fieldbook_app_module():

@@ -55,6 +55,11 @@ type updaterStatus struct {
 }
 
 func updaterDataRoot() string {
+	if override := strings.TrimSpace(os.Getenv("SURVEYSYNC_CONFIG_ROOT")); override != "" {
+		if absolute, err := filepath.Abs(override); err == nil {
+			return absolute
+		}
+	}
 	base := strings.TrimSpace(os.Getenv("LOCALAPPDATA"))
 	if base == "" {
 		base = os.TempDir()
@@ -98,12 +103,11 @@ func writeUpdaterStatus(path string, status updaterStatus) {
 
 func acquireUpdaterMutex() (uintptr, bool) {
 	name, _ := syscall.UTF16PtrFromString("Local\\CleverBirdDevelopment.SurveySyncUpdater")
-	h, _, _ := updaterCreateMutexW.Call(0, 0, uintptr(unsafe.Pointer(name)))
+	h, _, lastErr := updaterCreateMutexW.Call(0, 0, uintptr(unsafe.Pointer(name)))
 	if h == 0 {
-		return 0, true
+		return 0, false
 	}
-	lastErr, _, _ := updaterGetLastError.Call()
-	if lastErr == updaterErrorAlreadyExists {
+	if lastErr == syscall.Errno(updaterErrorAlreadyExists) {
 		_, _, _ = updaterCloseHandle.Call(h)
 		return 0, false
 	}
@@ -134,6 +138,14 @@ func verifyUpdateInstaller(pending updateHandoff) (string, string, int64, error)
 	updatesRoot, err := filepath.Abs(filepath.Join(updaterDataRoot(), "updates"))
 	if err != nil {
 		return "", "", 0, fmt.Errorf("resolve updates folder: %w", err)
+	}
+	updatesRoot, err = filepath.EvalSymlinks(updatesRoot)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("resolve updates folder links: %w", err)
+	}
+	absInstaller, err = filepath.EvalSymlinks(absInstaller)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("resolve installer links: %w", err)
 	}
 	prefix := strings.ToLower(updatesRoot + string(os.PathSeparator))
 	if !strings.HasPrefix(strings.ToLower(absInstaller), prefix) {
@@ -169,10 +181,14 @@ func waitForLauncherExit(pid int, timeout time.Duration) error {
 	if pid <= 0 {
 		return fmt.Errorf("launcher PID is invalid")
 	}
-	h, _, _ := updaterOpenProcess.Call(synchronizeAccess, 0, uintptr(pid))
+	h, _, openErr := updaterOpenProcess.Call(synchronizeAccess, 0, uintptr(pid))
 	if h == 0 {
-		// The launcher may have already exited between process creation and helper startup.
-		return nil
+		// ERROR_INVALID_PARAMETER means this PID no longer exists. Access denied
+		// or another error is not proof of exit and must not start installation.
+		if openErr == syscall.Errno(87) {
+			return nil
+		}
+		return fmt.Errorf("cannot verify launcher exit: %v", openErr)
 	}
 	defer updaterCloseHandle.Call(h)
 	result, _, _ := updaterWaitForSingleObj.Call(h, uintptr(timeout.Milliseconds()))
@@ -195,6 +211,7 @@ func main() {
 	pendingFile := flag.String("pending-file", filepath.Join(defaultRoot, "pending_update.json"), "verified pending update handoff")
 	statusFile := flag.String("status-file", filepath.Join(defaultRoot, "updates", "update_helper_status.json"), "helper status JSON")
 	logFile := flag.String("log-file", filepath.Join(defaultRoot, "logs", "update_helper.log"), "helper diagnostic log")
+	installDir := flag.String("install-dir", "", "existing SurveySync installation")
 	flag.Parse()
 
 	status := updaterStatus{State: "started", HelperPID: os.Getpid(), LauncherPID: *launcherPID}
@@ -252,7 +269,21 @@ func main() {
 
 	// Give Windows a brief moment to release the launcher's executable image before Setup copies files.
 	time.Sleep(350 * time.Millisecond)
-	cmd := exec.Command(installer)
+	destination, err := filepath.Abs(*installDir)
+	if *installDir == "" || err != nil {
+		status.State = "error"
+		status.Message = "Missing or invalid existing installation directory."
+		writeUpdaterStatus(*statusFile, status)
+		return
+	}
+	if _, err := os.Stat(filepath.Join(destination, "SurveySync.exe")); err != nil {
+		status.State = "error"
+		status.Message = "Existing SurveySync launcher is missing."
+		writeUpdaterStatus(*statusFile, status)
+		return
+	}
+	setupLog := filepath.Join(updaterDataRoot(), "logs", "update_setup.log")
+	cmd := exec.Command(installer, "/DIR="+destination, "/NORESTART", "/LOG="+setupLog)
 	cmd.Dir = filepath.Dir(installer)
 	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: updaterNewProcessGroup}
 	if err := cmd.Start(); err != nil {
@@ -263,16 +294,32 @@ func main() {
 		return
 	}
 	setupPID := cmd.Process.Pid
-	_ = cmd.Process.Release()
 	status.State = "installer_started"
 	status.InstallerPID = setupPID
 	status.Message = fmt.Sprintf("Setup started successfully PID=%d", setupPID)
 	writeUpdaterStatus(*statusFile, status)
 	updaterAppendLog(*logFile, status.Message)
 
-	if err := os.Remove(*pendingFile); err != nil && !os.IsNotExist(err) {
-		updaterAppendLog(*logFile, "WARNING | Setup started but pending handoff could not be removed: "+err.Error())
+	// Starting Setup is not installation success. Retain actionable status for
+	// cancellation/failure and do not silently retry a rejected update on Exit.
+	err = cmd.Wait()
+	if err != nil {
+		status.State = "installer_failed"
+		status.Message = "Setup did not complete: " + err.Error() + ". See " + setupLog
+		_ = os.Rename(*pendingFile, *pendingFile+".failed")
 	} else {
-		updaterAppendLog(*logFile, "Cleared pending update handoff after Setup process creation")
+		installed, readErr := os.ReadFile(filepath.Join(destination, "VERSION.txt"))
+		if readErr != nil || strings.TrimSpace(string(installed)) != pending.Version {
+			status.State = "installer_failed"
+			status.Message = "Setup returned success but the expected version was not found in the target directory."
+			_ = os.Rename(*pendingFile, *pendingFile+".failed")
+		} else {
+			status.State = "installed"
+			status.Message = "Setup completed and installed version was verified."
+			_ = os.Remove(*pendingFile)
+		}
 	}
+	writeUpdaterStatus(*statusFile, status)
+	updaterAppendLog(*logFile, status.State+" | "+status.Message)
+
 }

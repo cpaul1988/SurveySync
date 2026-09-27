@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.0",
+  "version": "9.4.1",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -898,6 +898,27 @@
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
         "docs/TEST_COVERAGE.md",
         "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    "verified_audit_repairs": {
+      "introduced": "9.4.1",
+      "implementation": [
+        "surveysync/manual_control.py",
+        "surveysync/control_selection.py",
+        "surveysync/survey_validation.py",
+        "surveysync/updater.py",
+        "desktop.py",
+        "installer/update_helper.go"
+      ],
+      "tests": [
+        "tests/test_audit_reproductions.py",
+        "tests/test_verified_repairs.py",
+        "tests/test_shutdown_bridge_contract.py",
+        "tests/test_v941_updater.py"
+      ],
+      "documentation": [
+        "docs/VERIFIED_AUDIT_REPAIRS.md",
+        "RELEASE_NOTES_v9_4_1.md"
       ]
     }
   }
