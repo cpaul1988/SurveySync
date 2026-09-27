@@ -59,7 +59,16 @@
       "Use release-specific release-notes acknowledgement ID.",
       "Mark release notes seen only after Continue."
     ],
-    "beta2_quality_gate_status": "pending"
+    "beta2_quality_gate_status": "passed_windows_ci_before_evidence_commit",
+    "beta2_quality_run_id": 36287654750,
+    "beta2_quality_run_number": 165,
+    "beta2_tests_passed": 365,
+    "beta2_tests_skipped": 1,
+    "beta2_tests_failed": 0,
+    "beta2_line_coverage_percent": 59.35,
+    "beta2_globe_icon_bytes": 133338,
+    "beta2_globe_icon_frames": 7,
+    "beta2_evidence_note": "Run #165 passed on the Beta.2 implementation head before this documentation-only evidence update. Final branch head must be revalidated before tagging."
   },
   "roadmap": {
     "items_1_through_8_implemented": true,
