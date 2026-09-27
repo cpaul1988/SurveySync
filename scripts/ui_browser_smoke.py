@@ -29,6 +29,8 @@ def request(path, data=None):
 
 
 def image_check(page):
+    # Observe actual dismissal, rather than hiding the splash just for the test.
+    expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)
     page.wait_for_function('''() => [...document.images].filter(i=>i.getClientRects().length)
       .every(i=>i.complete && i.naturalWidth>0)''', timeout=10000)
     assert page.locator('.module-tab img').count() == 11
@@ -71,6 +73,7 @@ def main():
                             if mode == 'dark':
                                 expect(page.locator('#releaseDone')).to_be_visible(timeout=15000)
                                 assert page.evaluate('(key)=>localStorage.getItem(key)', SEEN) is None
+                                image_check(page)
                                 page.screenshot(path=str(OUT / 'release-notes-dark.png'))
                                 page.locator('#modalClose').click()
                                 page.reload(wait_until='domcontentloaded')
@@ -122,6 +125,7 @@ def main():
                             page.screenshot(path=str(OUT / f'Home-{width}.png'))
                         assert not errors, errors
                         report['checks'].append('No uncaught JavaScript errors across 22 module/theme screens')
+                        report['checks'].append('Actual startup splash dismisses before screenshots')
                         report['result'] = 'PASS'
                     except Exception:
                         page.screenshot(path=str(OUT / 'failure.png'))
