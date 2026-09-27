@@ -301,10 +301,14 @@ def import_observations(db: AuditDB, observations: list[dict], source_id: str | 
 
 
 
-def solve(db: AuditDB, control_id: str, method: str="arithmetic", horizontal_tolerance: float=0.10, vertical_tolerance: float=0.10) -> dict:
+def solve(db: AuditDB, control_id: str, method: str="arithmetic", horizontal_tolerance: float=0.10, vertical_tolerance: float=0.10, *, observation_ids=None) -> dict:
+    from .control_selection import solver_rows
+    from .survey_validation import finite_number
     method=method.lower().strip()
-    with db.connect() as conn:
-        rows=[dict(r) for r in conn.execute("SELECT * FROM control_observations WHERE control_id=? AND include=1 ORDER BY observed_utc, observation_id", (control_id,)).fetchall()]
+    horizontal_tolerance=finite_number(horizontal_tolerance, "Horizontal tolerance")
+    vertical_tolerance=finite_number(vertical_tolerance, "Vertical tolerance")
+    if min(horizontal_tolerance, vertical_tolerance) < 0: raise ValueError("Control tolerances must not be negative.")
+    rows=solver_rows(db, control_id, method, observation_ids)
     if not rows: raise ValueError(f"No included observations found for control {control_id}.")
     ns=[r["northing"] for r in rows]; es=[r["easting"] for r in rows]
     zs=[r["elevation"] for r in rows if r["elevation"] is not None]
@@ -333,7 +337,7 @@ def solve(db: AuditDB, control_id: str, method: str="arithmetic", horizontal_tol
         dz=(r["elevation"]-z) if (z is not None and r["elevation"] is not None) else None
         ok=h<=horizontal_tolerance and (dz is None or abs(dz)<=vertical_tolerance)
         passed &= ok
-        item={"observation_id":r["observation_id"],"dn":dn,"de":de,"horizontal":h,"dz":dz,"pass":ok}
+        item={"observation_id":r["observation_id"],"point_id":r.get("point_id", ""),"shot_id":r.get("shot_id", ""),"dn":dn,"de":de,"horizontal":h,"dz":dz,"pass":ok}
         if method == "ron_spreadsheet":
             # The source workbook labels rows A/B/C. Its VZ display uses Elev-Avg
             # for A/B and Avg-Elev for C. Preserve that exact display value while
@@ -345,6 +349,8 @@ def solve(db: AuditDB, control_id: str, method: str="arithmetic", horizontal_tol
     result={"control_id":control_id,"method":method,"count":len(rows),"northing":n,"easting":e,"elevation":z,"horizontal_tolerance":horizontal_tolerance,"vertical_tolerance":vertical_tolerance,"pass":passed,"residuals":residuals,
             "formula_status":"VALIDATED_RON_WORKBOOK" if method == "ron_spreadsheet" else "VALIDATED_GENERIC"}
     if method == "ron_spreadsheet":
+        result["source_point_ids"]=[r.get("point_id", "") for r in rows]
+        result["code"]=json.loads(rows[0].get("metadata_json") or "{}").get("source_code", "")
         result["formula_profile"]={
             "source_workbook":"3 Point Control Averaged Template.xlsx",
             "shots_required":3,
@@ -356,14 +362,13 @@ def solve(db: AuditDB, control_id: str, method: str="arithmetic", horizontal_tol
         }
     # Every solve becomes an immutable solution revision so control averaging can be
     # reproduced and compared later.  Observations remain untouched.
-    import json
     with db.connect() as conn:
         revision=int(conn.execute("SELECT COALESCE(MAX(revision),0)+1 FROM control_solutions WHERE control_id=?",(control_id,)).fetchone()[0])
         solution_id=uuid4().hex
         conn.execute(
             "INSERT INTO control_solutions(solution_id,control_id,ts_utc,revision,method,northing,easting,elevation,pass,settings_json,residuals_json,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
             (solution_id,control_id,utc_now(),revision,method,n,e,z,1 if passed else 0,
-             json.dumps({"horizontal_tolerance":horizontal_tolerance,"vertical_tolerance":vertical_tolerance},sort_keys=True),
+             json.dumps({"horizontal_tolerance":horizontal_tolerance,"vertical_tolerance":vertical_tolerance,"source_point_ids":result.get("source_point_ids",[]),"code":result.get("code", "")},sort_keys=True),
              json.dumps(residuals,sort_keys=True),"")
         )
         conn.execute("INSERT INTO derived_result_state(result_kind,object_id,state,reason,changed_utc) VALUES(?,?,?,?,?) ON CONFLICT(result_kind,object_id) DO UPDATE SET state='CURRENT',reason=excluded.reason,changed_utc=excluded.changed_utc", ("control", control_id, "CURRENT", "Control solution recalculated", utc_now()))
@@ -954,7 +959,6 @@ def get_control_qc_run(db: AuditDB, run_id: str="") -> dict:
 
 
 def list_solutions(db: AuditDB, control_id: str | None = None, limit: int = 100) -> list[dict]:
-    import json
     with db.connect() as conn:
         if control_id:
             rows=conn.execute("SELECT * FROM control_solutions WHERE control_id=? ORDER BY revision DESC LIMIT ?",(control_id,max(1,min(limit,1000)))).fetchall()

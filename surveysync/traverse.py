@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .audit import AuditDB, utc_now
+from .survey_validation import finite_number
 
 ALIASES = {
     "from_point": ("from_point", "from", "start_point", "station_from"),
@@ -52,8 +53,8 @@ def parse_traverse_csv(path: Path) -> list[dict]:
         if not raw_dist and not raw_az:
             continue
         try:
-            distance = float(raw_dist)
-            azimuth = float(raw_az) % 360.0
+            distance = finite_number(raw_dist, "Traverse distance")
+            azimuth = finite_number(raw_az, "Traverse azimuth") % 360.0
         except Exception as exc:
             raise ValueError(f"Invalid traverse course on row {row_no}: {exc}") from exc
         if distance <= 0:
@@ -92,6 +93,16 @@ def solve_traverse(
     if method not in {"none", "bowditch", "transit"}:
         raise ValueError("Traverse adjustment method must be none, bowditch, or transit.")
 
+    start_n = finite_number(start_n, "Start northing")
+    start_e = finite_number(start_e, "Start easting")
+    if known_end_n is not None:
+        known_end_n = finite_number(known_end_n, "End northing")
+    if known_end_e is not None:
+        known_end_e = finite_number(known_end_e, "End easting")
+    courses = [dict(c, azimuth_deg=finite_number(c["azimuth_deg"], "Azimuth"),
+                    distance=finite_number(c["distance"], "Distance")) for c in courses]
+    if any(c["distance"] <= 0 for c in courses):
+        raise ValueError("Traverse distance must be greater than zero.")
     raw_courses = []
     sum_dn = sum_de = total_length = 0.0
     for idx, course in enumerate(courses, start=1):
@@ -112,7 +123,13 @@ def solve_traverse(
     closure_n = sum_dn - target_dn
     closure_e = sum_de - target_de
     linear_closure = math.hypot(closure_n, closure_e)
-    precision_ratio = (total_length / linear_closure) if linear_closure > 0 else math.inf
+    for value in (raw_end_n, raw_end_e, total_length, linear_closure):
+        finite_number(value, "Traverse result")
+    precision_ratio = (total_length / linear_closure) if linear_closure > 0 else None
+    precision_status = "PERFECT_CLOSURE" if linear_closure == 0 else "FINITE"
+    if precision_ratio is not None and not math.isfinite(precision_ratio):
+        precision_ratio = None
+        precision_status = "EXCEEDS_FLOAT_RANGE"
 
     abs_dn_sum = sum(abs(c["raw_dn"]) for c in raw_courses)
     abs_de_sum = sum(abs(c["raw_de"]) for c in raw_courses)
@@ -152,6 +169,8 @@ def solve_traverse(
         "linear_closure": linear_closure,
         "total_length": total_length,
         "precision_ratio": precision_ratio,
+        "precision_status": precision_status,
+        "perfect_closure": linear_closure == 0,
         "adjusted": method != "none",
         "adjustment_method": method,
         "courses": results,
@@ -160,6 +179,8 @@ def solve_traverse(
 
 
 def import_run(db: AuditDB, name: str, courses: list[dict], *, start_n: float, start_e: float, end_n: float | None = None, end_e: float | None = None, source_id: str | None = None, adjustment_method: str = "bowditch") -> str:
+    solve_traverse(courses, start_n=start_n, start_e=start_e, known_end_n=end_n,
+                   known_end_e=end_e, adjustment_method=adjustment_method)
     run_id = uuid4().hex
     with db.connect() as conn:
         conn.execute(
@@ -190,7 +211,7 @@ def solve_saved_run(db: AuditDB, run_id: str, *, adjustment_method: str | None =
         solution_id = uuid4().hex
         conn.execute(
             "INSERT INTO traverse_solutions(solution_id,run_id,ts_utc,revision,closure_n,closure_e,linear_closure,precision_ratio,adjusted,method,results_json) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-            (solution_id, run_id, utc_now(), revision, result["closure_n"], result["closure_e"], result["linear_closure"], result["precision_ratio"] if math.isfinite(result["precision_ratio"]) else None, 1 if result["adjusted"] else 0, result["adjustment_method"], json.dumps(result["courses"], sort_keys=True)),
+            (solution_id, run_id, utc_now(), revision, result["closure_n"], result["closure_e"], result["linear_closure"], result["precision_ratio"], 1 if result["adjusted"] else 0, result["adjustment_method"], json.dumps(result["courses"], sort_keys=True)),
         )
         conn.execute("UPDATE traverse_runs SET status='SOLVED',adjustment_method=? WHERE run_id=?", (result["adjustment_method"], run_id))
         conn.execute("INSERT INTO derived_result_state(result_kind,object_id,state,reason,changed_utc) VALUES(?,?,?,?,?) ON CONFLICT(result_kind,object_id) DO UPDATE SET state='CURRENT',reason=excluded.reason,changed_utc=excluded.changed_utc", ("traverse", run_id, "CURRENT", "Traverse solution recalculated", utc_now()))

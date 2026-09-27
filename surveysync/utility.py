@@ -12,6 +12,7 @@ from pyproj import CRS, Transformer
 
 from .audit import utc_now
 from .project import SurveyProject
+from .survey_validation import finite_number, unit_factor
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +128,8 @@ def score_supplemental_gis(project: SurveyProject, edges: list[dict], structures
     return out
 
 
-def pipe_grades(structures: list[dict], edges: list[dict]) -> list[dict]:
+def pipe_grades(structures: list[dict], edges: list[dict], *, horizontal_units="meters", vertical_units="meters") -> list[dict]:
+    ratio = unit_factor(vertical_units) / unit_factor(horizontal_units)
     by_id={str(s.get("point_id")):s for s in structures}
     out=[]
     for e in edges:
@@ -143,8 +145,12 @@ def pipe_grades(structures: list[dict], edges: list[dict]) -> list[dict]:
         inv2=None
         tpi=e.get("to_pipe_index")
         if tpi and 0<int(tpi)<=len(p2):inv2=p2[int(tpi)-1].get("invert_elevation")
-        if inv1 is not None and inv2 is not None and dist and float(dist)>0:
-            grade=(float(inv1)-float(inv2))/float(dist)*100.0
+        if inv1 is not None and inv2 is not None and dist is not None:
+            distance = finite_number(dist, "Pipe distance")
+            if distance <= 0:
+                raise ValueError("Pipe distance must be greater than zero.")
+            drop = finite_number(inv1, "From invert") - finite_number(inv2, "To invert")
+            grade = finite_number(drop / distance * ratio * 100.0, "Pipe grade")
             out.append({"from_point":e.get("from_point"),"to_point":e.get("to_point"),"distance":dist,"from_invert":inv1,"to_invert":inv2,"grade_percent":grade,"flow_direction":"from_to" if grade>0 else "to_from" if grade<0 else "flat","qc_flag":"ADVERSE_GRADE" if grade<0 else ""})
     return out
 

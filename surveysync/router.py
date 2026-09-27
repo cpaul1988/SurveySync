@@ -726,43 +726,12 @@ def control_import_and_analyze(payload: ControlImportAnalyzeIn):
 
 @router.post("/api/v9/control/ron-three-point")
 def control_ron_three_point(payload: RonControlFromPointsIn):
-    p=require_project()
-    final_id=str(payload.control_id or "").strip()
-    point_ids=[str(x or "").strip() for x in (payload.point_ids or []) if str(x or "").strip()]
-    if not final_id:
-        raise HTTPException(400,"Final control ID is required.")
-    if len(point_ids)!=3 or len(set(point_ids))!=3:
-        raise HTTPException(400,"Ron 3-point control profile requires exactly three distinct source survey PointIDs.")
-    observations=[]
-    with p.db.connect() as conn:
-        for source_pid in point_ids:
-            rows=conn.execute("SELECT * FROM canonical_points WHERE point_id=? ORDER BY modified_utc DESC, created_utc DESC",(source_pid,)).fetchall()
-            if not rows:
-                raise HTTPException(400,f"Survey PointID {source_pid} was not found in the current project.")
-            if len(rows)>1:
-                # Duplicate PointIDs are unsafe for an averaging workflow because the spreadsheet VLOOKUP
-                # assumes one authoritative source row. Require review rather than silently choosing one.
-                raise HTTPException(400,f"Survey PointID {source_pid} is duplicated in the project; resolve the duplicate before control averaging.")
-            r=dict(rows[0])
-            if r.get("elevation") is None:
-                raise HTTPException(400,f"Survey PointID {source_pid} has no elevation; the Ron workbook profile requires N/E/Z for all three shots.")
-            observations.append({
-                "control_id":final_id,"northing":r["northing"],"easting":r["easting"],"elevation":r["elevation"],
-                "h_sigma":None,"v_sigma":None,"method":"RON_3_POINT_WORKBOOK","source_id":r.get("source_id"),
-                "notes":f"Source survey PointID {source_pid}",
-            })
-    # Each press intentionally creates a new auditable observation set and immutable solution revision.
-    # Prior Ron-profile shots remain in history but are excluded so the active solution always mirrors
-    # the workbook's exactly-three-shot assumption.
-    with p.db.connect() as conn:
-        conn.execute("UPDATE control_observations SET include=0 WHERE control_id=? AND method='RON_3_POINT_WORKBOOK' AND include=1",(final_id,))
-    import_observations(p.db,observations)
-    result=solve_control(p.db,final_id,"ron_spreadsheet",payload.horizontal_tolerance,payload.vertical_tolerance)
-    result["source_point_ids"]=point_ids
-    deliverables=write_ron_control_deliverables(result,point_ids,p.paths.reports)
-    result["deliverables"]=deliverables
-    p.db.audit("ControlSync","RON_3_POINT_FROM_PROJECT_POINTS",object_type="control",object_id=final_id,details={"source_point_ids":point_ids,"solution_id":result.get("solution_id"),"revision":result.get("revision"),"pass":result.get("pass"),"deliverables":deliverables})
-    return result
+    from .manual_control import from_project_points
+    try:
+        return from_project_points(require_project(), payload)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+
 
 @router.post("/api/v9/control/solve")
 def control_solve(payload: ControlSolveIn):

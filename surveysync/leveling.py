@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .audit import AuditDB, utc_now
+from .survey_validation import finite_number, normalize_header
 from .revisions import get_active_solution_id, set_active_solution
 
 ALIASES = {
@@ -27,14 +28,14 @@ ALIASES = {
 
 
 def _norm(value: str) -> str:
-    return str(value or "").strip().lower().replace(" ", "_").replace("-", "_")
+    return normalize_header(value)
 
 
 def _maybe_float(value) -> float | None:
-    raw = str(value or "").strip()
+    raw = "" if value is None else str(value).strip()
     if not raw:
         return None
-    return float(raw)
+    return finite_number(raw)
 
 
 def _mapping(fieldnames: list[str]) -> dict[str, str]:
@@ -42,8 +43,8 @@ def _mapping(fieldnames: list[str]) -> dict[str, str]:
     out: dict[str, str] = {}
     for target, aliases in ALIASES.items():
         for alias in aliases:
-            if alias in normed:
-                out[target] = normed[alias]
+            if _norm(alias) in normed:
+                out[target] = normed[_norm(alias)]
                 break
     if "point_id" not in out:
         raise ValueError("Level file needs a Point/PointID/Station column.")
@@ -113,6 +114,15 @@ def three_wire_mean(upper: float | None, middle: float | None, lower: float | No
     return reading,check,intercept
 
 def normalize_observation(obs: dict, *, stadia_multiplier: float = 100.0, calculation_profile: str = "middle_wire") -> dict:
+    obs = dict(obs)
+    for key in ("backsight", "foresight", "bs_upper", "bs_middle", "bs_lower",
+                "fs_upper", "fs_middle", "fs_lower", "distance_bs", "distance_fs"):
+        if obs.get(key) is not None:
+            obs[key] = finite_number(obs[key], key)
+    for prefix, reading in (("bs", "backsight"), ("fs", "foresight")):
+        count = sum(obs.get(prefix + "_" + wire) is not None for wire in ("upper", "middle", "lower"))
+        if calculation_profile == "ron_workbook" and obs.get(reading) is None and count in (1, 2):
+            raise ValueError("Ron workbook reduction requires all three wires or an explicit reduced reading.")
     bs = obs.get("backsight")
     fs = obs.get("foresight")
     bs_check = fs_check = None
@@ -145,6 +155,23 @@ def normalize_observation(obs: dict, *, stadia_multiplier: float = 100.0, calcul
     }
 
 
+def resolve_row_layout(rows, requested):
+    sides = [(r.get("backsight") is not None, r.get("foresight") is not None) for r in rows]
+    paired = all(bs and fs for bs, fs in sides)
+    separate = len(sides) % 2 == 0 and all(side == ((True, False) if i % 2 == 0 else (False, True)) for i, side in enumerate(sides))
+    stations = len(sides) >= 2 and sides[0] == (True, False) and sides[-1] == (False, True) and all(bs and fs for bs, fs in sides[1:-1])
+    if requested == "auto":
+        if paired:
+            return "differential_setups"
+        if separate:
+            return "separate_sights"
+        raise ValueError("Ambiguous level-book layout. Select station_rows explicitly for BS on starting benchmark and FS/BS on turning points.")
+    valid = {"differential_setups": paired, "separate_sights": separate, "station_rows": stations}
+    if not valid.get(requested, False):
+        raise ValueError(f"Readings do not match selected level row layout {requested!r}.")
+    return requested
+
+
 def solve_level_run(
     observations: list[dict],
     *,
@@ -156,17 +183,28 @@ def solve_level_run(
     closure_tolerance: float | None = None,
     stadia_multiplier: float = 100.0,
     calculation_profile: str = "ron_workbook",
+    row_layout: str = "auto",
 ) -> dict:
     if not observations:
         raise ValueError("No level observations were supplied.")
-    method = str(adjustment_method or "setups").strip().lower()
+    start_elevation = finite_number(start_elevation, "Start elevation")
+    if known_end_elevation is not None:
+        known_end_elevation = finite_number(known_end_elevation, "Known end elevation")
+    middle_wire_tolerance = finite_number(middle_wire_tolerance, "Middle-wire tolerance")
+    stadia_multiplier = finite_number(stadia_multiplier, "Stadia multiplier")
+    for value in (middle_wire_tolerance, stadia_multiplier, max_distance_imbalance, closure_tolerance):
+        if value is not None and finite_number(value, "Tolerance/multiplier") < 0:
+            raise ValueError("Tolerances and stadia multiplier must not be negative.")
+    method = str(adjustment_method or "none").strip().lower()
     if method not in {"none", "setups", "distance"}:
         raise ValueError("Level adjustment method must be none, setups, or distance.")
     calc_profile=str(calculation_profile or "ron_workbook").strip().lower()
     if calc_profile not in {"ron_workbook","middle_wire"}:
         raise ValueError("Level calculation profile must be ron_workbook or middle_wire.")
     rows = [normalize_observation(o, stadia_multiplier=stadia_multiplier, calculation_profile=calc_profile) for o in observations]
+    layout = resolve_row_layout(rows, row_layout)
     current = float(start_elevation)
+    height_of_instrument = None
     results: list[dict] = []
     total_bs = total_fs = 0.0
     total_bs_distance = total_fs_distance = 0.0
@@ -183,12 +221,26 @@ def solve_level_run(
             total_bs += float(bs)
         if fs is not None:
             total_fs += float(fs)
-        # A row with both BS and FS is one differential setup. Rows with one side
-        # still contribute to the elevation chain, which supports common exported
-        # field-book layouts where BS and FS are on separate lines.
-        if bs is not None or fs is not None:
-            delta = float(bs or 0.0) - float(fs or 0.0)
-            current += delta
+        role = "POINT"
+        if layout == "differential_setups":
+            height_of_instrument = finite_number(current + bs, "Height of instrument")
+            current = finite_number(height_of_instrument - fs, "Point elevation")
+            setup_count += 1
+            displayed = current
+        elif layout == "station_rows":
+            if fs is not None:
+                current = finite_number(height_of_instrument - fs, "Point elevation")
+                setup_count += 1
+            displayed = current
+            if bs is not None:
+                height_of_instrument = finite_number(current + bs, "Height of instrument")
+        elif bs is not None:
+            height_of_instrument = finite_number(current + bs, "Height of instrument")
+            displayed = height_of_instrument
+            role = "HEIGHT_OF_INSTRUMENT"
+        else:
+            current = finite_number(height_of_instrument - fs, "Point elevation")
+            displayed = current
             setup_count += 1
         db = float(row.get("distance_bs") or 0.0)
         df = float(row.get("distance_fs") or 0.0)
@@ -204,8 +256,12 @@ def solve_level_run(
         results.append({
             "sequence_no": idx,
             "point_id": row.get("point_id") or "",
-            "raw_elevation": current,
-            "adjusted_elevation": current,
+            "raw_elevation": displayed,
+            "adjusted_elevation": displayed,
+            "row_role": role,
+            "point_elevation": current if role == "POINT" else None,
+            "height_of_instrument": height_of_instrument,
+            "cumulative_setups": setup_count,
             "backsight": bs,
             "foresight": fs,
             "distance_bs": row.get("distance_bs"),
@@ -224,21 +280,28 @@ def solve_level_run(
         if method == "distance" and cumulative_distance > 0:
             denom = cumulative_distance
             for r in results:
-                fraction = float(r["cumulative_distance"]) / denom
+                fraction = 0.0 if r["cumulative_setups"] == 0 else float(r["cumulative_distance"]) / denom
                 correction = -closure * fraction
                 r["correction"] = correction
                 r["adjusted_elevation"] = r["raw_elevation"] + correction
         else:
             # Setup-count distribution is deterministic and remains available when
             # field books do not include stadia distances.
-            denom = max(1, len(results))
+            denom = max(1, setup_count)
             for i, r in enumerate(results, start=1):
-                fraction = i / denom
+                fraction = r["cumulative_setups"] / denom
                 correction = -closure * fraction
                 r["correction"] = correction
                 r["adjusted_elevation"] = r["raw_elevation"] + correction
         adjusted = True
 
+    for row in results:
+        row["adjusted_elevation"] = finite_number(row["adjusted_elevation"], "Adjusted elevation")
+        row["adjusted_point_elevation"] = row["adjusted_elevation"] if row["row_role"] == "POINT" else None
+    for value in (total_bs, total_fs, total_bs_distance, total_fs_distance, cumulative_distance):
+        finite_number(value, "Level total")
+    if closure is not None:
+        finite_number(closure, "Level closure")
     distance_imbalance = total_bs_distance - total_fs_distance
     qc_flags = list(wire_flags)
     if max_distance_imbalance is not None and abs(distance_imbalance) > float(max_distance_imbalance):
@@ -263,6 +326,7 @@ def solve_level_run(
         "adjusted": adjusted,
         "adjustment_method": method,
         "setup_count": setup_count,
+        "row_layout": layout,
         "total_bs_distance": total_bs_distance,
         "total_fs_distance": total_fs_distance,
         "distance_imbalance": distance_imbalance,
@@ -296,6 +360,11 @@ def import_run(
     end_point: str = "",
     adjustment_method: str = "none",
 ) -> str:
+    for obs in observations:
+        normalize_observation(obs, calculation_profile="middle_wire")
+    for value in (start_elevation, known_end_elevation):
+        if value is not None:
+            finite_number(value, "Benchmark elevation")
     run_id = uuid4().hex
     with db.connect() as conn:
         conn.execute(
@@ -336,6 +405,7 @@ def solve_saved_run(
     closure_tolerance: float | None = None,
     stadia_multiplier: float = 100.0,
     calculation_profile: str = "ron_workbook",
+    row_layout: str = "auto",
 ) -> dict:
     run, observations = _load_observations(db, run_id)
     start = start_elevation if start_elevation is not None else run.get("start_elevation")
@@ -353,6 +423,7 @@ def solve_saved_run(
         closure_tolerance=closure_tolerance,
         stadia_multiplier=stadia_multiplier,
         calculation_profile=calculation_profile,
+        row_layout=row_layout,
     )
     with db.connect() as conn:
         revision = int(conn.execute("SELECT COALESCE(MAX(revision),0)+1 FROM level_solutions WHERE run_id=?", (run_id,)).fetchone()[0])
@@ -361,7 +432,7 @@ def solve_saved_run(
             "INSERT INTO level_solutions(solution_id,run_id,ts_utc,revision,closure,adjusted,method,settings_json,results_json,qc_json) VALUES(?,?,?,?,?,?,?,?,?,?)",
             (
                 solution_id, run_id, utc_now(), revision, result.get("closure"), 1 if result.get("adjusted") else 0, result["adjustment_method"],
-                json.dumps({"middle_wire_tolerance": middle_wire_tolerance, "max_distance_imbalance": max_distance_imbalance, "closure_tolerance": closure_tolerance, "stadia_multiplier": stadia_multiplier, "calculation_profile": calculation_profile}, sort_keys=True),
+                json.dumps({"middle_wire_tolerance": middle_wire_tolerance, "max_distance_imbalance": max_distance_imbalance, "closure_tolerance": closure_tolerance, "stadia_multiplier": stadia_multiplier, "calculation_profile": calculation_profile, "row_layout": result["row_layout"]}, sort_keys=True),
                 json.dumps(result["results"], sort_keys=True),
                 json.dumps({k: result[k] for k in ("sum_bs", "sum_fs", "delta_elevation", "distance_imbalance", "qc_flags", "closure_pass")}, sort_keys=True),
             ),

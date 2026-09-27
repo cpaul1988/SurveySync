@@ -134,7 +134,13 @@ def main()->None:
             except Exception:pass
     bridge._shutdown_callback=shutdown
     window.events.closed += lambda: shutdown(False)
+    def watch_shutdown():
+        # pywebview invokes this callback off the GUI thread after initialization.
+        # API and updater requests share this event with native window closure.
+        field_app.runtime.shutdown_event.wait()
+        shutdown()
     webview.start(
+        watch_shutdown,
         gui="edgechromium" if sys.platform=="win32" else None,
         debug=False,
         icon=str(window_icon) if window_icon.exists() else None,
