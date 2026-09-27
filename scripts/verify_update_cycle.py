@@ -117,10 +117,11 @@ def finish_wizard(report, timeout=600):
                 report['wizard_title']=wizard.window_text()
                 wizard.capture_as_image().save(OUT/(report['fixture']+'-setup.png'))
             buttons=wizard.descendants(class_name='TNewButton')
-            for text in ('&Finish','&Install','&Next >','Next >','Install','Finish'):
+            for text in ('&Finish','&Install','&Next >','&Next','Next >','Next','Install','Finish'):
                 matches=[b for b in buttons if b.window_text()==text and b.is_enabled() and b.is_visible()]
                 if matches:
                     report['wizard_actions'].append(text)
+                    print(f"{report['fixture']}: real Setup click {text}", flush=True)
                     matches[0].click()
                     if 'Finish' in text:return
                     time.sleep(.6)
