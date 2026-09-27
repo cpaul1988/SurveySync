@@ -106,12 +106,48 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE.
 ## jxl2txt
 
 - Project: https://github.com/mrahnis/jxl2txt
+- Copyright: Copyright (c) 2015, Michael A. Rahnis
 - License: BSD 3-Clause
-- Current SurveySync usage:
-  - Reference/test-expansion target only; no jxl2txt source code is copied in
-    this integration branch.
-  - Planned use is to expand Trimble JobXML/XSLT regression cases around the
-    existing SurveySync JobXML parser.
+- SurveySync usage:
+  - `surveysync/trimble_job.py` adopts jxl2txt's compatibility principle of
+    tolerant JobXML intake while preserving SurveySync's native parser and
+    official Trimble `.job` conversion path.
+  - SurveySync does not copy jxl2txt's Click CLI or XSLT execution code and does
+    not add lxml as a runtime dependency.
+  - The 9.4 parser adds namespace/version independence, nested section discovery,
+    encoding/BOM tolerance, preferred point-ID aliases, and a narrow safe
+    text-recovery path for illegal control characters and bare ampersands.
+  - `tests/test_v940_jxl_regression.py` provides SurveySync-owned regression
+    fixtures for those compatibility cases.
+
+BSD 3-Clause License notice:
+
+Copyright (c) 2015, Michael A. Rahnis
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+* Neither the name of Michael A. Rahnis nor the names of its contributors may
+  be used to endorse or promote products derived from this software without
+  specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
 
 ## Existing geospatial dependencies
 
