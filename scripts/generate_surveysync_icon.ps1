@@ -4,6 +4,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# Generate all web and wizard assets from the same canonical globe.
+& python (Join-Path $PSScriptRoot 'generate_brand_assets.py')
+if ($LASTEXITCODE -ne 0) { throw 'SurveySync brand asset generation failed.' }
+$canonicalSource = Join-Path $PSScriptRoot '..\branding\SurveySync_globe_512.png'
+if ([System.IO.Path]::GetFullPath($SourcePath) -eq [System.IO.Path]::GetFullPath($canonicalSource)) {
+    $SourcePath = Join-Path $PSScriptRoot '..\branding\SurveySync_globe_transparent_512.png'
+}
+
 Add-Type -AssemblyName System.Drawing
 
 if (-not (Test-Path $SourcePath)) {

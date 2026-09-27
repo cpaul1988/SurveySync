@@ -17,9 +17,10 @@
       document.documentElement.dataset.theme=theme; document.documentElement.dataset.themeMode=mode; document.documentElement.dataset.productTheme=product; document.documentElement.dataset.accent=accent;
     } catch(_) {}
   </script>
-  <link rel="stylesheet" href="/static/styles.css?v=9.4.0" />
+  <link rel="stylesheet" href="/static/styles.css?v=9.4.0-beta.3" />
+  <link rel="stylesheet" href="/surveysync-static/fieldbook-standard.css?v=9.4.0-beta.3">
 </head>
-<body>
+<body class="fieldbook-workspace">
 <div id="startupSplash" class="startup-splash hide" aria-hidden="true" style="display:none"><img id="startupBrandLogo" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync"></div>
 <input id="prefSplash" type="checkbox" style="display:none" aria-hidden="true" tabindex="-1">
 <div class="app">
@@ -323,7 +324,7 @@
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-backdrop"></div><div class="modal-panel"><div class="modal-head"><div><div id="modalEyebrow" class="eyebrow">FIELD BOOK</div><h2 id="modalTitle">Review</h2></div><button id="modalClose" class="icon-btn">×</button></div><div id="modalBody" class="modal-body"></div></div></div>
 <div id="commandPalette" class="command hidden"><div class="command-backdrop"></div><div class="command-box"><div class="command-search"><span>⌕</span><input id="commandInput" placeholder="Search PointID, code, field-book page…" autocomplete="off"/><kbd>Esc</kbd></div><div id="commandResults" class="command-results"><div class="empty-state">Start typing to search this project.</div></div></div></div>
 <div id="toastStack" class="toast-stack"></div>
-<script src="/static/menu_bootstrap.js?v=9.4.0"></script>
-<script src="/static/app.js?v=9.4.0"></script>
+<script src="/static/menu_bootstrap.js?v=9.4.0-beta.3"></script>
+<script src="/static/app.js?v=9.4.0-beta.3"></script>
 </body>
 </html>

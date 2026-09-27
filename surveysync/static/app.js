@@ -16,26 +16,49 @@ window.addEventListener('beforeunload',rememberModalSize);window.addEventListene
 
 const SS_RELEASE_SEEN_KEY='surveysync-release-notes-seen-v2';
 let releaseNotesData={version:'',release_id:'',notes:[]};
+let releaseNotesLoading=null;
+function releaseLabel(d){return String(d?.release_id||d?.version||'').replace(/^v/,'')}
+function notesWereSeen(id){try{return localStorage.getItem(SS_RELEASE_SEEN_KEY)===id}catch{return false}}
+function markNotesSeen(id){try{localStorage.setItem(SS_RELEASE_SEEN_KEY,id)}catch(e){console.warn('Release-note acknowledgment could not be saved',e)}}
 async function loadReleaseNotes(showOnUpgrade=true){
-  try{
-    const d=await api('/api/v9/release-notes');releaseNotesData=d||{};
-    const version=String(d.version||'').trim();
-    const releaseId=String(d.release_id||version).trim();
-    const notes=Array.isArray(d.notes)?d.notes:[];
-    if($('#whatsNewTitle'))$('#whatsNewTitle').textContent=`What's new in SurveySync ${version?`v${version}`:''}`;
-    if($('#whatsNewVersion'))$('#whatsNewVersion').textContent=version?`v${version}`:'Latest';
-    if($('#whatsNewList'))$('#whatsNewList').innerHTML=notes.map(x=>`<li>${esc(x)}</li>`).join('')||'<li>No release notes available.</li>';
-    if(showOnUpgrade&&releaseId&&localStorage.getItem(SS_RELEASE_SEEN_KEY)!==releaseId){openReleaseNotes(true)}
-  }catch(e){if($('#whatsNewList'))$('#whatsNewList').innerHTML=`<li>${esc(e.message)}</li>`}
+  if(releaseNotesLoading)return releaseNotesLoading;
+  releaseNotesLoading=(async()=>{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),8000);
+    try{
+      const d=await api('/api/v9/release-notes',{signal:controller.signal,cache:'no-store'});
+      if(!d||!Array.isArray(d.notes)||!d.notes.length)throw new Error('The installed release notes are unavailable.');
+      releaseNotesData=d;
+      const id=String(d.release_id||d.version||'').trim(),label=releaseLabel(d);
+      if($('#whatsNewTitle'))$('#whatsNewTitle').textContent=`What's new in SurveySync`;
+      if($('#whatsNewVersion'))$('#whatsNewVersion').textContent=label?`v${label}`:'Latest';
+      if($('#workspaceBuild'))$('#workspaceBuild').textContent=`SurveySync v${label}`;
+      if($('#whatsNewList'))$('#whatsNewList').innerHTML=d.notes.slice(0,3).map(x=>`<li>${esc(x)}</li>`).join('');
+      if(showOnUpgrade&&id&&!notesWereSeen(id))openReleaseNotes(true);
+      return d;
+    }catch(e){
+      const message=e.name==='AbortError'?'Release notes took too long to load.':e.message;
+      if($('#whatsNewList')){
+        $('#whatsNewList').innerHTML=`<li>${esc(message)} <button id="retryReleaseNotes" class="link-btn" type="button">Retry</button></li>`;
+        $('#retryReleaseNotes').onclick=()=>loadReleaseNotes(true);
+      }
+      console.warn('Release notes:',message);
+      return null;
+    }finally{clearTimeout(timeout);releaseNotesLoading=null}
+  })();
+  return releaseNotesLoading;
 }
 function openReleaseNotes(markSeen=false){
-  const d=releaseNotesData||{};
-  const version=String(d.version||'').trim();
-  const releaseId=String(d.release_id||version).trim();
-  const notes=Array.isArray(d.notes)?d.notes:[];
-  openModalShell('release-notes');$('#modalBody').innerHTML=`<div class="release-dialog"><div class="brand-lockup"><img class="brand-lockup-icon" src="/surveysync-static/surveysync_globe.svg" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><div class="eyebrow">WHAT'S NEW</div><h2>SurveySync ${version?`v${esc(version)}`:''}</h2><p class="muted">Latest application-wide update.</p><ul class="release-list">${notes.map(x=>`<li>${esc(x)}</li>`).join('')||'<li>No release notes available.</li>'}</ul><div class="row"><button id="releaseDone" class="primary">Continue</button></div></div>`;
-  $('#releaseDone').onclick=()=>{if(markSeen&&releaseId)localStorage.setItem(SS_RELEASE_SEEN_KEY,releaseId);closeModalShell()};
+  const d=releaseNotesData||{},releaseId=String(d.release_id||d.version||'').trim();
+  if(!Array.isArray(d.notes)||!d.notes.length){
+    loadReleaseNotes(false).then(loaded=>{if(loaded)openReleaseNotes(markSeen);else toast('Release notes could not be loaded. Use Retry on Home.')});
+    return;
+  }
+  openModalShell('release-notes');
+  $('#modalBody').innerHTML=`<div class="release-dialog"><div class="brand-lockup"><img class="brand-lockup-icon" src="/surveysync-static/surveysync_globe.svg" alt=""><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div></div></div><div class="eyebrow">WHAT'S NEW</div><h2>SurveySync v${esc(releaseLabel(d))}</h2><p class="muted">Installed release notes. Available without an internet connection.</p><ul class="release-list">${d.notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><div class="row"><button id="releaseDone" class="primary">Continue</button></div></div>`;
+  $('#releaseDone').onclick=()=>{if(markSeen&&releaseId)markNotesSeen(releaseId);closeModalShell()};
 }
+
 function openAboutSurveySync(){
   openModalShell('about-surveysync');
   const version=String(releaseNotesData?.version||statusData?.version||'9.4.0');
@@ -72,6 +95,8 @@ function updateAppearanceControls(){
   const label=mode[0].toUpperCase()+mode.slice(1);
   if($('#appearanceGlyph'))$('#appearanceGlyph').textContent=glyph;
   if($('#appearanceText'))$('#appearanceText').textContent=label;
+  if($('#workspaceAppearance'))$('#workspaceAppearance').textContent=`${glyph} ${label}`;
+  if($('#workspaceStatusTheme'))$('#workspaceStatusTheme').textContent='Theme: '+(THEME_PROFILES[document.documentElement.dataset.productTheme]||'FieldBook Classic');
   $$('[data-global-appearance]').forEach(b=>b.classList.toggle('selected',b.dataset.globalAppearance===mode));
   if($('#globalTheme'))$('#globalTheme').value=document.documentElement.dataset.productTheme||'classic';
   if($('#globalAccent'))$('#globalAccent').value=document.documentElement.dataset.accent||'default';
@@ -102,6 +127,7 @@ function initGlobalThemeControls(){
   const accent=$('#globalAccent');if(accent)accent.onchange=()=>{applyAccent(accent.value);toast(`${ACCENTS[accent.value]} accent applied to all modules`)};
   $$('[data-global-appearance]').forEach(b=>b.onclick=()=>{applyAppearance(b.dataset.globalAppearance);toast(`${b.textContent.trim()} appearance applied to all modules`)});
   if($('#appearanceBtn'))$('#appearanceBtn').onclick=cycleAppearance;
+  if($('#workspaceAppearance'))$('#workspaceAppearance').onclick=cycleAppearance;
   updateAppearanceControls();
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if((document.documentElement.dataset.themeMode||'system')==='system')applyAppearance('system',false)});
@@ -138,9 +164,10 @@ const MODULE_WORKFLOW_ICONS={
 const WORKFLOW_ICON_BASE='/surveysync-static/workflow-icons/';
 function moduleWorkflowIcon(name){const file=MODULE_WORKFLOW_ICONS[name]||MODULE_WORKFLOW_ICONS.Home;return WORKFLOW_ICON_BASE+file}
 function applyModuleBrandIcons(){
-  $('.module-tab[data-module]').forEach(b=>{
+  $$('.module-tab[data-module]').forEach(b=>{
     if(b.querySelector('.module-tab-icon'))return;
     const img=document.createElement('img');img.className='module-tab-icon';img.src=moduleWorkflowIcon(b.dataset.module);img.alt='';
+    img.addEventListener('error',()=>{img.remove();console.warn('Module icon unavailable:',b.dataset.module)},{once:true});
     b.prepend(img);
   });
 }
@@ -174,13 +201,13 @@ function closeMenus(){ $$('.desktop-menu').forEach(m=>m.classList.add('hidden'))
 $$('.menu-trigger').forEach(b=>b.onclick=e=>{e.stopPropagation();const menu=$('#'+b.dataset.menu),open=!menu.classList.contains('hidden');closeMenus();if(open)return;const r=b.getBoundingClientRect();menu.style.left=`${r.left}px`;menu.style.top=`${r.bottom+2}px`;menu.classList.remove('hidden');b.classList.add('open')});
 document.addEventListener('click',e=>{if(!e.target.closest('.desktop-menu')&&!e.target.closest('.menu-trigger'))closeMenus()});
 
-function renderModuleNav(){const m=modules[activeModule]||modules.Home;$('#moduleKicker').textContent=activeModule==='Home'?'SURVEYSYNC':'MODULE';$('#moduleName').textContent=activeModule;$('#moduleDescription').textContent=m.desc;let last='';$('#moduleNav').innerHTML=m.nav.map(([group,label,view,ico],i)=>{let h='';if(group!==last){h=`<div class="module-nav-label">${esc(group)}</div>`;last=group}return h+`<button class="module-nav-btn ${view===activeView?'active':''}" data-view="${view}" data-nav-index="${i}"><span class="nav-ico">${ico}</span><span>${esc(label)}</span></button>`}).join('');$$('#moduleNav .module-nav-btn').forEach(b=>b.onclick=()=>switchView(b.dataset.view,b.textContent.trim()))}
+function renderModuleNav(){const m=modules[activeModule]||modules.Home;$('#moduleKicker').textContent=activeModule==='Home'?'SURVEYSYNC':'MODULE';$('#moduleName').textContent=activeModule;$('#moduleDescription').textContent=m.desc;let last='';$('#moduleNav').innerHTML=m.nav.map(([group,label,view,ico],i)=>{let h='';if(group!==last){h=`<div class="module-nav-label">${esc(group)}</div>`;last=group}return h+`<button class="module-nav-btn ${view===activeView?'active':''}" data-view="${view}" data-nav-index="${i}" aria-label="${esc(label)}" title="${esc(label)}"><span class="nav-ico">${ico}</span><span>${esc(label)}</span></button>`}).join('');$$('#moduleNav .module-nav-btn').forEach(b=>b.onclick=()=>switchView(b.dataset.view,b.textContent.trim()))}
 function setFoundation(label){const f=foundationCopy[activeModule]||[activeModule,'This module is connected to the common SurveySync foundation.',['Shared Project','Shared Points','Shared CRS','Shared Audit']];$('#foundationKicker').textContent=activeModule.toUpperCase();$('#foundationTitle').textContent=label&&label!==activeModule?label:f[0];$('#foundationText').textContent=f[1];const src=activeModule==='Home'?'/surveysync-static/surveysync_globe.svg':moduleWorkflowIcon(activeModule);$('#foundationIcon').innerHTML=`<img src="${src}" alt="">`;$('#foundationCards').innerHTML=f[2].map(x=>`<div class="foundation-card"><h3>${esc(x)}</h3><p>Uses the same project identity, CRS/units, provenance and audit conventions as the rest of SurveySync.</p><span class="status">FOUNDATION READY</span></div>`).join('')}
-function switchView(v,label=''){activeView=v;$$('.view').forEach(x=>x.classList.toggle('active',x.id===v));const meta=viewMeta[v]||viewMeta.foundation;$('#viewTitle').textContent=label||meta[0];$('#viewSub').textContent=meta[1];$('#workspaceModule').textContent=activeModule.toUpperCase();renderModuleNav();if(v==='foundation')setFoundation(label);if(v==='audit')loadAudit();if(v==='projectData')loadProjectDataManager();if(v==='control')loadControls();if(v==='controlAdvanced')loadAdvancedControl();if(v==='reportsAdvanced')loadDeliverables();if(v==='operations')loadOperations();if(v==='dataInspector')window.dataInspectorEnter?.();if(v==='supportCenter')window.supportEnter?.();if(v==='rodQc')window.topoEnter?.()}
+function switchView(v,label=''){activeView=v;document.body.dataset.activeView=v;$$('.view').forEach(x=>x.classList.toggle('active',x.id===v));const meta=viewMeta[v]||viewMeta.foundation;$('#viewTitle').textContent=label||meta[0];$('#viewSub').textContent=meta[1];$('#workspaceModule').textContent=activeModule.toUpperCase();renderModuleNav();if(v==='foundation')setFoundation(label);if(v==='audit')loadAudit();if(v==='projectData')loadProjectDataManager();if(v==='control')loadControls();if(v==='controlAdvanced')loadAdvancedControl();if(v==='reportsAdvanced')loadDeliverables();if(v==='operations')loadOperations();if(v==='dataInspector')window.dataInspectorEnter?.();if(v==='supportCenter')window.supportEnter?.();if(v==='rodQc')window.topoEnter?.()}
 function switchModule(name){if(name==='FieldBookSync'){location.href='/fieldbook';return}activeModule=modules[name]?name:'Home';$$('.module-tab').forEach(x=>x.classList.toggle('active',x.dataset.module===activeModule));const first=modules[activeModule].nav[0];switchView(first[2],first[1]);history.replaceState(null,'',activeModule==='Home'?'/' : `/?module=${encodeURIComponent(activeModule)}`)}
 $$('.module-tab').forEach(b=>b.onclick=()=>switchModule(b.dataset.module));$$('[data-jump-module]').forEach(b=>b.onclick=()=>switchModule(b.dataset.jumpModule));$('#brandHome').onclick=()=>switchModule('Home');
 
-function renderStatus(){const s=statusData,c=s.project,brand=s.branding||{};$('#brandBadge').textContent=brand.name||'SurveySync';$('#environmentBadge').textContent=(s.environment||'beta').toUpperCase();$('#envBar').style.background=s.environment==='production'?'#15815d':s.environment==='developer'?'#c94652':'#d29b2f';$('#projectPill').textContent=c?c.name:'No project open';$('#menubarProject').textContent=c?c.name:'No project open';$('#projectCrs').textContent=c?`${c.crs||'CRS not set'} · ${String(c.horizontal_units||'').replaceAll('_',' ')}`:'Choose New Project or Open Project.';const counts=c?.counts||{};$('#metrics').innerHTML=['sources','points','control_observations','open_qa','audit_events'].map(k=>`<div class="metric"><b>${counts[k]??0}</b><small>${k.replaceAll('_',' ')}</small></div>`).join('');$('#projectSummary').innerHTML=c?`<b>${esc(c.name)}</b><br>${esc(c.root)}<br><span class="muted">${esc(c.crs||'CRS not set')} · ${esc(c.horizontal_units)} / ${esc(c.vertical_units)}</span>`:'Create or open a SurveySync project.';renderProject(c)}
+function renderStatus(){const s=statusData,c=s.project,brand=s.branding||{};if($('#workspaceStatusProject'))$('#workspaceStatusProject').textContent='Project: '+(c?.name||'No project open');$('#brandBadge').textContent=brand.name||'SurveySync';$('#environmentBadge').textContent=(s.environment||'beta').toUpperCase();$('#envBar').style.background=s.environment==='production'?'#15815d':s.environment==='developer'?'#c94652':'#d29b2f';$('#projectPill').textContent=c?c.name:'No project open';$('#menubarProject').textContent=c?c.name:'No project open';$('#projectCrs').textContent=c?`${c.crs||'CRS not set'} · ${String(c.horizontal_units||'').replaceAll('_',' ')}`:'Choose New Project or Open Project.';const counts=c?.counts||{};$('#metrics').innerHTML=['sources','points','control_observations','open_qa','audit_events'].map(k=>`<div class="metric"><b>${counts[k]??0}</b><small>${k.replaceAll('_',' ')}</small></div>`).join('');$('#projectSummary').innerHTML=c?`<b>${esc(c.name)}</b><br>${esc(c.root)}<br><span class="muted">${esc(c.crs||'CRS not set')} · ${esc(c.horizontal_units)} / ${esc(c.vertical_units)}</span>`:'Create or open a SurveySync project.';renderProject(c)}
 function coordinateSummary(settings){const c=settings||{},site=c.local_site||{};if(!c.crs)return 'Coordinate system not set.';const units=String(c.horizontal_units||'').replaceAll('_',' '),local=site.enabled?` · Local Site: ${esc(site.name||'Modified Ground')} · grid→ground ${Number(site.grid_to_ground_factor||1).toFixed(8)} · rotation ${Number(site.rotation_deg||0).toFixed(6)}°`:' · Grid coordinates';return `<b>${esc(c.name||c.crs)}</b><br><span class="muted">${esc(c.crs)} · ${esc(units)}${local}</span>`}
 function renderProject(c){if(!c){$('#projectDetails').innerHTML='<span class="muted">No project open.</span>';if($('#projectCoordSummary'))$('#projectCoordSummary').textContent='Open a project first.';return}const db=c.database||{},tpl=c.project_template||{},coord=c.coordinate_system||{crs:c.crs,horizontal_units:c.horizontal_units,vertical_units:c.vertical_units,local_site:{enabled:false}};$('#projectDetails').innerHTML=`<b>${esc(c.name)}</b><p class="muted">Project ID: ${esc(c.project_id)}<br>${c.project_number?`Job: ${esc(c.project_number)}<br>`:''}${c.client?`Client: ${esc(c.client)}<br>`:''}Template: ${esc(tpl.name||tpl.id||'Standard Survey')}<br>Revision ${c.revision} · DB schema ${esc(db.schema_version??c.database_schema_version??'—')}<br>${esc(c.root)}<br>Created ${esc(c.created_utc)}</p>`;if($('#projectCoordSummary'))$('#projectCoordSummary').innerHTML=coordinateSummary(coord);if($('#coordStatusBadge'))$('#coordStatusBadge').textContent=coord.crs?(coord.local_site?.enabled?'LOCAL SITE':'GRID'):'NOT SET';if($('#migrationMsg'))$('#migrationMsg').textContent=`Migration: ${c.fieldbook_migration?.status||'NOT_MIGRATED'}`}
 async function refresh(){statusData=await api('/api/v9/status');configData=await api('/api/v9/config');renderStatus();renderConfig()}
@@ -499,7 +526,22 @@ $$('[data-command]').forEach(b=>b.onclick=()=>runCommand(b.dataset.command));
 window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='n'){e.preventDefault();showProjectDialog('new')}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='o'){e.preventDefault();showProjectManager()}else if(e.ctrlKey&&e.key.toLowerCase()==='o'){e.preventDefault();showProjectDialog('open')}if(e.key==='F11'){e.preventDefault();runCommand('fullscreen')}});
 
 installPathBrowsers();
-applyAppearance(localStorage.getItem(SS_APPEARANCE_KEY)||localStorage.getItem('fbs-theme')||'system',false);applyProductTheme(localStorage.getItem(SS_PRODUCT_THEME_KEY)||localStorage.getItem('fbs-product-theme')||'classic',false);applyAccent(localStorage.getItem(SS_ACCENT_KEY)||localStorage.getItem('fbs-accent')||'default',false);initGlobalThemeControls();applyModuleBrandIcons();const startupParams=new URLSearchParams(location.search),initial=startupParams.get('module');if(initial&&modules[initial])activeModule=initial;renderModuleNav();loadSharedUiPrefs().finally(()=>refresh().then(async()=>{switchModule(activeModule);await loadReleaseNotes(true);if(startupParams.get('manage_projects')==='1')showProjectManager()}).catch(e=>toast(e.message)));
+// Independent startup lanes: presentation errors must not suppress release notes.
+try{
+  applyAppearance(localStorage.getItem(SS_APPEARANCE_KEY)||localStorage.getItem('fbs-theme')||'system',false);
+  applyProductTheme(localStorage.getItem(SS_PRODUCT_THEME_KEY)||localStorage.getItem('fbs-product-theme')||'classic',false);
+  applyAccent(localStorage.getItem(SS_ACCENT_KEY)||localStorage.getItem('fbs-accent')||'default',false);
+}catch(e){console.warn('Stored appearance unavailable',e)}
+initGlobalThemeControls();
+try{applyModuleBrandIcons()}catch(e){console.warn('Module icons could not be initialized',e)}
+const startupParams=new URLSearchParams(location.search),initial=startupParams.get('module');
+if(initial&&modules[initial])activeModule=initial;
+switchModule(activeModule);
+loadReleaseNotes(true);
+loadSharedUiPrefs().finally(()=>refresh().then(()=>{
+  if(startupParams.get('manage_projects')==='1')showProjectManager();
+}).catch(e=>toast(e.message)));
+
 
 $('#openRodHeightQc')?.addEventListener('click',()=>location.href='/fieldbook?rod_height_qc=1');
 

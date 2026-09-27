@@ -6,7 +6,6 @@ the frozen main router.
 
 from fastapi import APIRouter
 
-from .operations_routes import router as operations_router
 from .pointcloud_routes import router as pointcloud_router
 from .workflow_routes import router as workflow_router
 from .crs_diagnostic_routes import router as crs_diagnostic_router
@@ -14,7 +13,6 @@ from .report_template_routes import router as report_template_router
 from .gis_bridge_routes import router as gis_bridge_router
 
 router = APIRouter()
-router.include_router(operations_router)
 router.include_router(pointcloud_router)
 router.include_router(workflow_router)
 router.include_router(crs_diagnostic_router)

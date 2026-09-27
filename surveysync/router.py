@@ -88,6 +88,7 @@ from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from . import __version__
+from .static_assets import serve_static
 from .audit import utc_now
 from .config import AppConfig, ConfigStore, ENVIRONMENTS, RELEASE_CHANNELS, DEFAULT_UPDATE_MANIFEST_URL
 from .project import SurveyProject, safe_name
@@ -161,11 +162,13 @@ core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
-SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.2"
+SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.3"
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "Beta.2 corrects SurveySync product branding so the globe is used for the Windows app, installer, shortcuts, shared product header, splash, About, and release-notes surfaces instead of the S/monogram icon.",
-    "Beta.2 restores reliable first-launch release notes by tracking a release-specific notes ID rather than suppressing later 9.4 builds after one 9.4 notes view.",
+    "Beta.3 makes FieldBookSync the visual standard for Home and every module: shared palettes, toolbars, sidebars, cards, controls, spacing, and readable typography.",
+    "Fixes the module-icon startup exception and the static route that rejected workflow-icon subfolders; release notes no longer depend on successful project/status initialization.",
+    "Globe branding is generated from one source for application icons and both installer wizard images. Dark-mode wordmarks use light lettering without inverting the globe colors.",
+    "Release notes identify this build as 9.4.0-beta.3, remain unread until Continue, and include a visible retry action on failure. Existing project data and saved theme preferences are retained.",
     "9.4.0 completes the open-source integration roadmap while preserving SurveySync's validated ControlSync, leveling, audit, and source-evidence workflows.",
     "ControlSync network adjustment now has an independent pySurveying-style numerical validation engine with residual, redundancy, sigma0, and error-ellipse cross-checks.",
     "Trimble JobXML/JXL intake is more tolerant across Access/TBC generations while structurally corrupt XML still fails closed.",
@@ -328,12 +331,9 @@ def release_notes():
     }
 
 
-@router.get("/surveysync-static/{name}")
+@router.get("/surveysync-static/{name:path}")
 def static_asset(name: str):
-    if "/" in name or "\\" in name or ".." in name: raise HTTPException(404)
-    path=STATIC/name
-    if not path.is_file(): raise HTTPException(404)
-    return FileResponse(path)
+    return serve_static(STATIC, name)
 
 @router.get("/api/v9/status")
 def status():
