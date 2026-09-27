@@ -1,0 +1,96 @@
+name: SurveySync Repair Acceptance
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: surveysync-repair-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  installed-windows:
+    if: github.repository == 'cpaul1988/SurveySync'
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install locked application and test dependencies
+        run: python -m pip install --require-hashes -r requirements-dev.lock
+      - name: Prepare isolated browser validation
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install chromium
+      - name: Regenerate canonical globe assets
+        shell: pwsh
+        run: ./scripts/generate_surveysync_icon.ps1
+      - name: Full unchanged release gate with repair regressions
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force repair-evidence | Out-Null
+          python scripts/release_gate.py 2>&1 | Tee-Object repair-evidence/release-gate.log
+          if ($LASTEXITCODE -ne 0) { throw 'Unchanged release gate failed.' }
+      - name: Exercise repaired commands and level-layout control
+        run: python scripts/verify_repaired_ui.py
+      - name: Preserve module and theme acceptance
+        run: |
+          python scripts/ui_browser_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Module UI acceptance failed.' }
+          python scripts/theme_branding_smoke.py
+          if ($LASTEXITCODE -ne 0) { throw 'Theme acceptance failed.' }
+      - name: Install Inno Setup on disposable runner
+        run: choco install innosetup --yes --no-progress
+      - name: Build unreleased repair installer with the full gate
+        shell: pwsh
+        run: |
+          ./Build_SurveySync.ps1 2>&1 | Tee-Object repair-evidence/build.log
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate compilation failed.' }
+      - name: Install the real candidate in the runner temporary directory
+        shell: pwsh
+        run: |
+          $install = Join-Path $env:RUNNER_TEMP 'SurveySync_Repair_Test'
+          if (Test-Path $install) { throw 'Disposable installation already exists.' }
+          $setup = (Resolve-Path 'installer/output/SurveySync_Setup_9.4.0.exe').Path
+          $log = Join-Path $env:GITHUB_WORKSPACE 'repair-evidence/setup.log'
+          $process = Start-Process -FilePath $setup -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',('/DIR="'+$install+'"'),('/LOG="'+$log+'"')) -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Setup failed with code $($process.ExitCode)." }
+          "SS_REPAIR_INSTALL=$install" >> $env:GITHUB_ENV
+      - name: Installed-native control, shutdown and reopen acceptance
+        run: python scripts/verify_repaired_native.py
+      - name: Preserve successfully tested installer only as an unpublished artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurveySync_Unreleased_Audit_Repair_Installer
+          path: |
+            installer/output/SurveySync_Setup_9.4.0.exe
+            installer/output/SurveySync_Setup_9.4.0.exe.sha256
+            UNRELEASED_REPAIR_NOTES.md
+          if-no-files-found: error
+          retention-days: 14
+      - name: Collect runtime diagnostics and exact source
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force repair-evidence | Out-Null
+          $log = Join-Path $env:LOCALAPPDATA 'SurveySync/logs/setup_runtime.log'
+          if (Test-Path $log) { Copy-Item $log repair-evidence/setup-runtime.log }
+          git rev-parse HEAD | Set-Content repair-evidence/tested-source.txt
+          git archive --format=zip --output=repair-evidence/tested-source.zip HEAD
+      - name: Retain actual evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurveySync_Repair_Acceptance_Evidence
+          path: |
+            repair-evidence/
+            ui-evidence/
+            coverage.xml
+          retention-days: 14
