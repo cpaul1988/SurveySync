@@ -18,6 +18,7 @@ import urllib.request
 from playwright.sync_api import Error, expect, sync_playwright
 import psutil
 from pywinauto import Desktop
+from openpyxl import load_workbook
 from pywinauto.keyboard import send_keys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,7 +68,22 @@ def main():
     sample = state / 'point-ranges.csv'
     sample.write_text('PointID,Northing,Easting,Elevation,Code\n1001,1000,2000,10,CP\n1005,1001,2001,11,CP\n1007,1002,2002,12,CP\n', encoding='utf-8')
     before = sample.read_bytes()
-    env = dict(os.environ, SURVEYSYNC_CONFIG_ROOT=str(state / 'config'),
+    # Enable only the documented pywebview setting in the disposable child.
+    # The normal launcher and installed desktop source remain byte-for-byte intact.
+    hook = state / 'test-hook'
+    hook.mkdir()
+    marker = state / 'cdp-enabled.json'
+    child_python = (install / '.venv/Scripts/python.exe').resolve()
+    source = ("from pathlib import Path\nimport os, sys, json\n"
+              f"if Path(sys.executable).resolve() == Path({str(child_python)!r}):\n"
+              "    import webview\n"
+              f"    webview.settings['REMOTE_DEBUGGING_PORT'] = {CDP_PORT}\n"
+              "    webview.settings['OPEN_DEVTOOLS_IN_DEBUG'] = False\n"
+              f"    Path({str(marker)!r}).write_text(json.dumps({{'pid':os.getpid(),'setting':webview.settings['REMOTE_DEBUGGING_PORT']}}),encoding='utf-8')\n")
+    compile(source, 'sitecustomize.py', 'exec')
+    (hook / 'sitecustomize.py').write_text(source, encoding='utf-8')
+    env = dict(os.environ, PYTHONPATH=str(hook),
+               SURVEYSYNC_CONFIG_ROOT=str(state / 'config'),
                SURVEYSYNC_FIELD_ROOT=str(state / 'field'),
                WEBVIEW2_USER_DATA_FOLDER=str(state / 'webview'),
                WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=f'--remote-debugging-port={CDP_PORT} --remote-debugging-address=127.0.0.1')
@@ -80,8 +96,10 @@ def main():
             while not open_port(CDP_PORT):
                 assert process.poll() is None, 'Installed native process exited during startup'
                 if time.monotonic() > deadline:
-                    raise TimeoutError('Installed WebView2 did not expose test-only CDP port')
+                    raise TimeoutError(f'Installed WebView2 did not expose test-only CDP port; hook_marker={marker.exists()}')
                 time.sleep(.25)
+            assert marker.is_file(), 'The isolated debugging hook did not initialize'
+            result['debug_hook'] = json.loads(marker.read_text(encoding='utf-8'))
             browser = pw.chromium.connect_over_cdp(f'http://127.0.0.1:{CDP_PORT}')
             page = None
             while page is None and time.monotonic() < deadline:
@@ -124,6 +142,11 @@ def main():
                     assert output.is_relative_to(state) and output.stat().st_size > 0
                 with Path(data['report_paths']['csv']).open(encoding='utf-8-sig', newline='') as stream:
                     assert len(list(csv.reader(stream))) >= 2
+                workbook = load_workbook(data['report_paths']['xlsx'], read_only=True)
+                try:
+                    assert len(list(workbook.active.values)) >= 2
+                finally:
+                    workbook.close()
                 assert sample.read_bytes() == before
                 expect(page.locator('#rangeResult')).to_contain_text('3 occupied PointIDs reviewed')
                 page.screenshot(path=str(OUT / 'native-point-ranges.png'))
@@ -158,7 +181,13 @@ def main():
                 raise
     finally:
         if process.poll() is None:
+            try:
+                result['owned_processes'] = [p.as_dict(attrs=['pid','name','cmdline']) for p in psutil.Process(process.pid).children(recursive=True)]
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
             subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'], check=False)
+        if marker.exists():
+            result['debug_hook'] = json.loads(marker.read_text(encoding='utf-8'))
         (OUT / 'native-controls-results.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
     print(json.dumps(result, indent=2))
 

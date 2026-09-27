@@ -50,3 +50,33 @@ def test_actual_watch_callback_consumes_shutdown_event():
     callback.assert_called_once_with()
     start_calls=[n for n in ast.walk(main) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='start' and isinstance(n.func.value,ast.Name) and n.func.value.id=='webview']
     assert len(start_calls)==1 and isinstance(start_calls[0].args[0],ast.Name) and start_calls[0].args[0].id=='watch_shutdown'
+
+
+def test_watch_follows_runtime_replaced_by_project_switch():
+    tree = ast.parse((ROOT/'desktop.py').read_text(encoding="utf-8"))
+    main = next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='main')
+    watch = next(n for n in main.body if isinstance(n,ast.FunctionDef) and n.name=='watch_shutdown')
+    entered = threading.Event()
+    original = threading.Event()
+    replacement = threading.Event()
+    class ObservedEvent:
+        def wait(self, timeout=None):
+            entered.set()
+            return original.wait(timeout)
+    app = SimpleNamespace(runtime=SimpleNamespace(shutdown_event=ObservedEvent()))
+    callback = Mock()
+    namespace = {'field_app':app, 'shutdown':callback}
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[watch],type_ignores=[])),'desktop.py','exec'),namespace)
+    thread = threading.Thread(target=namespace['watch_shutdown'],daemon=True)
+    thread.start()
+    try:
+        assert entered.wait(2)
+        app.runtime = SimpleNamespace(shutdown_event=replacement)
+        replacement.set()
+        thread.join(2)
+        assert not thread.is_alive(), 'Watcher stayed bound to the old project runtime'
+        callback.assert_called_once_with()
+    finally:
+        original.set()
+        replacement.set()
+        thread.join(2)

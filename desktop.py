@@ -135,9 +135,10 @@ def main()->None:
     bridge._shutdown_callback=shutdown
     window.events.closed += lambda: shutdown(False)
     def watch_shutdown():
-        # pywebview invokes this callback off the GUI thread after initialization.
-        # API and updater requests share this event with native window closure.
-        field_app.runtime.shutdown_event.wait()
+        # Project switching replaces Runtime and its Event. Do not wait forever
+        # on the first project's event; follow the current runtime each interval.
+        while not field_app.runtime.shutdown_event.wait(timeout=0.2):
+            pass
         shutdown()
     webview.start(
         watch_shutdown,
