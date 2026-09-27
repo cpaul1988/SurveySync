@@ -241,17 +241,21 @@ def polygon_area_perimeter(*, points: list[dict[str, float]]) -> dict[str, float
 
     vertices = _normalized_points(points, minimum=3)
     origin_n, origin_e = vertices[0]
-    local = [(n-origin_n, e-origin_e) for n, e in vertices]
+    local = [(n - origin_n, e - origin_e) for n, e in vertices]
     pairs = list(zip(local, local[1:] + local[:1]))
-    crosses = [e1*n2-e2*n1 for (n1,e1),(n2,e2) in pairs]
+    crosses = [e1 * n2 - e2 * n1 for (n1, e1), (n2, e2) in pairs]
     twice_area = math.fsum(crosses)
     signed_area = twice_area / 2.0
-    scale = max((abs(n)+abs(e) for n,e in local), default=0.0)
-    if not math.isfinite(signed_area) or abs(twice_area) <= math.ulp(scale*scale)*len(local):
+    scale = max((abs(n) + abs(e) for n, e in local), default=0.0)
+    if not math.isfinite(signed_area) or abs(twice_area) <= math.ulp(scale * scale) * len(local):
         raise ValueError("Polygon area is zero or numerically degenerate.")
-    perimeter = math.fsum(math.hypot(n2-n1,e2-e1) for (n1,e1),(n2,e2) in pairs)
-    centroid_easting = origin_e + math.fsum((a[1]+b[1])*c for (a,b),c in zip(pairs,crosses))/(3*twice_area)
-    centroid_northing = origin_n + math.fsum((a[0]+b[0])*c for (a,b),c in zip(pairs,crosses))/(3*twice_area)
+    perimeter = math.fsum(math.hypot(n2 - n1, e2 - e1) for (n1, e1), (n2, e2) in pairs)
+    centroid_easting = origin_e + math.fsum(
+        (a[1] + b[1]) * c for (a, b), c in zip(pairs, crosses)
+    ) / (3 * twice_area)
+    centroid_northing = origin_n + math.fsum(
+        (a[0] + b[0]) * c for (a, b), c in zip(pairs, crosses)
+    ) / (3 * twice_area)
     return {
         "vertex_count": len(vertices),
         "area": abs(signed_area),

@@ -441,7 +441,12 @@ def utility_analyze(payload: UtilityAnalyzeIn):
         )
         return {
             "connections": supported,
-            "grades": pipe_grades(structures, supported, horizontal_units=p.manifest.get("horizontal_units", ""), vertical_units=p.manifest.get("vertical_units", "")),
+            "grades": pipe_grades(
+                structures,
+                supported,
+                horizontal_units=p.manifest.get("horizontal_units", ""),
+                vertical_units=p.manifest.get("vertical_units", ""),
+            ),
             "gis_is_reference_only": True,
         }
     except Exception as exc:
