@@ -18,7 +18,7 @@ BASE='http://127.0.0.1:18769'
 def main():
     OUT.mkdir(exist_ok=True)
     report={'status':'FAIL','checks':[]}
-    with tempfile.TemporaryDirectory() as temp, (OUT/'ui-server.log').open('w') as log:
+    with tempfile.TemporaryDirectory() as temp, (OUT/'ui-server.log').open('w', encoding='utf-8') as log:
         server=subprocess.Popen([sys.executable,'-m','uvicorn','fieldbook_sync.app:app','--host','127.0.0.1','--port','18769'],cwd=ROOT,env=dict(os.environ,SURVEYSYNC_CONFIG_ROOT=temp+'/config',SURVEYSYNC_FIELD_ROOT=temp+'/field'),stdout=log,stderr=subprocess.STDOUT)
         try:
             for _ in range(100):
@@ -63,7 +63,7 @@ def main():
         finally:
             server.terminate()
             server.wait(timeout=10)
-            (OUT/'ui-results.json').write_text(json.dumps(report,indent=2))
+            (OUT/'ui-results.json').write_text(json.dumps(report,indent=2), encoding="utf-8")
     print(json.dumps(report,indent=2))
 
 

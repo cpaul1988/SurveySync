@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def bridge_class():
-    tree = ast.parse((ROOT/'desktop.py').read_text())
+    tree = ast.parse((ROOT/'desktop.py').read_text(encoding="utf-8"))
     node = next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='NativeBridge')
     namespace = {'Path':Path}
     exec(compile(ast.fix_missing_locations(ast.Module(body=[node],type_ignores=[])),'desktop.py','exec'),namespace)
@@ -34,7 +34,7 @@ def test_bridge_exit_reports_callback_failure():
 
 
 def test_actual_watch_callback_consumes_shutdown_event():
-    tree=ast.parse((ROOT/'desktop.py').read_text())
+    tree=ast.parse((ROOT/'desktop.py').read_text(encoding="utf-8"))
     main=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='main')
     watch=next(n for n in main.body if isinstance(n,ast.FunctionDef) and n.name=='watch_shutdown')
     event=threading.Event()

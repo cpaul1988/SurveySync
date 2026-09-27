@@ -27,7 +27,7 @@ jobs:
         run: python -m pip install --require-hashes -r requirements-dev.lock
       - name: Prepare isolated browser validation
         run: |
-          python -m pip install playwright==1.57.0
+          python -m pip install playwright==1.57.0 pywinauto==0.6.9 psutil==7.0.0
           python -m playwright install chromium
       - name: Regenerate canonical globe assets
         shell: pwsh
@@ -65,6 +65,8 @@ jobs:
           "SS_REPAIR_INSTALL=$install" >> $env:GITHUB_ENV
       - name: Installed-native control, shutdown and reopen acceptance
         run: python scripts/verify_repaired_native.py
+      - name: Real installed WebView2 file picker, report export, and File Exit
+        run: python scripts/verify_native_controls.py
       - name: Preserve successfully tested installer only as an unpublished artifact
         uses: actions/upload-artifact@v4
         with:

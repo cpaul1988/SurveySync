@@ -49,13 +49,13 @@ def test_A01_repeat_landxml_import_is_idempotent(workspace,tmp_path):
 
 def test_A02_level_PointID_header_advertised_by_error_is_accepted(tmp_path):
     from surveysync.leveling import parse_level_csv
-    p=tmp_path/'level.csv'; p.write_text('PointID,BS,FS\nTP1,1.5,1.0\n')
+    p=tmp_path/'level.csv'; p.write_text('PointID,BS,FS\nTP1,1.5,1.0\n', encoding="utf-8")
     assert parse_level_csv(p)[0]['point_id']=='TP1'
 
 
 def test_A03_field_to_finish_PointID_header_is_accepted(tmp_path):
     from surveysync.field_to_finish import parse_coded_points
-    p=tmp_path/'points.csv';p.write_text('PointID,Northing,Easting,Elevation,Code\n1,1000,2000,20,500-BS\n2,1010,2000,20,500-ES\n')
+    p=tmp_path/'points.csv';p.write_text('PointID,Northing,Easting,Elevation,Code\n1,1000,2000,20,500-BS\n2,1010,2000,20,500-ES\n', encoding="utf-8")
     assert len(parse_coded_points(p))==2
 
 
@@ -74,20 +74,20 @@ def test_A04_separate_fieldbook_BS_FS_rows_have_point_elevations():
 @pytest.mark.parametrize('bad',['nan','inf','-inf'])
 def test_A05_level_nonfinite_readings_are_rejected(tmp_path,bad):
     from surveysync.leveling import parse_level_csv
-    p=tmp_path/'bad.csv';p.write_text(f'Point,BS,FS\nTP1,{bad},1.0\n')
+    p=tmp_path/'bad.csv';p.write_text(f'Point,BS,FS\nTP1,{bad},1.0\n', encoding="utf-8")
     with pytest.raises(ValueError):parse_level_csv(p)
 
 
 @pytest.mark.parametrize('bad',['nan','inf'])
 def test_A05_traverse_nonfinite_distance_is_rejected(tmp_path,bad):
     from surveysync.traverse import parse_traverse_csv
-    p=tmp_path/'bad.csv';p.write_text(f'From,To,Azimuth,Distance\n1,2,0,{bad}\n')
+    p=tmp_path/'bad.csv';p.write_text(f'From,To,Azimuth,Distance\n1,2,0,{bad}\n', encoding="utf-8")
     with pytest.raises(ValueError):parse_traverse_csv(p)
 
 
 def test_A06_exact_closing_traverse_is_json_serializable(workspace,tmp_path):
     client,_,_=workspace
-    p=tmp_path/'traverse.csv';p.write_text('From,To,Azimuth,Distance\n1,2,0,100\n')
+    p=tmp_path/'traverse.csv';p.write_text('From,To,Azimuth,Distance\n1,2,0,100\n', encoding="utf-8")
     imported=client.post('/api/v9/traverse/import',json={
         'file_path':str(p),'start_n':0.,'start_e':0.,'end_n':100.,'end_e':0.,'adjustment_method':'none'})
     assert imported.status_code==200, imported.text
@@ -113,23 +113,23 @@ def test_A07_utility_grade_normalizes_vertical_and_horizontal_units(workspace):
 @pytest.mark.parametrize('cmd',['project-data','data-inspector','support-center'])
 def test_A08_main_shell_command_uses_valid_dom_collection(cmd):
     """Execute the unchanged production function in Node with DOM contract stubs."""
-    js=(Path(__file__).parents[1]/'surveysync/static/app.js').read_text()
+    js=(Path(__file__).parents[1]/'surveysync/static/app.js').read_text(encoding="utf-8")
     line=next(line for line in js.splitlines() if line.startswith('function runCommand(cmd)'))
     stub="""let activeModule='Home';let switched='';function closeMenus(){};
     function switchView(v){switched=v};function $(s){return {dataset:{module:'Home'},classList:{toggle(){}},focus(){},click(){}}};
     function $$(s){return [$(s)]};const document={}; const window={};\n"""
-    run=subprocess.run(['node','-e',stub+line+f'\nrunCommand({json.dumps(cmd)});console.log(switched);'],text=True,capture_output=True)
+    run=subprocess.run(['node','-e',stub+line+f'\nrunCommand({json.dumps(cmd)});console.log(switched);'],text=True,encoding="utf-8",capture_output=True)
     assert run.returncode==0,run.stderr
     assert run.stdout.strip()
 
 
 def test_A09_exit_menu_calls_exposed_exit_app():
-    js=(Path(__file__).parents[1]/'surveysync/static/app.js').read_text()
+    js=(Path(__file__).parents[1]/'surveysync/static/app.js').read_text(encoding="utf-8")
     line=next(line for line in js.splitlines() if line.startswith('function runCommand(cmd)'))
     stub="""let activeModule='Home';function closeMenus(){};let called=false;
     const window={pywebview:{api:{exit_app:()=>{called=true}}},close:()=>{}};
     const pywebview=window.pywebview;\n"""
-    run=subprocess.run(['node','-e',stub+line+"\nrunCommand('exit-app');if(!called)throw Error('Native exit_app was not called');"],text=True,capture_output=True)
+    run=subprocess.run(['node','-e',stub+line+"\nrunCommand('exit-app');if(!called)throw Error('Native exit_app was not called');"],text=True,encoding="utf-8",capture_output=True)
     assert run.returncode==0,run.stderr
 
 
@@ -179,7 +179,7 @@ def test_P03_Ron_differential_setup_rows_use_all_three_wires():
 
 def test_P04_field_to_finish_alternative_point_id_header_and_exact_chains(tmp_path):
     from surveysync.field_to_finish import parse_coded_points,build_linework,to_geojson
-    p=tmp_path/'coded.csv';p.write_text('point_id,northing,easting,elevation,code\n1,0,0,10,500-BS\n2,0,1,10,5001-BS\n3,10,0,10,500-ES\n4,10,1,10,5001-ES\n')
+    p=tmp_path/'coded.csv';p.write_text('point_id,northing,easting,elevation,code\n1,0,0,10,500-BS\n2,0,1,10,5001-BS\n3,10,0,10,500-ES\n4,10,1,10,5001-ES\n', encoding="utf-8")
     result=build_linework(parse_coded_points(p))
     assert result['line_count']==2
     assert {r['line_id'] for r in result['lines']}=={'500','5001'}
@@ -189,7 +189,7 @@ def test_P04_field_to_finish_alternative_point_id_header_and_exact_chains(tmp_pa
 def test_P05_project_reopen_preserves_sources_and_audit(workspace,tmp_path):
     from surveysync.project import SurveyProject
     _,r,_=workspace
-    p=tmp_path/'points.txt';p.write_text('1,100,200,10,CONTROL\n')
+    p=tmp_path/'points.txt';p.write_text('1,100,200,10,CONTROL\n', encoding="utf-8")
     evidence=r.current_project.import_source(p,'Audit','Independent audit fixture')
     root=r.current_project.paths.root
     reopened=SurveyProject(root)

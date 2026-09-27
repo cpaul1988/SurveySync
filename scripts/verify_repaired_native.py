@@ -65,7 +65,7 @@ def main():
                 request('/api/v9/project/create', {'parent_folder':str(state/'projects'), 'name':'NativeRepairQA', 'crs':'EPSG:2278'})
                 project_folder=next((state/'projects').rglob('survey_sync_project.json')).parent
                 points=state/'control.csv'
-                points.write_text('point_id,northing,easting,elevation,code\n100A,1000,2000,10,CP\n100B,1000.03,2000.01,10.02,CP\n100C,999.99,1999.98,9.99,CP\n')
+                points.write_text('point_id,northing,easting,elevation,code\n100A,1000,2000,10,CP\n100B,1000.03,2000.01,10.02,CP\n100C,999.99,1999.98,9.99,CP\n', encoding="utf-8")
                 request('/api/v9/points/import', {'file_path':str(points)})
             revisions=[]
             for i in range(2):
@@ -73,7 +73,7 @@ def main():
                 assert data['revision']==(cycle-1)*2+i+1
                 assert [r['point_id'] for r in data['residuals']]==['100A','100B','100C']
                 assert data['code']=='CP'
-                assert 'Code: CP' in Path(data['deliverables']['final_control_txt']).read_text()
+                assert 'Code: CP' in Path(data['deliverables']['final_control_txt']).read_text(encoding="utf-8")
                 assert abs(data['residuals'][0]['dn'] - (1000-(1000+1000.03+999.99)/3)) < 1e-9
                 revisions.append(data['revision'])
             start=time.monotonic()
@@ -87,7 +87,7 @@ def main():
     finally:
         if process is not None and process.poll() is None:
             subprocess.run(['taskkill','/PID',str(process.pid),'/T','/F'],check=False)
-        (OUT/'native-results.json').write_text(json.dumps(results,indent=2))
+        (OUT/'native-results.json').write_text(json.dumps(results,indent=2), encoding="utf-8")
     print(json.dumps(results,indent=2))
 
 

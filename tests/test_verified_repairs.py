@@ -26,7 +26,7 @@ def load_points(workspace, tmp_path):
     client, context, _ = workspace
     path = tmp_path / 'control.csv'
     path.write_text('point_id,northing,easting,elevation,code\n' + '\n'.join(
-        f'{pid},{n},{e},{z},{code}' for pid, (n,e,z,code) in POINTS.items()))
+        f'{pid},{n},{e},{z},{code}' for pid, (n,e,z,code) in POINTS.items()), encoding="utf-8")
     original = path.read_bytes()
     reply = client.post('/api/v9/points/import', json={'file_path': str(path)})
     assert reply.status_code == 200, reply.text
@@ -61,7 +61,7 @@ def test_control_repeat_preserves_source_identity_code_and_revisions(workspace, 
             assert residual['de'] == pytest.approx(expected[1])
             assert residual['dz'] == pytest.approx(expected[2])
             assert residual['spreadsheet_vz'] == pytest.approx(expected[2] * (1 if i < 2 else -1))
-        text = Path(result['deliverables']['final_control_txt']).read_text()
+        text = Path(result['deliverables']['final_control_txt']).read_text(encoding="utf-8")
         assert 'Code: ' + POINTS[ids[0]][3] in text
         saved_files.update({p:Path(p).read_bytes() for p in result['deliverables'].values()})
         with project.db.connect() as conn:
@@ -87,7 +87,7 @@ def test_failed_recalculation_retains_last_valid_set_and_reports(workspace, tmp_
         monkeypatch.setattr(control, 'solve', bad)
     elif stage == 'export':
         def bad(result, ids, folder):
-            (folder/'partial.txt').write_text('incomplete')
+            (folder/'partial.txt').write_text('incomplete', encoding="utf-8")
             raise OSError('Injected disk failure')
         monkeypatch.setattr(control, 'write_ron_control_deliverables', bad)
     else:
@@ -125,7 +125,7 @@ def test_export_uses_residual_identity_not_list_position(workspace,tmp_path):
     result=from_project_points(project,payload())
     result['residuals']=list(reversed(result['residuals']))
     paths=control.write_ron_control_deliverables(result,list(POINTS),tmp_path/'shuffled')
-    text=Path(paths['qc_txt']).read_text()
+    text=Path(paths['qc_txt']).read_text(encoding="utf-8")
     for residual in result['residuals']:
         assert f"{residual['point_id']}\t{residual['horizontal']:.4f}\t{residual['dz']:.4f}" in text
     result['residuals'][0]['point_id']='wrong'
@@ -152,7 +152,7 @@ def test_finite_contract(value):
 
 @pytest.mark.parametrize('header',['PointID','Point ID','point_id','POINT-ID','\ufeffPointID'])
 def test_exact_pointid_header_alias(tmp_path,header):
-    p=tmp_path/'input.csv';p.write_text(f'{header},BS,FS\n001A,1.5,1.0\n')
+    p=tmp_path/'input.csv';p.write_text(f'{header},BS,FS\n001A,1.5,1.0\n', encoding="utf-8")
     assert parse_level_csv(p)[0]['point_id']=='001A'
 
 
