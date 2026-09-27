@@ -184,6 +184,24 @@ The feature-complete 9.4 integration branch passed SurveySync Quality run **#158
 
 The versioned release-candidate branch must pass the same quality gate again before Beta publication.
 
+## Beta.2 branding and first-launch notes correction
+
+Installed Beta.1 acceptance identified two presentation defects:
+
+1. the generated Windows application/installer/shortcut icon used an **S/monogram** treatment instead of the intended SurveySync globe; and
+2. release notes could be suppressed on first launch when the same workstation had already marked version 9.4.0 as seen from an earlier development/beta build.
+
+Beta.2 corrects both:
+
+- Windows `.ico` generation now resamples the canonical `branding/SurveySync_globe_512.png` artwork into the multi-resolution 16/24/32/48/64/128/256 icon instead of drawing an S.
+- SurveySync top-left product branding, product splash, About dialog, release-notes dialog, favicon, and the shared FieldBookSync SurveySync header now use `surveysync_globe.svg`.
+- Module/workflow icons remain module-specific; this change only standardizes SurveySync **product** branding.
+- The release-notes API now exposes a release-specific ID (`9.4.0-beta.2`).
+- First-launch release-note acknowledgement is keyed to that release ID instead of version alone.
+- Release notes are marked seen only after the user clicks **Continue**.
+
+Beta.1 is not the preferred 9.4 acceptance artifact. Installed acceptance should continue with Beta.2.
+
 ## Installed Windows acceptance required before Stable
 
 The 9.4.0 Beta is not Stable until the exact published installer is installed and checked on Windows.
