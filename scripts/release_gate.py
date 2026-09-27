@@ -41,6 +41,12 @@ FORMATTED = [
     "surveysync/workflow_engine.py",
     "surveysync/workflow_routes.py",
     "surveysync/integration_routes.py",
+    "surveysync/crs_diagnostics.py",
+    "surveysync/crs_diagnostic_routes.py",
+    "surveysync/report_template_mapper.py",
+    "surveysync/report_template_routes.py",
+    "surveysync/gis_bridges.py",
+    "surveysync/gis_bridge_routes.py",
 ]
 TESTS = [
     "tests",
