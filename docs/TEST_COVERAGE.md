@@ -145,3 +145,19 @@ The parser continues to require Trimble's official ASCII File Generator for
 proprietary binary `.job` files. The new recovery path only repairs field-text
 defects and deliberately does not reconstruct broken XML structure.
 
+## v9.4.0 optional point-cloud and workflow automation
+
+`tests/test_v940_pointcloud_workflows.py` covers dependency-free LAS 1.2 header
+inspection, invalid-LAS rejection, immutable TopoSync point-cloud source import,
+point-cloud audit provenance, project-scoped YAML workflow round trips, safe manual
+workflow execution, automatic source-import triggers, persistent run-state JSON,
+explicit approval and rejection behavior for high-impact actions, engine policy
+reporting, and API registration for the point-cloud/workflow routes.
+
+The same API regression verifies the existing shared operations router is explicitly
+registered, matching endpoints already referenced by the SurveySync UI.
+
+Optional laspy/PDAL availability is not required for the automated gate. Stable
+promotion should still include installed-Windows acceptance with representative LAS
+and, when those optional tools are configured, real LAZ/COPC files.
+
