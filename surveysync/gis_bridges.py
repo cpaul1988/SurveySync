@@ -51,7 +51,12 @@ def _qgis_candidates() -> list[Path]:
     env = os.environ.get("SURVEYSYNC_QGIS_PROCESS", "")
     if env:
         candidates.append(env)
-    for name in ("qgis_process.exe", "qgis_process", "qgis_process-qgis.exe", "qgis_process-qgis.bat"):
+    for name in (
+        "qgis_process.exe",
+        "qgis_process",
+        "qgis_process-qgis.exe",
+        "qgis_process-qgis.bat",
+    ):
         found = shutil.which(name)
         if found:
             candidates.append(found)
@@ -316,9 +321,7 @@ def run_grass_module(
 ) -> dict[str, Any]:
     module_name = str(module or "").strip()
     if not _GRASS_MODULE.fullmatch(module_name):
-        raise GisBridgeError(
-            "GRASS module must be a standard g.*, r.*, v.*, db.*, or i.* module."
-        )
+        raise GisBridgeError("GRASS module must be a standard g.*, r.*, v.*, db.*, or i.* module.")
     exe = find_grass(executable)
     if exe is None:
         raise GisBridgeError("GRASS GIS launcher was not found.")
