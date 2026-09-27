@@ -161,7 +161,11 @@ core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
+SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.2"
+
 SURVEYSYNC_RELEASE_NOTES = [
+    "Beta.2 corrects SurveySync product branding so the globe is used for the Windows app, installer, shortcuts, shared product header, splash, About, and release-notes surfaces instead of the S/monogram icon.",
+    "Beta.2 restores reliable first-launch release notes by tracking a release-specific notes ID rather than suppressing later 9.4 builds after one 9.4 notes view.",
     "9.4.0 completes the open-source integration roadmap while preserving SurveySync's validated ControlSync, leveling, audit, and source-evidence workflows.",
     "ControlSync network adjustment now has an independent pySurveying-style numerical validation engine with residual, redundancy, sigma0, and error-ellipse cross-checks.",
     "Trimble JobXML/JXL intake is more tolerant across Access/TBC generations while structurally corrupt XML still fails closed.",
@@ -317,7 +321,11 @@ def shell():
 
 @router.get("/api/v9/release-notes")
 def release_notes():
-    return {"version": __version__, "notes": list(SURVEYSYNC_RELEASE_NOTES)}
+    return {
+        "version": __version__,
+        "release_id": SURVEYSYNC_RELEASE_NOTES_ID,
+        "notes": list(SURVEYSYNC_RELEASE_NOTES),
+    }
 
 
 @router.get("/surveysync-static/{name}")
