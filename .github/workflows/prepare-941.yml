@@ -1,0 +1,35 @@
+name: Prepare Verified 9.4.1 Source
+on:
+  push:
+    branches: [fix-v9.4.0-verified-audit]
+    paths: ['.github/prepare941/**', '.github/workflows/prepare-941.yml']
+permissions:
+  contents: write
+concurrency:
+  group: surveysync-941-source-import
+  cancel-in-progress: false
+jobs:
+  import-source:
+    if: github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/fix-v9.4.0-verified-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Import all reviewed changes after validating every source hash
+        run: |
+          python .github/prepare941/apply.py
+          git rm -r .github/prepare941
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Prepare 9.4.1 audit repairs, strict download verification and native update completion'
+          git push origin HEAD:refs/heads/fix-v9.4.0-verified-audit
+          git rev-parse HEAD
+          git archive --format=zip --output=verified-941-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-941-source
+          path: verified-941-source.zip
+          retention-days: 7
