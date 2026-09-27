@@ -35,10 +35,18 @@
     "python_compileall": true,
     "javascript_syntax": true,
     "dependency_lock_audit": true,
-    "candidate_quality_gate_status": "pending_versioned_candidate_run",
+    "candidate_quality_gate_status": "passed_windows_ci",
     "windows_runtime_field_test_completed": false,
     "installer_compiled_for_9_4_0": false,
-    "installed_beta_acceptance_completed": false
+    "installed_beta_acceptance_completed": false,
+    "candidate_quality_run_id": 36285028740,
+    "candidate_quality_run_number": 160,
+    "candidate_tests_passed": 362,
+    "candidate_tests_skipped": 1,
+    "candidate_tests_failed": 0,
+    "candidate_line_coverage_percent": 59.35,
+    "candidate_mypy_source_files": 29,
+    "candidate_evidence_note": "Run #160 passed on the versioned 9.4.0 candidate before this documentation-only evidence update; the branch head must be revalidated after this commit."
   },
   "roadmap": {
     "items_1_through_8_implemented": true,
