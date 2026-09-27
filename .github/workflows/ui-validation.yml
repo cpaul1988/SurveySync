@@ -1,17 +1,16 @@
 name: SurveySync UI Validation
 on:
-  push:
-    branches: [v9.4.0-beta3-unified-ui]
+  pull_request:
+  workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: surveysync-beta3-source-repair
-  cancel-in-progress: false
+  group: surveysync-ui-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  source-repair-and-ui:
-    if: github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/v9.4.0-beta3-unified-ui'
+  browser-ui-and-installer:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -20,35 +19,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Install locked application dependencies
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install locked application and test dependencies
         run: python -m pip install --require-hashes -r requirements-dev.lock
-      - name: Install source migration and browser QA tooling
-        run: python -m pip install tinycss2==1.4.0 playwright==1.57.0
-      - name: Apply reviewed source changes only on the candidate branch
-        shell: pwsh
-        run: |
-          if (Test-Path _ui_payload/apply.py) {
-            python _ui_payload/apply.py
-            if ($LASTEXITCODE -ne 0) { throw 'Source migration failed.' }
-            ./scripts/generate_surveysync_icon.ps1
-            if ($LASTEXITCODE -ne 0) { throw 'Brand generation failed.' }
-            git rm -r _ui_payload
-            git add -u
-            git add surveysync/static/fieldbook-standard.css branding/SurveySync_globe_transparent_512.png installer/wizard_large_200.bmp installer/wizard_large_400.bmp installer/wizard_small_200.bmp installer/wizard_small_400.bmp
-            git config user.name 'github-actions[bot]'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git commit -m 'Apply Beta.3 FieldBook-standard UI, globe branding and startup repairs'
-            if ($LASTEXITCODE -ne 0) { throw 'Source commit failed.' }
-            git push origin HEAD:refs/heads/v9.4.0-beta3-unified-ui
-            if ($LASTEXITCODE -ne 0) { throw 'Candidate source push failed; see Git output. No force push attempted.' }
-            git rev-parse HEAD
-          }
-      - name: Run unchanged release quality gate
-        run: python scripts/release_gate.py
+      - name: Install isolated browser QA tooling
+        run: python -m pip install playwright==1.57.0
       - run: python -m playwright install chromium
+      - name: Regenerate every globe branding surface
+        shell: pwsh
+        run: ./scripts/generate_surveysync_icon.ps1
+      - name: Static assets and release-note regression tests
+        run: python -m pytest -q tests/test_beta3_ui.py tests/test_v940_branding.py tests/test_v940_beta2_brand_release_notes.py
       - name: Real application light and dark browser checks
         run: python scripts/ui_browser_smoke.py
-      - name: Retain UI evidence
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+      - name: Run full release gate and compile candidate installer
+        shell: pwsh
+        run: ./Build_SurveySync.ps1
+      - name: Retain candidate installer, checksum, and release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: SurveySync_Beta3_Installer
+          path: |
+            installer/output/SurveySync_Setup_9.4.0.exe
+            installer/output/SurveySync_Setup_9.4.0.exe.sha256
+            RELEASE_NOTES_v9_4_0.md
+          if-no-files-found: error
+          retention-days: 14
+      - name: Retain actual UI screenshots and trace
         if: always()
         uses: actions/upload-artifact@v4
         with:
