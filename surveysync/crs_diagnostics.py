@@ -211,11 +211,7 @@ def operation_diagnostics(
     unavailable = [_operation_dict(item) for item in group.unavailable_operations]
     warnings: list[dict[str, Any]] = []
 
-    missing = [
-        grid
-        for operation in unavailable
-        for grid in operation["missing_grids"]
-    ]
+    missing = [grid for operation in unavailable for grid in operation["missing_grids"]]
     if missing:
         warnings.append(
             {
