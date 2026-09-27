@@ -77,9 +77,7 @@ def report_template_register(payload: ExcelTemplateRegisterIn):
 @router.post("/api/v9/reports/templates/mapping")
 def report_template_mapping_save(payload: ExcelTemplateMappingIn):
     try:
-        return save_template_mapping(
-            _project(), payload.template_id, payload.mapping
-        )
+        return save_template_mapping(_project(), payload.template_id, payload.mapping)
     except (ReportTemplateError, OSError, ValueError) as exc:
         raise HTTPException(400, str(exc)) from exc
 
