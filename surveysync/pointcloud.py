@@ -140,7 +140,7 @@ def _native_las_header(path: Path) -> dict[str, Any]:
 
 def _inspect_with_laspy(path: Path) -> dict[str, Any]:
     try:
-        import laspy  # type: ignore
+        import laspy
     except ImportError as exc:
         raise PointCloudError("laspy is not installed.") from exc
 
