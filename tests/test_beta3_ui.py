@@ -56,7 +56,7 @@ def test_static_symlink_escape_rejected(tmp_path, monkeypatch):
 def test_release_notes_without_project():
     with client() as http:
         data = http.get('/api/v9/release-notes').json()
-    assert data['release_id'] == '9.4.0-beta.3'
+    assert data['release_id'] == '9.4.0-beta.4'
     assert data['version'] == '9.4.0'
     assert len(data['notes']) >= 4
 
@@ -64,7 +64,7 @@ def test_release_notes_without_project():
 def test_both_shells_share_fieldbook_presentation():
     for relative in ('surveysync/static/index.html', 'fieldbook_sync/static/index.html'):
         html = (ROOT / relative).read_text(encoding='utf-8')
-        assert '/surveysync-static/fieldbook-standard.css?v=9.4.0-beta.3' in html
+        assert '/surveysync-static/fieldbook-standard.css?v=9.4.0-beta.4' in html
     css = (ROOT / 'surveysync/static/fieldbook-standard.css').read_text(encoding='utf-8')
     assert '.surveysync-workspace' in css
     assert '--panel:#1b1f24' in css

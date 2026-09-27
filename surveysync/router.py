@@ -162,13 +162,15 @@ core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
-SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.3"
+SURVEYSYNC_RELEASE_NOTES_ID = "9.4.0-beta.4"
 
 SURVEYSYNC_RELEASE_NOTES = [
+    "Beta.4 makes EDSI branding theme-only: normal themes show the SurveySync globe alone; EDSI Adaptive, EDSI Dark and EDSI Light show the globe and EDSI logo side by side throughout both shells.",
+    "Switching themes immediately updates headers, sidebars, Home, About and release notes. The Windows icon and installer retain the SurveySync globe; project data and saved theme preferences are unchanged.",
     "Beta.3 makes FieldBookSync the visual standard for Home and every module: shared palettes, toolbars, sidebars, cards, controls, spacing, and readable typography.",
     "Fixes the module-icon startup exception and the static route that rejected workflow-icon subfolders; release notes no longer depend on successful project/status initialization.",
     "Globe branding is generated from one source for application icons and both installer wizard images. Dark-mode wordmarks use light lettering without inverting the globe colors.",
-    "Release notes identify this build as 9.4.0-beta.3, remain unread until Continue, and include a visible retry action on failure. Existing project data and saved theme preferences are retained.",
+    "Release notes identify this build as 9.4.0-beta.4, remain unread until Continue, and include a visible retry action on failure. Existing project data and saved theme preferences are retained.",
     "9.4.0 completes the open-source integration roadmap while preserving SurveySync's validated ControlSync, leveling, audit, and source-evidence workflows.",
     "ControlSync network adjustment now has an independent pySurveying-style numerical validation engine with residual, redundancy, sigma0, and error-ellipse cross-checks.",
     "Trimble JobXML/JXL intake is more tolerant across Access/TBC generations while structurally corrupt XML still fails closed.",
