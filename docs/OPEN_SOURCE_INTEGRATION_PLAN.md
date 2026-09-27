@@ -303,15 +303,17 @@ deferred because it would impose materially different distribution obligations.
 - **weighted leveling network — implemented** as a separate fixed-datum least-squares workflow with observation sigmas, redundancy diagnostics, standardized-residual review flags, optional Huber robust weighting, and elevation uncertainty.
 - **mixed-network cross-check fixtures** — covered by SurveySync-owned regression tests for distance plus angular observations.
 
-### Phase D — partially implemented
+### Phase D — implemented for the current scope
 - **LandXML 1.2 point/parcel/alignment I/O — implemented** for CgPoints, Parcel Line geometry, and tangent/circular-curve Alignments, with immutable project-source preservation on import. Profiles/surfaces/spirals remain future expansion.
 - **jxl2txt-informed JobXML compatibility matrix — implemented** with namespace/version-independent parsing, nested section discovery, UTF/BOM handling, point-ID alias precedence, attribute-based point fields, safe text-level XML recovery, fail-closed structural-corruption handling, and SurveySync-owned regression fixtures.
 - **Trimble parser provenance metadata — implemented** with XML parse mode, recovery actions, namespace/schema location, product/version, section-source, and GNSS metadata counts.
-- optional PDAL/laspy point-cloud module
+- **optional PDAL/laspy point-cloud module — implemented** with dependency-free LAS 1.0-1.4 header inspection, immutable TopoSync source import, optional laspy sampling/LAZ handling, and optional PDAL metadata fallback.
 
-### Phase E
-- SurveySync declarative automation/workflow engine inspired by Buzz
-- explicit human approval gates for high-impact survey operations
+### Phase E — implemented
+- **SurveySync declarative automation/workflow engine — implemented** as project-scoped YAML definitions with persistent run state and explicit trigger/action schemas.
+- **human approval gates — implemented** for FINAL deliverable creation and stakeholder notification. Workflow YAML cannot disable those approval requirements.
+- **automatic trigger boundaries — implemented** for project open, source import, QA completion, export completion, and deliverable creation without allowing workflow failures to roll back the originating SurveySync operation.
+- **safe action set — implemented** for Project Health, saved export profiles, Review Center items, deliverable packages, and configured stakeholder notifications. Arbitrary commands/code execution are not supported.
 
 ## Production validation
 
