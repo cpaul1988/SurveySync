@@ -189,6 +189,41 @@ Copyright (c) 2025, Hobu, Inc.
 
 See the upstream LICENSE.txt for the complete BSD terms.
 
+
+
+## QGIS (optional external processing bridge)
+
+- Project: https://github.com/qgis/QGIS
+- License: GNU GPL v2
+- SurveySync usage:
+  - SurveySync does not vendor, embed, link against, or import QGIS application source.
+  - `surveysync/gis_bridges.py` optionally discovers an installed `qgis_process`
+    executable and invokes it as a separate process with `shell=False`.
+  - QGIS remains an independently installed optional application.
+
+See the upstream QGIS COPYING file for the complete GPL v2 terms.
+
+## GRASS GIS (optional external processing bridge)
+
+- Project: https://github.com/OSGeo/grass
+- License: GNU GPL v2 or later
+- SurveySync usage:
+  - SurveySync does not vendor, embed, link against, or import GRASS GIS application source.
+  - `surveysync/gis_bridges.py` optionally discovers an installed GRASS launcher
+    and invokes validated GRASS modules as separate processes with `shell=False`.
+  - GRASS remains an independently installed optional application.
+
+See the upstream GRASS COPYING file for the complete GPL terms.
+
+## pyproj / PROJ
+
+- Project: https://github.com/pyproj4/pyproj
+- Role: SurveySync's installed CRS/coordinate-operation dependency.
+- SurveySync usage:
+  - `surveysync/crs_diagnostics.py` exposes pyproj/PROJ metadata, area-of-use,
+    operation-accuracy and grid-availability diagnostics.
+  - SurveySync does not replace PROJ with hand-maintained CRS definitions.
+
 ## Existing geospatial dependencies
 
 SurveySync also relies on established third-party packages through its locked
