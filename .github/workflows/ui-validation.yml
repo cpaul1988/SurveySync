@@ -1,0 +1,19 @@
+name: SurveySync UI Validation
+on:
+  push:
+    branches: [v9.4.0-beta3-unified-ui]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retain exact source for reproducible visual QA
+        run: git archive --format=zip --output=source-for-ui-validation.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-for-ui-validation
+          path: source-for-ui-validation.zip
+          retention-days: 3
