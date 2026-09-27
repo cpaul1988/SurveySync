@@ -36,6 +36,11 @@ FORMATTED = [
     "surveysync/landxml_io.py",
     "surveysync/alignment_routes.py",
     "surveysync/network_routes.py",
+    "surveysync/pointcloud.py",
+    "surveysync/pointcloud_routes.py",
+    "surveysync/workflow_engine.py",
+    "surveysync/workflow_routes.py",
+    "surveysync/integration_routes.py",
 ]
 TESTS = [
     "tests",
