@@ -164,58 +164,67 @@ def test_validator_detects_tampered_native_coordinate():
 
 def test_data_snooping_flags_large_distance_outlier_without_mutating_input():
     true_n, true_e = 30.0, 40.0
+    stations = {
+        "A": (0.0, 0.0),
+        "B": (0.0, 100.0),
+        "C": (100.0, 0.0),
+        "D": (100.0, 100.0),
+    }
     points = [
-        {"point_id": "A", "northing": 0.0, "easting": 0.0, "fixed": True},
-        {"point_id": "B", "northing": 0.0, "easting": 100.0, "fixed": True},
-        {"point_id": "C", "northing": 100.0, "easting": 0.0, "fixed": True},
-        {"point_id": "D", "northing": 100.0, "easting": 100.0, "fixed": True},
-        {"point_id": "P", "northing": 30.5, "easting": 39.5, "fixed": False},
+        {
+            "point_id": point_id,
+            "northing": northing,
+            "easting": easting,
+            "fixed": True,
+        }
+        for point_id, (northing, easting) in stations.items()
     ]
-    observations = [
-        {"kind": "distance", "from_id": "A", "to_id": "P", "value": 50.0, "sigma": 0.01},
+    points.append(
         {
-            "kind": "distance",
-            "from_id": "B",
-            "to_id": "P",
-            "value": math.hypot(true_n, true_e - 100.0),
-            "sigma": 0.01,
-        },
-        {
-            "kind": "distance",
-            "from_id": "C",
-            "to_id": "P",
-            "value": math.hypot(true_n - 100.0, true_e),
-            "sigma": 0.01,
-        },
-        {
-            "kind": "distance",
-            "from_id": "D",
-            "to_id": "P",
-            "value": math.hypot(true_n - 100.0, true_e - 100.0),
-            "sigma": 0.01,
-        },
+            "point_id": "P",
+            "northing": 30.5,
+            "easting": 39.5,
+            "fixed": False,
+        }
+    )
+
+    # Standardized-residual snooping needs enough redundancy for one gross error
+    # to stand apart after posterior sigma0 is estimated.
+    observations = []
+    for _ in range(5):
+        for point_id, (northing, easting) in stations.items():
+            observations.append(
+                {
+                    "kind": "distance",
+                    "from_id": point_id,
+                    "to_id": "P",
+                    "value": math.hypot(true_n - northing, true_e - easting),
+                    "sigma": 0.01,
+                }
+            )
+    observations.append(
         {
             "kind": "distance",
             "from_id": "A",
             "to_id": "P",
-            "value": 50.25,
+            "value": 50.5,
             "sigma": 0.01,
-        },
-    ]
+        }
+    )
     original = copy.deepcopy(observations)
 
     result = reference_data_snooping(
         points=points,
         observations=observations,
-        threshold=2.0,
+        threshold=3.0,
         max_removals=1,
     )
 
     assert observations == original
     assert result["history"]
+    assert abs(float(result["history"][0]["standardized_residual"])) >= 3.0
     assert result["history"][0]["flagged"] is True
     assert result["removed_observation_numbers"]
-    assert abs(float(result["history"][0]["standardized_residual"])) >= 2.0
 
 
 def test_network_api_includes_independent_validation_and_audits_status(
