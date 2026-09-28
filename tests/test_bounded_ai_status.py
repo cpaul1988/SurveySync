@@ -36,7 +36,12 @@ def test_real_blocked_child_is_terminated_and_not_retried(tmp_path,monkeypatch):
     command_for('import time\ntime.sleep(30)\n',tmp_path,monkeypatch)
     original=probe.subprocess.Popen;children=[]
     def spawn(*a,**kw):
-        process=original(*a,**kw);children.append(process);return process
+        process=original(*a,**kw)
+        # subprocess.run(taskkill) also uses Popen on Windows; count only the
+        # probe command when asserting that a timed-out probe is not retried.
+        if a[0][:2] == [sys.executable, '-I']:
+            children.append(process)
+        return process
     monkeypatch.setattr(probe.subprocess,'Popen',spawn)
     start=time.monotonic()
     with pytest.raises(probe.StatusProbeTimeout):
