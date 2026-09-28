@@ -42,7 +42,8 @@ def test_v9_navigation_shell_layout(tmp_path, monkeypatch):
     client=TestClient(app)
     root=client.get('/').text
     from surveysync import __version__
-    assert f'<title>SurveySync v{__version__}</title>' in root
+    from surveysync.release_identity import installed_release_id
+    assert f'<title>SurveySync v{installed_release_id(__version__)}</title>' in root
     assert 'data-menu="fileMenu">File</button>' in root
     assert 'data-menu="viewMenu">View</button>' in root
     assert 'class="module-tabs"' in root

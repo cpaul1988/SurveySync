@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.1",
+  "version": "9.4.2",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",

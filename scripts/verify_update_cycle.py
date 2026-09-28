@@ -1,9 +1,9 @@
 """Real Windows update replacement in disposable installations only.
 
-The first predecessor uses 9.4.1 logic with only the core/launcher version set to
-9.4.0, so the NEW updater can be exercised without inventing a future release.
-The second is the unmodified published 9.4.0 installer; its known shutdown bug
-requires one real window close. Neither fixture is published or distributed.
+A real test-only beta.0 installer uses the candidate code with only its build
+identity stamps changed. Replacement by beta.1 exercises the same numeric
+version. Separate fixtures use unmodified published 9.4.1 and 9.4.0 installers;
+the latter's known shutdown bug requires one normal window close. Neither fixture is published or distributed.
 TLS, staging, hashes, native helper, real Setup, and reopen are not mocked.
 """
 from __future__ import annotations
@@ -36,7 +36,8 @@ from pywinauto import Desktop
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'repair-evidence'
 BASE = 'http://127.0.0.1:8765'
-TARGET = '9.4.1'
+TARGET = (ROOT/'VERSION.txt').read_text(encoding='utf-8-sig').strip()
+TARGET_ID = (ROOT/'RELEASE_ID.txt').read_text(encoding='utf-8-sig').strip()
 
 
 def api(path, data=None):
@@ -50,11 +51,12 @@ def api(path, data=None):
         raise RuntimeError(f'{path}: HTTP {exc.code}: {message}') from exc
 
 
-def ready(version, timeout=90):
+def ready(version, timeout=90, release_id=None):
     until=time.monotonic()+timeout
     while time.monotonic()<until:
         try:
-            if api('/api/v9/release-notes')['version']==version:
+            info=api('/api/v9/release-notes')
+            if info['version']==version and (release_id is None or info.get('release_id')==release_id):
                 return
         except (OSError,ValueError):
             pass
@@ -148,7 +150,7 @@ def kill_owned_install(destination):
             subprocess.run(['taskkill','/PID',str(item.pid),'/T','/F'],check=False,capture_output=True)
 
 
-def cycle(name, fixture, candidate, webroot, url, certpath, state):
+def cycle(name, fixture, candidate, webroot, url, certpath, state, *, initial_version='9.4.0', initial_release_id=None):
     destination=state/'program'
     config=state/'local'/'SurveySync'
     env=dict(os.environ, LOCALAPPDATA=str(state/'local'),SURVEYSYNC_CONFIG_ROOT=str(config),
@@ -163,8 +165,8 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
         if name=='new-updater-version-only-predecessor':
             core=destination/'surveysync/__init__.py'
             original=core.read_text(encoding='utf-8')
-            assert '__version__ = "9.4.1"' in original
-            core.write_text(original.replace('__version__ = "9.4.1"','__version__ = "9.4.0"'),encoding='utf-8')
+            assert f'__version__ = "{TARGET}"' in original
+            core.write_text(original.replace(f'__version__ = "{TARGET}"','__version__ = "9.4.0"'),encoding='utf-8')
             (destination/'VERSION.txt').write_text('9.4.0\n',encoding='utf-8')
             (destination/'RELEASE_ID.txt').write_text('9.4.0\n',encoding='utf-8')
             shutil.rmtree(destination/'surveysync/__pycache__',ignore_errors=True)
@@ -172,7 +174,7 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
                             '-o',str(destination/'SurveySync.exe'),'installer/app_launcher.go'],cwd=ROOT,check=True)
             report['fixture_changes']=['Core version only: 9.4.0','VERSION.txt only: 9.4.0','Launcher version only: 9.4.0; logic unchanged']
         process=subprocess.Popen([str(destination/'SurveySync.exe')],cwd=destination,env=env)
-        ready('9.4.0')
+        ready(initial_version, release_id=initial_release_id)
         api('/api/v9/project/create',{'parent_folder':str(state/'projects'),'name':'UpdatePreservation','crs':'EPSG:2278'})
         project=next((state/'projects').rglob('survey_sync_project.json')).parent
         source=state/'source.csv'
@@ -188,6 +190,10 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
         pending=config/'pending_update.json'
         answer=api('/api/v9/update/check-and-install',{'confirm_install':False})
         assert answer['action']=='confirmation_required' and answer['version']==TARGET,answer
+        if initial_release_id:
+            assert initial_version == TARGET and initial_release_id != TARGET_ID
+            assert answer.get('release_id')==TARGET_ID, answer
+            report['numbered_beta_identity']={'from':initial_release_id,'to':TARGET_ID,'same_numeric_version':True}
         assert not pending.exists() and not no_service()
         answer=api('/api/v9/update/check-and-install',{'confirm_install':True})
         assert answer['action']=='installing' and answer['sha256']==sha(candidate),answer
@@ -212,7 +218,8 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
         else:raise TimeoutError('Native helper did not start Setup')
         report['helper_start']=helper
         finish_wizard(report)
-        ready(TARGET,timeout=120)
+        ready(TARGET,timeout=120,release_id=TARGET_ID)
+        assert (destination/'RELEASE_ID.txt').read_text(encoding='utf-8-sig').strip()==TARGET_ID
         assert (destination/'VERSION.txt').read_text(encoding='utf-8').strip()==TARGET
         for relative in ('desktop.py','surveysync/__init__.py','surveysync/updater.py','installer/update_helper.go'):
             # Git checks out Windows source as CRLF; both exact installed/tested
@@ -222,7 +229,7 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
         assert all(sha(p)==digest for p,digest in preserved.items())
         assert api('/api/v9/config/ui')==appearance
         assert api('/api/v9/update/check')['update_available'] is False
-        if name=='new-updater-version-only-predecessor':
+        if name in ('new-updater-version-only-predecessor','same-version-numbered-beta'):
             until=time.monotonic()+20
             while time.monotonic()<until:
                 helper=json.loads(status.read_text(encoding='utf-8'))
@@ -231,12 +238,15 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
                 time.sleep(.2)
             assert helper['state']=='installed',helper
             report['helper_final']=helper
+            receipt=json.loads((config/'installed_update.json').read_text(encoding='utf-8'))
+            assert receipt['release_id']==TARGET_ID and receipt['sha256']==sha(candidate),receipt
+            report['verified_receipt']=receipt
         assert not pending.exists(), 'Successful installation left an active handoff'
         api('/api/application/exit',{})
         until=time.monotonic()+20
         while not no_service() and time.monotonic()<until:time.sleep(.2)
         assert no_service()
-        report.update(status='PASS',target_version=TARGET,installer_sha256=sha(candidate),canonical_points=prior,
+        report.update(status='PASS',target_version=TARGET,target_release_id=TARGET_ID,installer_sha256=sha(candidate),canonical_points=prior,
                       source_bytes_unchanged=True,project_and_settings_preserved=True)
     except Exception as exc:
         report['failure'] = f'{type(exc).__name__}: {exc}'
@@ -257,7 +267,7 @@ def main():
     state=temp/'SurveySync941UpdateCycle';state.mkdir(exist_ok=False)
     OUT.mkdir(exist_ok=True)
     webroot=state/'https';webroot.mkdir()
-    candidate=ROOT/'installer/output/SurveySync_Setup_9.4.1.exe'
+    candidate=ROOT/'installer/output'/f'SurveySync_Setup_{TARGET_ID}.exe'
     assert candidate.is_file()
     shutil.copyfile(candidate,webroot/'setup.exe')
     certpath,keypath=certificate(webroot)
@@ -267,13 +277,24 @@ def main():
     context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);context.load_cert_chain(certpath,keypath)
     server.socket=context.wrap_socket(server.socket,server_side=True)
     url=f'https://127.0.0.1:{server.server_port}'
-    rel={'version':TARGET,'installer_url':url+'/setup.exe','size_bytes':candidate.stat().st_size,'sha256':sha(candidate)}
-    (webroot/'manifest.json').write_text(json.dumps({'product':'SurveySync','channels':{'beta':rel,'stable':rel}}),encoding='utf-8')
+    rel={'version':TARGET,'release_id':TARGET_ID,'installer_url':url+'/setup.exe','size_bytes':candidate.stat().st_size,'sha256':sha(candidate)}
+    (webroot/'manifest.json').write_text(json.dumps({'product':'SurveySync','channels':{'beta':rel}}),encoding='utf-8')
     threading.Thread(target=server.serve_forever,daemon=True).start()
     results={'status':'FAIL','cycles':[]}
     try:
-        folder=state/'new-updater';folder.mkdir()
-        results['cycles'].append(cycle('new-updater-version-only-predecessor',candidate,candidate,webroot,url,certpath,folder))
+        from build_beta_fixture import build_fixture
+        beta_fixture, predecessor_id, stamp_changes=build_fixture(ROOT,state)
+        folder=state/'numbered-beta';folder.mkdir()
+        result=cycle('same-version-numbered-beta',beta_fixture,candidate,webroot,url,certpath,folder,
+                     initial_version=TARGET,initial_release_id=predecessor_id)
+        result['predecessor_fixture_stamp_changes']=stamp_changes
+        result['predecessor_installer_sha256']=sha(beta_fixture)
+        results['cycles'].append(result)
+        released=ROOT/'released-baseline/SurveySync_Setup_9.4.1.exe'
+        assert sha(released)=='9fe7bf8a2b5512ab2886ec79b2bec179df665562b3d6b70eb70cb38d04d03c42'
+        folder=state/'released-941';folder.mkdir()
+        results['cycles'].append(cycle('released-9.4.1-migration',released,candidate,webroot,url,certpath,folder,
+                                      initial_version='9.4.1'))
         old=ROOT/'released-baseline/SurveySync_Setup_9.4.0.exe'
         assert sha(old)=='1660d9bdb329e61242c48b0dfe6d4a254d2d05220829a83cf54b901a10a5ae17'
         folder=state/'released';folder.mkdir()

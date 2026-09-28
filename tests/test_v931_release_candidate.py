@@ -18,10 +18,13 @@ def test_v931_version_surfaces_are_consistent():
 
     assert version == __version__
     assert f'#define MyAppVersion "{version}"' in installer
-    assert f"SurveySync_Setup_{version}" in installer
-    assert f"VersionInfoVersion={version}.0" in installer
-    assert f'APP_NAME = "SurveySync v{version}"' in desktop
-    assert f"<title>SurveySync v{version}</title>" in shell
+    from surveysync.release_identity import installed_release_id
+    release_id = installed_release_id(version)
+    assert f'#define MyReleaseID "{release_id}"' in installer
+    assert "OutputBaseFilename=SurveySync_Setup_{#MyReleaseID}" in installer
+    assert "VersionInfoVersion={#MyAppVersion}.0" in installer
+    assert 'APP_NAME = "SurveySync v" + installed_release_id(__version__)' in desktop
+    assert f"<title>SurveySync v{release_id}</title>" in shell
 
 
 def test_startup_update_check_is_not_nested_in_storage_event():

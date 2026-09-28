@@ -166,13 +166,14 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.1 is the verified audit-repair update. Ron's manual three-point control now preserves source PointIDs, source codes and residual attribution; repeated calculations create separate revisions and preserve previous valid results on handled failures.",
-    "Pipe grades normalize horizontal and vertical units. Polygon area and centroid calculations use a local origin for accuracy at large survey coordinates. Perfect traverse closure returns a valid result without changing the geometry.",
-    "Repeat LandXML import, PointID column aliases, and rejection of non-finite numeric inputs are repaired. Level books have an explicit row-layout choice that distinguishes point elevations from instrument heights and preserves Ron's reduction conventions.",
-    "Survey Data, Data Inspector, Support Center and File Exit commands are repaired. Native shutdown follows project switching; damaged analysis-job ledgers are preserved during Windows recovery.",
-    "Update downloads validate HTTPS redirects, version labels, exact size, checksum and executable headers before creating a handoff. Native launchers follow the selected data location, and the updater records Setup completion rather than just process startup.",
-    "The approved globe branding and theme-only EDSI companion are unchanged. These release notes remain available after installation and are acknowledged only by Continue.",
-    "Backend-only point-cloud, YAML automation, new CRS diagnostics, Excel mapping and external GIS workflows remain incomplete in the desktop. Live OCR/provider accuracy, optional Trimble/GIS execution and rod-height field calibration are not claimed as verified by this release.",
+    "9.4.2-beta.1 is a test candidate, not a Stable promotion. It connects the five remaining audit workflows and retains the 9.4.1 fixes and Ron's calculation conventions.",
+    "TopoSync Point Clouds can inspect and retain LAS/LAZ sources and sample points when the optional decoders are installed. This is not a full 3D viewer or automatic surface model.",
+    "Home and QASync Project Automation provide workflow editing, YAML import/export, history and explicit approval/rejection using the saved definition. GISSync CRS Diagnostics compares operations and sample coordinates without rewriting original survey points.",
+    "ReportSync Excel Template Mapper inspects a retained workbook, saves supported field/cell mappings and produces separate draft outputs. Existing formulas and prior files are protected; formulas are preserved, not recalculated.",
+    "GISSync External Processing discovers separately installed QGIS/GRASS tools, shows algorithms/help and requires confirmation before execution. Missing tools fail visibly; the external Python environment is isolated from SurveySync.",
+    "Full beta release identities are displayed and compared by the app and native update components. The installer filename, native title, About screen and these release notes identify the candidate build rather than calling it Stable.",
+    "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a copy of a project. Existing historical reports are not automatically rewritten.",
+    "This candidate remains unsigned. Signed-manifest and certificate hooks are preparation only; no production signing keys or trust enforcement are configured. Live OCR/provider accuracy, official Trimble conversion and rod-height field calibration still require independent evidence."
 ]
 
 
@@ -339,7 +340,7 @@ def status():
     if current_project:
         try: recovery=autosave_tick(current_project)
         except Exception as exc: recovery={"created":False,"reason":"error","message":str(exc)}
-    return {"product":"SurveySync","version":__version__,"environment":cfg.environment,"release_channel":cfg.release_channel,"branding":brand,"project": current_project.summary() if current_project else None,
+    return {"product":"SurveySync","version":__version__,"release_id":SURVEYSYNC_RELEASE_NOTES_ID,"environment":cfg.environment,"release_channel":cfg.release_channel,"branding":brand,"project": current_project.summary() if current_project else None,
             "modules":["FieldBookSync","UtilitySync","ControlSync","TopoSync","COGOSync","BoundarySync","GISSync","ReportSync","QASync","CrewSync"],
             "recovery":recovery,
             "control_formula_note":"Ron 3-point control averaging and Ron 3-wire level reduction profiles are validated against the supplied authoritative workbooks; generic arithmetic/weighted alternatives remain available."}
@@ -927,14 +928,14 @@ def update_check_and_install_api(payload: UpdateInstallIn=UpdateInstallIn()):
             return {
                 "ok": True,
                 "action": "up_to_date",
-                "message": f"SurveySync v{__version__} is up to date.",
+                "message": f"SurveySync v{status.get('current_release_id', __version__)} is up to date.",
                 **status,
             }
         if not payload.confirm_install:
             return {
                 "ok": True,
                 "action": "confirmation_required",
-                "message": f"SurveySync v{status.get('version')} is available. Confirm install when you are ready for SurveySync to close and Setup to open.",
+                "message": f"SurveySync v{status.get('release_id') or status.get('version')} is available. Confirm install when you are ready for SurveySync to close and Setup to open.",
                 **status,
             }
         staged = update_stage(config_store)
@@ -953,7 +954,7 @@ def update_check_and_install_api(payload: UpdateInstallIn=UpdateInstallIn()):
         time.sleep(0.35)
         try:
             _fieldbook_app_module().request_application_shutdown(
-                f"Updating SurveySync to v{staged.get('version', '')}."
+                f"Updating SurveySync to v{staged.get('release_id') or staged.get('version', '')}."
             )
         except Exception:
             core_logger.warning("Could not request FieldBookSync shutdown for staged update; installer shutdown handling will continue.", exc_info=True)
@@ -1050,7 +1051,7 @@ def feedback(payload: FeedbackIn):
     """
     c=config_store.load(); fid=uuid4().hex
     project_id=current_project.manifest['project_id'] if current_project else ""
-    metadata={"version":__version__,"environment":c.environment,"release_channel":c.release_channel,"branding_profile":c.branding_profile,"module":payload.module,"project_id":project_id}
+    metadata={"version":__version__,"release_id":SURVEYSYNC_RELEASE_NOTES_ID,"environment":c.environment,"release_channel":c.release_channel,"branding_profile":c.branding_profile,"module":payload.module,"project_id":project_id}
     item={"feedback_id":fid,"ts_utc":utc_now(),"kind":payload.kind,"title":payload.title,"description":payload.description,**metadata,"survey_data_attached":False,"sync_status":"LOCAL_ONLY"}
     feedback_dir=config_store.root / "feedback"
     feedback_dir.mkdir(parents=True,exist_ok=True)

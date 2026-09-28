@@ -110,6 +110,7 @@ def test_build_metadata_not_precedence():assert release_order('9.4.2-beta.2+firs
 
 
 def test_beta_check_and_same_artifact_promotion(tmp_path,monkeypatch):
+    monkeypatch.setattr(updater, "__version__", "9.4.1")
     from surveysync.config import ConfigStore
     store=ConfigStore(tmp_path/'config');cfg=store.load();cfg.release_channel='beta';store.save(cfg)
     monkeypatch.setattr(updater,'installed_release_id',lambda _: '9.4.1-beta.2')
@@ -150,6 +151,7 @@ def test_signature_tampering_fails_closed(attack):
 
 
 def test_promoted_physical_beta_stamp_does_not_reinstall(tmp_path,monkeypatch):
+    monkeypatch.setattr(updater, "__version__", "9.4.1")
     from surveysync.config import ConfigStore
     store=ConfigStore(tmp_path/'config');cfg=store.load();cfg.release_channel='stable';store.save(cfg)
     monkeypatch.setattr(updater,'installed_release_id',lambda _: '9.4.1-beta.10')

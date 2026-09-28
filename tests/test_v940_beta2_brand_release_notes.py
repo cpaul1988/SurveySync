@@ -6,6 +6,8 @@ from fastapi.testclient import TestClient
 from surveysync import router as survey_router
 
 ROOT = Path(__file__).resolve().parents[1]
+CORE_VERSION = (ROOT/"VERSION.txt").read_text(encoding="utf-8-sig").strip()
+RELEASE_ID = (ROOT/"RELEASE_ID.txt").read_text(encoding="utf-8-sig").strip()
 
 
 def test_beta2_release_notes_have_release_specific_identity():
@@ -17,8 +19,8 @@ def test_beta2_release_notes_have_release_specific_identity():
 
     assert response.status_code == 200
     body = response.json()
-    assert body["version"] == "9.4.1"
-    assert body["release_id"] == "9.4.1"
+    assert body["version"] == CORE_VERSION
+    assert body["release_id"] == RELEASE_ID
     assert any("globe" in note.lower() for note in body["notes"])
     assert any("release notes" in note.lower() for note in body["notes"])
 
