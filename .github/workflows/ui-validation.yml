@@ -44,11 +44,11 @@ jobs:
       - name: Retain candidate installer, checksum, and release notes
         uses: actions/upload-artifact@v4
         with:
-          name: SurveySync_9.4.1_UI_Installer
+          name: SurveySync_9.4.2_beta1_UI_Installer
           path: |
-            installer/output/SurveySync_Setup_9.4.1.exe
-            installer/output/SurveySync_Setup_9.4.1.exe.sha256
-            RELEASE_NOTES_v9_4_1.md
+            installer/output/SurveySync_Setup_9.4.2-beta.1.exe
+            installer/output/SurveySync_Setup_9.4.2-beta.1.exe.sha256
+            RELEASE_NOTES_v9_4_2.md
           if-no-files-found: error
           retention-days: 14
       - name: Retain actual UI screenshots and trace
