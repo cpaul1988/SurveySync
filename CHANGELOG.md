@@ -1,3 +1,7 @@
+# 9.4.4-beta.1
+
+- Added snapshot-bound Visual QA PDF/CSV review packages with saved decisions, separate correction histories, source references, exact evidence, and safe native/browser export.
+
 # 9.4.3-beta.1 — Visual Survey QA candidate
 
 Linked local plan, canonical point table, evidence-based issue selection, audit-backed review decisions and explicitly approved correction copies. Source records remain unchanged. See docs/VISUAL_SURVEY_QA.md.
