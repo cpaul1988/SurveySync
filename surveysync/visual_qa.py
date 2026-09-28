@@ -152,7 +152,11 @@ def snapshot(project, jump=2.0, distance=50.0):
         matched = defaultdict(list)
         for p in rows:
             src = sources.get(p["source_id"], {})
-            if src.get("sha256") != run.get("source_sha256") or not p["mappable"]:
+            if (
+                src.get("sha256") != run.get("source_sha256")
+                or not p["mappable"]
+                or p["vertical_units"] != metadata["vertical_units"]
+            ):
                 continue
             if any(
                 all(p[k] == o.get(k) for k in ("northing", "easting", "elevation"))

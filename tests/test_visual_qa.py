@@ -108,6 +108,12 @@ def test_rod_evidence_requires_exact_source_and_coordinates(workspace, tmp_path)
     rod = next(i for i in d2['issues'] if i['kind']=='rod_candidate')
     assert rod['point_uuids'] == [p['point_uuid']]
     with project.db.connect() as conn:
+        conn.execute("UPDATE canonical_points SET vertical_units='meters' WHERE point_uuid=?",(p['point_uuid'],))
+    assert not any(i['kind']=='rod_candidate' for i in get(client, headers)['issues'])
+    with project.db.connect() as conn:
+        conn.execute("UPDATE canonical_points SET vertical_units=? WHERE point_uuid=?",(p['vertical_units'],p['point_uuid']))
+    assert any(i['kind']=='rod_candidate' for i in get(client, headers)['issues'])
+    with project.db.connect() as conn:
         conn.execute('UPDATE canonical_points SET elevation=11 WHERE point_uuid=?',(p['point_uuid'],))
     assert not any(i['kind']=='rod_candidate' for i in get(client, headers)['issues'])
 
