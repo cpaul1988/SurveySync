@@ -1,0 +1,51 @@
+name: SurveySync Lifecycle Baseline Stress
+on:
+  push:
+    branches: [fix-v9.4.1-remaining-audit]
+    paths: ['.github/workflows/lifecycle-baseline.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-candidate:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated native test tools
+        run: python -m pip install psutil==7.0.0 pywinauto==0.6.9
+      - name: Retrieve the exact prior accepted candidate without rebuilding
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '10973135270'
+          run-id: '36428153988'
+          github-token: ${{ github.token }}
+          repository: cpaul1988/SurveySync
+          merge-multiple: true
+          path: baseline-artifact
+      - name: Verify and install disposable baseline
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force lifecycle-evidence | Out-Null
+          $files = @(Get-ChildItem baseline-artifact -Filter SurveySync_Setup_9.4.1.exe -Recurse)
+          if ($files.Count -ne 1) { throw 'Ambiguous baseline executable.' }
+          $expected = 'a44973780170d44548611f6eb7332943fc53201eb5f7121634ef32d203c8797a'
+          if ((Get-FileHash $files[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Baseline hash mismatch.' }
+          $install = Join-Path $env:RUNNER_TEMP 'SurveySyncLifecycleBaseline'
+          if (Test-Path $install) { throw 'Disposable folder already exists.' }
+          $log = Join-Path $env:GITHUB_WORKSPACE 'lifecycle-evidence/setup.log'
+          $process = Start-Process -FilePath $files[0].FullName -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',('/DIR="'+$install+'"'),('/LOG="'+$log+'"')) -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'Baseline setup failed.' }
+          "SS_REPAIR_INSTALL=$install" >> $env:GITHUB_ENV
+          "SS_INSTALLER_SHA256=$expected" >> $env:GITHUB_ENV
+      - name: Twenty-four independently recorded native lifecycle cycles
+        run: python scripts/verify_lifecycle_stress.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lifecycle-baseline-evidence
+          path: lifecycle-evidence/
+          retention-days: 14
