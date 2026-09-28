@@ -172,6 +172,7 @@ SURVEYSYNC_RELEASE_NOTES = [
     "The ZIP includes QA_Review.pdf, findings.csv, corrections.csv, exact JSON evidence and file checksums. Desktop exports save under Exports/VisualQA/Reports; browser sessions download the package.",
     "Project coordinates and original sources are unchanged. Source hashes are registered import hashes, not freshly verified source files. Prepared-by labels are not authenticated signatures or professional certification.",
     "Stale project or evidence requests are refused. Reports exceeding 50,000 detail rows or 2,000 pages fail explicitly instead of truncating findings.",
+    "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a project copy.",
     "This is an unpublished candidate based on Stable 9.4.3. Existing field-validation and unsigned-release limitations remain."
 ]
 
