@@ -5,6 +5,7 @@ user settings, production code, provider credentials or published update feeds.
 """
 from __future__ import annotations
 import csv
+from zipfile import ZipFile
 import json
 import os
 from pathlib import Path
@@ -170,6 +171,30 @@ def main():
                 assert not cancel_dialog.is_visible(), 'Cancelled picker remained open'
                 expect(page.locator('#rangePath')).to_have_value(str(sample))
                 result['checks'].append('Cancelling the native picker preserved the selected path')
+                request('/api/v9/points/import', {'file_path': str(sample)})
+                page.locator('.module-tab[data-module="QASync"]').click()
+                page.locator('#moduleNav .module-nav-btn').filter(has_text='Visual Survey QA').click()
+                expect(page.locator('#vqPoints tr')).to_have_count(3)
+                page.locator('#vqPoints button').filter(has_text='1005').click()
+                page.locator('#vqOffset').fill('1')
+                page.locator('#vqAdd').click()
+                expect(page.locator('#vqChanges')).to_contain_text('11 → 12')
+                page.locator('#vqReason').fill('Native acceptance: independently checked synthetic elevation offset.')
+                page.locator('#vqConfirm').check()
+                with page.expect_response(lambda r: r.url.endswith('/api/v9/visual-qa/export') and r.request.method=='POST') as saved:
+                    page.locator('#vqExport').click()
+                assert saved.value.ok, saved.value.text()
+                saved_result=saved.value.json()
+                output=Path(saved_result['path'])
+                assert output.is_relative_to(state) and output.is_file()
+                with ZipFile(output) as archive:
+                    evidence=json.loads(archive.read('review_evidence.json'))
+                    assert next(p for p in evidence['corrected_points'] if p['point_id']=='1005')['elevation']==12
+                    assert evidence['changes'][0]['original']['elevation']==11
+                expect(page.locator('#vqMessage')).to_contain_text('Saved reviewed copy:')
+                assert sample.read_bytes()==before
+                page.screenshot(path=str(OUT/'native-visual-qa-export.png'))
+                result['checks'].append('Installed WebView2 Visual QA approved and saved a real correction ZIP; exact values and source preservation verified')
                 assert not result['errors'], result['errors']
                 page.locator('[data-menu="fileMenu"]').click()
                 start = time.monotonic()

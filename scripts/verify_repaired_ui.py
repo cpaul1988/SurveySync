@@ -32,7 +32,7 @@ def main():
                 page=browser.new_page(viewport={'width':1488,'height':940})
                 errors=[]
                 page.on('pageerror',lambda e:errors.append(str(e)))
-                page.route('**/api/v9/update/check',lambda route:route.fulfill(json={'update_available':False,'version':'9.4.2'}))
+                page.route('**/api/v9/update/check',lambda route:route.fulfill(json={'update_available':False,'version':'9.4.3'}))
                 try:
                     page.goto(BASE,wait_until='domcontentloaded')
                     expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)

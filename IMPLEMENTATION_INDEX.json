@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.2",
+  "version": "9.4.3",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -994,6 +994,20 @@
       ],
       "documentation": [
         "docs/LOCAL_FIELDBOOK_PIPELINE.md"
+      ]
+    },
+    "visual_survey_qa": {
+      "implementation": [
+        "surveysync/visual_qa.py",
+        "surveysync/visual_qa_routes.py",
+        "surveysync/static/visual_qa.js"
+      ],
+      "tests": [
+        "tests/test_visual_qa.py",
+        "scripts/verify_visual_qa.py"
+      ],
+      "documentation": [
+        "docs/VISUAL_SURVEY_QA.md"
       ]
     }
   }

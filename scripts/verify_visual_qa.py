@@ -1,0 +1,133 @@
+"""Real linked Visual QA controls against a disposable local project; no cloud data."""
+from __future__ import annotations
+import io
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.request
+from zipfile import ZipFile
+from playwright.sync_api import expect, sync_playwright
+
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/'remaining-evidence'
+BASE='http://127.0.0.1:18773'
+
+
+def api(path,data=None):
+    request=urllib.request.Request(BASE+path,data=None if data is None else json.dumps(data).encode(),headers={'Content-Type':'application/json'})
+    with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
+
+
+def main():
+    OUT.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='visual-qa-') as tmp, (OUT/'visual-qa-server.log').open('w',encoding='utf-8') as log:
+        root=Path(tmp)
+        source=root/'points.csv'
+        source.write_text('PointID,Northing,Easting,Elevation,Description\n001A,1000,2000,10,ROAD\n002,1005,2005,14,ROAD\n003,1010,2010,,TREE\n004,1015,2015,11,ROAD\n',encoding='utf-8')
+        original=source.read_bytes()
+        server=subprocess.Popen([sys.executable,'-m','uvicorn','fieldbook_sync.app:app','--host','127.0.0.1','--port','18773'],cwd=ROOT,env=dict(os.environ,SURVEYSYNC_CONFIG_ROOT=str(root/'config'),SURVEYSYNC_FIELD_ROOT=str(root/'field')),stdout=log,stderr=subprocess.STDOUT)
+        report={'status':'FAIL','checks':[]}
+        try:
+            for _ in range(100):
+                try:api('/api/v9/status');break
+                except OSError:time.sleep(.2)
+            else:raise TimeoutError('Visual QA server unavailable')
+            api('/api/v9/project/create',{'parent_folder':str(root/'projects'),'name':'Visual QA Acceptance','crs':'EPSG:2278','horizontal_units':'us_survey_feet','vertical_units':'us_survey_feet'})
+            api('/api/v9/points/import',{'file_path':str(source)})
+            with sync_playwright() as pw:
+                browser=pw.chromium.launch(executable_path=os.environ.get('SURVEYSYNC_TEST_CHROMIUM') or None,args=['--no-sandbox'] if sys.platform!='win32' else [])
+                context=browser.new_context(viewport={'width':1488,'height':1000},accept_downloads=True)
+                page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+                page.route('**/api/v9/update/check',lambda r:r.fulfill(json={'update_available':False}))
+                page.goto(BASE,wait_until='domcontentloaded')
+                expect(page.locator('#productSplash')).to_be_hidden(timeout=20000)
+                expect(page.locator('#releaseDone')).to_be_visible();page.locator('#releaseDone').click()
+                page.locator('.module-tab[data-module="QASync"]').click()
+                page.locator('#moduleNav .module-nav-btn').filter(has_text='Visual Survey QA').click()
+                expect(page.locator('#vqControls')).to_be_enabled(timeout=15000)
+                expect(page.locator('#vqPoints tr')).to_have_count(4)
+                expect(page.locator('#vqExport')).to_be_disabled()
+                page.locator('#vqIssues [data-issue]').filter(has_text='elevation jump').first.click()
+                expect(page.locator('#vqEvidence')).to_contain_text('screening flag')
+                expect(page.locator('#vqPoints .vq-selected')).to_have_count(1)
+                page.locator('#vqSearch').fill('001A')
+                expect(page.locator('#vqPoints tr')).to_have_count(1)
+                page.locator('#vqPoints button').click()
+                page.locator('#vqOriginal').click()
+                expect(page.locator('#vqOriginalResult')).to_contain_text('"elevation": 10')
+                page.locator('#vqSearch').fill('')
+                page.locator('#vqReason').fill('Independent field notes confirm the selected anomaly.')
+                page.locator('#vqDecision').select_option('confirmed')
+                page.locator('#vqSave').click()
+                expect(page.locator('#vqMessage')).to_contain_text('review saved')
+                page.locator('#vqRefresh').click()
+                expect(page.locator('#vqControls')).to_be_enabled()
+                expect(page.locator('#vqIssues')).to_contain_text('confirmed')
+                report['checks'].append('Actual issue/table selection, original source observation read, and review persistence')
+                page.locator('#vqSearch').fill('002')
+                page.locator('#vqPoints button').click()
+                page.locator('#vqOffset').fill('-4')
+                page.locator('#vqAdd').click()
+                expect(page.locator('#vqChanges')).to_contain_text('14 → 10')
+                page.locator('#vqReason').fill('Field notes verify a four-foot rod offset at 002.')
+                page.locator('#vqExport').click()
+                expect(page.locator('#vqMessage')).to_contain_text('confirm')
+                page.locator('#vqConfirm').check()
+                with page.expect_download() as downloaded:page.locator('#vqExport').click()
+                path=Path(downloaded.value.path())
+                with ZipFile(io.BytesIO(path.read_bytes())) as z:
+                    evidence=json.loads(z.read('review_evidence.json'))
+                    assert next(p for p in evidence['corrected_points'] if p['point_id']=='002')['elevation']==10
+                    assert evidence['changes'][0]['original']['elevation']==14
+                assert source.read_bytes()==original
+                expect(page.locator('#vqControls')).to_be_enabled()
+                page.locator('#vqSearch').fill('')
+                page.locator('#vqKind').select_option('missing_z')
+                expect(page.locator('#vqPoints tr')).to_have_count(1)
+                expect(page.locator('#vqPoints')).to_contain_text('003')
+                page.locator('#vqKind').select_option('')
+                # In the full extent the last point is upper-right; exercise actual canvas picking.
+                page.locator('#vqFit').click()
+                box=page.locator('#vqCanvas').bounding_box();assert box
+                # Equal x/y span: scale is constrained by height (360 - 70) / 15.
+                page.locator('#vqCanvas').click(position={'x':box['width']/2+145,'y':35})
+                expect(page.locator('#vqEvidence')).to_contain_text('Point 004')
+                report['checks'].append('Canvas pick, issue filter, confirmation gate, downloaded corrected ZIP and original-byte preservation')
+                for mode in ('light','dark'):
+                    api('/api/v9/config/ui',{'appearance':mode,'theme':'carbon','accent':'default'})
+                    page.reload(wait_until='domcontentloaded')
+                    expect(page.locator('#productSplash')).to_be_hidden(timeout=20000)
+                    page.locator('.module-tab[data-module="QASync"]').click()
+                    page.locator('#moduleNav .module-nav-btn').filter(has_text='Visual Survey QA').click()
+                    expect(page.locator('#vqControls')).to_be_enabled()
+                    page.locator('#vqIssues [data-issue]').first.click()
+                    page.screenshot(path=str(OUT/f'visual-qa-{mode}.png'),full_page=True)
+                    page.locator('#vqEvidence').scroll_into_view_if_needed()
+                    page.screenshot(path=str(OUT/f'visual-qa-evidence-{mode}.png'),full_page=True)
+                page.set_viewport_size({'width':900,'height':900})
+                assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth+1')
+                page.screenshot(path=str(OUT/'visual-qa-narrow.png'),full_page=True)
+                page.locator('#vqReason').fill('Stale project should reject this decision.')
+                api('/api/v9/project/create',{'parent_folder':str(root/'projects'),'name':'Second Project','crs':'EPSG:2278'})
+                page.locator('#vqSave').click()
+                expect(page.locator('#vqMessage')).to_contain_text('Project changed')
+                expect(page.locator('#vqControls')).to_have_attribute('disabled', '')
+                expect(page.locator('#vqSave')).to_be_disabled()
+                expect(page.locator('#vqAdd')).to_be_disabled()
+                expect(page.locator('#vqPoints tr')).to_have_count(0)
+                report['checks'].append('Light/dark/narrow views and stale-project refusal')
+                assert not errors,errors
+                browser.close()
+            report['status']='PASS'
+        finally:
+            (OUT/'visual-qa-acceptance.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+            server.terminate()
+            try:server.wait(timeout=20)
+            except subprocess.TimeoutExpired:server.kill();server.wait(timeout=5)
+    print(json.dumps(report,indent=2))
+
+if __name__=='__main__':main()

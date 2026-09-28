@@ -18,3 +18,7 @@ router.include_router(workflow_router)
 router.include_router(crs_diagnostic_router)
 router.include_router(report_template_router)
 router.include_router(gis_bridge_router)
+
+from .visual_qa_routes import router as visual_qa_router
+
+router.include_router(visual_qa_router)
