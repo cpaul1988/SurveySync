@@ -50,6 +50,7 @@ def main():
                 page.locator('#moduleNav .module-nav-btn').filter(has_text='Visual Survey QA').click()
                 expect(page.locator('#vqControls')).to_be_enabled(timeout=15000)
                 expect(page.locator('#vqPoints tr')).to_have_count(4)
+                expect(page.locator('#vqExport')).to_be_disabled()
                 page.locator('#vqIssues [data-issue]').filter(has_text='elevation jump').first.click()
                 expect(page.locator('#vqEvidence')).to_contain_text('screening flag')
                 expect(page.locator('#vqPoints .vq-selected')).to_have_count(1)
