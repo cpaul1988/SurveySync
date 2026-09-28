@@ -30,6 +30,19 @@ def test_gate_rejects_one_stale_surface(tmp_path, path):
         stamp.validate(tmp_path)
 
 
+def test_gate_rejects_stale_desktop_panel_cache_key(tmp_path):
+    for rel in ('VERSION.txt', 'RELEASE_ID.txt', 'surveysync/__init__.py', 'installer/app_launcher.go',
+                'installer/SurveySync.iss', 'surveysync/static/index.html', 'fieldbook_sync/static/index.html', 'BUILD_MANIFEST.json'):
+        dest=tmp_path/rel; dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT/rel, dest)
+    target=tmp_path/'surveysync/static/index.html'
+    identity=(ROOT/'RELEASE_ID.txt').read_text(encoding='utf-8').strip()
+    target.write_text(target.read_text(encoding='utf-8').replace(
+        'desktop_workflows.js?v='+identity, 'desktop_workflows.js?v=stale'), encoding='utf-8')
+    with pytest.raises(ValueError, match='cache identity'):
+        stamp.validate(tmp_path)
+
+
 def test_about_and_update_prompts_display_full_build_identity():
     js = (ROOT/'surveysync/static/app.js').read_text(encoding='utf-8')
     about = js.split('function openAboutSurveySync()', 1)[1].split('function openGlobalFeedbackWizard', 1)[0]

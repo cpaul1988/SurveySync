@@ -38,6 +38,10 @@ def validate(root: Path = ROOT) -> dict:
         html = (root/relative).read_text(encoding='utf-8')
         if f'SurveySync v{identity}' not in html or f'theme-branding.css?v={identity}' not in html:
             raise ValueError('Shell branding or cache identity differs: '+relative)
+        assets = re.findall(r"(?:src|href)=[\"']([^\"']+\.(?:js|css)(?:\?[^\"']*)?)[\"']", html)
+        for asset in assets:
+            if asset.startswith(('/static/', '/surveysync-static/')) and not asset.endswith('?v='+identity):
+                raise ValueError('Static script/style cache identity differs: '+asset)
     metadata = json.loads((root/'BUILD_MANIFEST.json').read_text(encoding='utf-8'))
     if metadata.get('version') != version or metadata.get('release_id') != identity:
         raise ValueError('Build manifest does not identify the packaged release.')
