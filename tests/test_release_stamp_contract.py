@@ -18,10 +18,10 @@ def test_packaged_build_is_consistent():
 
 
 @pytest.mark.parametrize('path', ['RELEASE_ID.txt', 'surveysync/__init__.py', 'installer/app_launcher.go',
-    'installer/SurveySync.iss', 'surveysync/static/index.html', 'fieldbook_sync/static/index.html', 'BUILD_MANIFEST.json'])
+    'installer/SurveySync.iss', 'surveysync/static/index.html', 'fieldbook_sync/static/index.html', 'BUILD_MANIFEST.json', 'surveysync/static/app.js', 'surveysync/router.py', 'installer/provision_runtime.ps1'])
 def test_gate_rejects_one_stale_surface(tmp_path, path):
     for rel in ('VERSION.txt', 'RELEASE_ID.txt', 'surveysync/__init__.py', 'installer/app_launcher.go',
-                'installer/SurveySync.iss', 'surveysync/static/index.html', 'fieldbook_sync/static/index.html', 'BUILD_MANIFEST.json'):
+                'installer/SurveySync.iss', 'surveysync/static/index.html', 'fieldbook_sync/static/index.html', 'BUILD_MANIFEST.json', 'surveysync/static/app.js', 'surveysync/router.py', 'installer/provision_runtime.ps1'):
         dest=tmp_path/rel; dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT/rel, dest)
     target=tmp_path/path
@@ -32,7 +32,7 @@ def test_gate_rejects_one_stale_surface(tmp_path, path):
 
 def test_gate_rejects_stale_desktop_panel_cache_key(tmp_path):
     for rel in ('VERSION.txt', 'RELEASE_ID.txt', 'surveysync/__init__.py', 'installer/app_launcher.go',
-                'installer/SurveySync.iss', 'surveysync/static/index.html', 'fieldbook_sync/static/index.html', 'BUILD_MANIFEST.json'):
+                'installer/SurveySync.iss', 'surveysync/static/index.html', 'fieldbook_sync/static/index.html', 'BUILD_MANIFEST.json', 'surveysync/static/app.js', 'surveysync/router.py', 'installer/provision_runtime.ps1'):
         dest=tmp_path/rel; dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT/rel, dest)
     target=tmp_path/'surveysync/static/index.html'

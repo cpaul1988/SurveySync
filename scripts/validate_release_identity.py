@@ -42,6 +42,11 @@ def validate(root: Path = ROOT) -> dict:
         for asset in assets:
             if asset.startswith(('/static/', '/surveysync-static/')) and not asset.endswith('?v='+identity):
                 raise ValueError('Static script/style cache identity differs: '+asset)
+    for relative in ('surveysync/static/app.js', 'surveysync/router.py'):
+        if identity not in (root/relative).read_text(encoding='utf-8'):
+            raise ValueError('Application fallback or release-note identity differs: '+relative)
+    if f'[string]$AppVersion = "{version}"' not in (root/'installer/provision_runtime.ps1').read_text(encoding='utf-8'):
+        raise ValueError('Runtime provisioner version differs from VERSION.txt.')
     metadata = json.loads((root/'BUILD_MANIFEST.json').read_text(encoding='utf-8'))
     if metadata.get('version') != version or metadata.get('release_id') != identity:
         raise ValueError('Build manifest does not identify the packaged release.')
