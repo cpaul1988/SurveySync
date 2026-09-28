@@ -9,6 +9,8 @@ from __future__ import annotations
 import copy
 import json
 import re
+import threading
+from functools import wraps
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -37,6 +39,17 @@ ALLOWED_POINT_FIELDS = {
     "horizontal_units",
     "vertical_units",
 }
+
+
+_STORE_LOCK = threading.RLock()
+
+
+def serialized(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        with _STORE_LOCK:
+            return fn(*args, **kwargs)
+    return wrapped
 
 
 class ReportTemplateError(ValueError):
@@ -219,7 +232,7 @@ def _normalize_mapping(mapping: dict[str, Any]) -> dict[str, Any]:
     scalar_raw = mapping.get("scalar_cells") or []
     if not isinstance(scalar_raw, list):
         raise ReportTemplateError("scalar_cells must be a list.")
-    scalar_cells = []
+    scalar_cells: list[dict[str, str]] = []
     for index, item in enumerate(scalar_raw):
         if not isinstance(item, dict):
             raise ReportTemplateError(f"Scalar mapping {index + 1} must be an object.")
@@ -285,6 +298,7 @@ def _source_row(project: SurveyProject, source_id: str) -> dict[str, Any]:
     return dict(row)
 
 
+@serialized
 def register_excel_template(
     project: SurveyProject,
     path: str | Path,
@@ -359,6 +373,7 @@ def _template_entry(project: SurveyProject, template_id: str) -> dict[str, Any]:
     raise ReportTemplateError("Report template mapping was not found.")
 
 
+@serialized
 def save_template_mapping(
     project: SurveyProject, template_id: str, mapping: dict[str, Any]
 ) -> dict[str, Any]:
@@ -390,6 +405,7 @@ def save_template_mapping(
     return updated
 
 
+@serialized
 def delete_template(project: SurveyProject, template_id: str) -> dict[str, Any]:
     store = _load_store(project)
     kept = [

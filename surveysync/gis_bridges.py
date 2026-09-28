@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -127,6 +128,42 @@ def find_grass(explicit: str | Path | None = None) -> Path | None:
     return candidates[0] if candidates else None
 
 
+def _external_environment() -> dict[str, str]:
+    """Do not inject SurveySync's Python runtime into separately installed GIS."""
+    env = dict(os.environ)
+    for name in ("PYTHONHOME", "PYTHONPATH", "PYTHONUSERBASE", "VIRTUAL_ENV", "__PYVENV_LAUNCHER__"):
+        env.pop(name, None)
+    roots = []
+    for prefix in (sys.prefix, sys.base_prefix):
+        root = Path(prefix).resolve()
+        if str(root) not in {"/", "/usr", "/usr/local"}:
+            roots.append(root)
+    for name in ("PATH", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
+        if name not in env:
+            continue
+        kept = []
+        for entry in env[name].split(os.pathsep):
+            if not entry:
+                continue
+            candidate = Path(entry).resolve()
+            if not any(candidate.is_relative_to(root) for root in roots):
+                kept.append(entry)
+        if kept:
+            env[name] = os.pathsep.join(kept)
+        else:
+            env.pop(name, None)
+    return env
+
+
+def _grass_temporary_flag(executable: Path) -> str:
+    help_result = _run([str(executable), "--help"], timeout_seconds=20)
+    help_text = help_result["stdout"] + "\n" + help_result["stderr"]
+    for flag in ("--tmp-project", "--tmp-location"):
+        if flag in help_text:
+            return flag
+    raise GisBridgeError("GRASS launcher does not advertise a supported temporary-project option.")
+
+
 def _run(
     command: list[str],
     *,
@@ -150,6 +187,7 @@ def _run(
             check=False,
             cwd=str(Path(cwd).expanduser().resolve()) if cwd else None,
             shell=False,
+            env=_external_environment(),
         )
     except subprocess.TimeoutExpired as exc:
         raise GisBridgeError(f"GIS process timed out after {timeout} seconds.") from exc
@@ -193,7 +231,7 @@ def bridge_status(qgis_executable=None, grass_executable=None) -> dict[str, Any]
             "ready": bool(grass),
             "path": str(grass or ""),
             "version": _version(grass, ["--version"]) if grass else "",
-            "integration": "external grass --tmp-project --exec",
+            "integration": "external grass temporary-project --exec",
         },
         "embedded_gpl_code": False,
         "shell_execution": False,
@@ -346,7 +384,7 @@ def run_grass_module(
     parameter_args = _parameter_args(parameters)
     command = [
         str(exe),
-        "--tmp-project",
+        _grass_temporary_flag(exe),
         project_crs,
         "--exec",
         module_name,

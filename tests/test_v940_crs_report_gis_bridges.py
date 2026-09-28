@@ -255,7 +255,7 @@ def test_grass_bridge_uses_temp_project_and_validated_module(tmp_path, monkeypat
     def fake_run(command, **kwargs):
         captured["command"] = list(command)
         assert kwargs["shell"] is False
-        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+        return subprocess.CompletedProcess(command, 0, stdout="--tmp-project --exec" if "--help" in command else "ok", stderr="")
 
     monkeypatch.setattr(bridges.subprocess, "run", fake_run)
     project = _project(tmp_path / "project")

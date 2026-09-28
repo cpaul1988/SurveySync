@@ -15,8 +15,10 @@ SCHEMA = 'surveysync.signed-manifest.v1'
 def load_policy(root: Path | None = None) -> dict:
     path = (root or Path(__file__).resolve().parents[1]) / 'update_trust.json'
     data = json.loads(path.read_text(encoding='utf-8')) if path.is_file() else {'require_signature': False, 'keys': {}}
-    if type(data.get('require_signature')) is not bool or not isinstance(data.get('keys'), dict):
+    if not isinstance(data, dict) or type(data.get('require_signature')) is not bool or not isinstance(data.get('keys'), dict):
         raise ValueError('Invalid packaged update trust policy.')
+    if any(not isinstance(k, str) or not isinstance(v, str) for k, v in data['keys'].items()):
+        raise ValueError('Invalid packaged signing key entry.')
     if data['require_signature'] and not data['keys']:
         raise ValueError('Signed updates required but no trusted public key is provisioned.')
     return data
@@ -52,7 +54,10 @@ def decode_manifest(raw: bytes, policy: dict | None = None, now: dt.datetime | N
     if not isinstance(result, dict) or result.get('product') != 'SurveySync':
         raise ValueError('Signed update payload has the wrong product.')
     try:
-        expiry = dt.datetime.fromisoformat(result['expires_utc'].replace('Z', '+00:00'))
+        expiry_text = result.get('expires_utc')
+        if not isinstance(expiry_text, str):
+            raise ValueError('Missing expiry string')
+        expiry = dt.datetime.fromisoformat(expiry_text.replace('Z', '+00:00'))
         if expiry.tzinfo is None or expiry <= (now or dt.datetime.now(dt.timezone.utc)):
             raise ValueError('Expired or unzoned expiry')
     except (KeyError, TypeError, ValueError) as exc:
