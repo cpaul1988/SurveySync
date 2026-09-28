@@ -155,3 +155,22 @@ def test_snapshot_cap_is_explicit_and_never_a_partial_success(workspace,tmp_path
     response=client.get('/api/v9/visual-qa/snapshot',headers=headers)
     assert response.status_code==400
     assert 'No partial review' in response.text
+
+
+def test_native_copy_saves_unique_files_and_audit_failure_cleans_only_new_output(workspace,tmp_path,monkeypatch):
+    from pathlib import Path
+    client,project,headers,path=seed(workspace,tmp_path)
+    d=get(client,headers)
+    body={**payload(d),'changes':[{'point_uuid':d['points'][0]['point_uuid'],'offset':1}], 'confirmed':True,'save_locally':True}
+    a=client.post('/api/v9/visual-qa/export',headers=headers,json=body)
+    b=client.post('/api/v9/visual-qa/export',headers=headers,json=body)
+    assert a.status_code==b.status_code==200
+    first,second=Path(a.json()['path']),Path(b.json()['path'])
+    assert first!=second and first.is_file() and second.is_file()
+    assert first.is_relative_to(project.paths.exports)
+    before={p.name:p.read_bytes() for p in first.parent.iterdir()}
+    def fail(*args,**kwargs):raise OSError('Synthetic audit write failure')
+    monkeypatch.setattr(project.db,'audit',fail)
+    assert client.post('/api/v9/visual-qa/export',headers=headers,json=body).status_code==400
+    assert {p.name:p.read_bytes() for p in first.parent.iterdir()}==before
+    assert get(client,headers)['snapshot']==d['snapshot']

@@ -32,6 +32,7 @@ class ChangeIn(BaseModel):
 class ExportIn(ContextIn):
     changes: list[ChangeIn] = Field(min_length=1, max_length=20000)
     confirmed: bool = False
+    save_locally: bool = False
 
 
 def project_for(request):
@@ -93,10 +94,13 @@ def review(request: Request, payload: ReviewIn):
 
 @router.post("/export")
 def export(request: Request, payload: ExportIn):
+    from uuid import uuid4
     from . import router as context
 
     with context.project_lock:
         project = project_for(request)
+        output = None
+        created = committed = False
         try:
             if not payload.confirmed:
                 raise ValueError("Explicitly confirm the correction preview before exporting.")
@@ -104,6 +108,15 @@ def export(request: Request, payload: ExportIn):
                 data = current(project, payload)
                 verify_correction_sources(project, data, payload.changes)
                 content, changes = corrected_archive(data, payload.changes, payload.reason.strip())
+                if payload.save_locally:
+                    folder = (project.paths.exports / "VisualQA").resolve()
+                    if not folder.is_relative_to(project.paths.root.resolve()):
+                        raise ValueError("Export folder must remain inside the project.")
+                    folder.mkdir(parents=True, exist_ok=True)
+                    output = folder / ("SurveySync_Reviewed_Points_" + uuid4().hex + ".zip")
+                    with output.open("xb") as stream:
+                        created = True
+                        stream.write(content)
                 project.db.audit(
                     "QASync",
                     "VISUAL_QA_COPY_GENERATED",
@@ -113,8 +126,12 @@ def export(request: Request, payload: ExportIn):
                         "snapshot": data["snapshot"],
                         "reason": payload.reason.strip(),
                         "changes": changes,
+                        "saved_path": str(output) if output else None,
                     },
                 )
+            committed = True
+            if output:
+                return {"path": str(output), "folder": str(output.parent), "source_modified": False}
             return Response(
                 content,
                 media_type="application/zip",
@@ -124,6 +141,9 @@ def export(request: Request, payload: ExportIn):
             )
         except (ValueError, OSError) as exc:
             raise HTTPException(400, str(exc)) from exc
+        finally:
+            if created and not committed and output is not None:
+                output.unlink(missing_ok=True)
 
 
 @router.get("/source/{point_uuid}")
