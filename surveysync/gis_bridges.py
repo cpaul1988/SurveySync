@@ -297,7 +297,7 @@ def qgis_algorithm_help(
     if result["return_code"] != 0:
         raise GisBridgeError(
             f"QGIS algorithm help failed for {algorithm}."
-            + (f" {result['stderr'].strip()[-1000:] }" if result["stderr"].strip() else "")
+            + (f" {result['stderr'].strip()[-1000:]}" if result["stderr"].strip() else "")
         )
     return {"algorithm_id": algorithm, "executable": str(exe), "help": result["stdout"]}
 
