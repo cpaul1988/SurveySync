@@ -32,6 +32,7 @@ def runtime_status() -> dict[str, Any]:
     if laspy_ready:
         try:
             import laspy
+
             laz_ready = bool(laspy.LazBackend.detect_available())
         except (ImportError, OSError, RuntimeError):
             pass
@@ -125,8 +126,7 @@ def _native_las_header(path: Path) -> dict[str, Any]:
     if any(value <= 0 for value in (scale_x, scale_y, scale_z)):
         raise PointCloudError("LAS header contains a non-positive coordinate scale.")
 
-    expected_sizes = {0: 20, 1: 28, 2: 26, 3: 34, 4: 57, 5: 63,
-                      6: 30, 7: 36, 8: 38, 9: 59, 10: 67}
+    expected_sizes = {0: 20, 1: 28, 2: 26, 3: 34, 4: 57, 5: 63, 6: 30, 7: 36, 8: 38, 9: 59, 10: 67}
     if version_major != 1 or version_minor > 4 or point_format not in expected_sizes:
         raise PointCloudError("Unsupported LAS version or point format.")
     minimum = 375 if version_minor == 4 else 235 if version_minor == 3 else 227
@@ -134,10 +134,15 @@ def _native_las_header(path: Path) -> dict[str, Any]:
         raise PointCloudError("LAS header is truncated or has invalid offsets.")
     if point_record_length < expected_sizes[point_format]:
         raise PointCloudError("LAS point record length is too small for its format.")
-    if any(lo > hi for lo, hi in ((min_x,max_x), (min_y,max_y), (min_z,max_z))):
+    if any(lo > hi for lo, hi in ((min_x, max_x), (min_y, max_y), (min_z, max_z))):
         raise PointCloudError("LAS bounds are inverted.")
-    if not compressed_flag and source_size(path) < offset_to_points + point_count * point_record_length:
-        raise PointCloudError("LAS file is truncated: point records do not match its declared count.")
+    if (
+        not compressed_flag
+        and source_size(path) < offset_to_points + point_count * point_record_length
+    ):
+        raise PointCloudError(
+            "LAS file is truncated: point records do not match its declared count."
+        )
 
     return {
         "reader": "native_las_header",

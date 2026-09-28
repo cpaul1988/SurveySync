@@ -44,6 +44,7 @@ class ExcelTemplateDeleteIn(BaseModel):
 
 def _project(request: Request):
     from .desktop_context import require_panel_project
+
     return require_panel_project(request)
 
 
@@ -104,6 +105,7 @@ def report_template_delete(request: Request, payload: ExcelTemplateDeleteIn):
 @router.get("/api/v9/reports/templates/details")
 def report_template_details(request: Request, template_id: str):
     from .report_template_mapper import template_details
+
     try:
         return template_details(_project(request), template_id)
     except (ReportTemplateError, OSError, ValueError) as exc:

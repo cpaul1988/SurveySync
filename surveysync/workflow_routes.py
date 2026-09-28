@@ -63,6 +63,7 @@ class WorkflowYamlIn(BaseModel):
 
 def _project(request: Request):
     from .desktop_context import require_panel_project
+
     return require_panel_project(request)
 
 
@@ -143,6 +144,7 @@ def workflow_import_yaml(request: Request, payload: WorkflowYamlIn):
 @router.post("/api/v9/workflows/save-yaml")
 def workflow_save_yaml_file(request: Request):
     from uuid import uuid4
+
     project = _project(request)
     path = project.paths.reports / "Workflows" / ("workflows_" + uuid4().hex + ".yaml")
     path.parent.mkdir(parents=True, exist_ok=True)

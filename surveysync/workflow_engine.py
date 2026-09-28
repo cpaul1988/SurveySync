@@ -75,6 +75,7 @@ def serialized(function):
     def call(*args, **kwargs):
         with _ENGINE_LOCK:
             return function(*args, **kwargs)
+
     return call
 
 

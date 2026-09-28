@@ -40,6 +40,7 @@ class GrassRunIn(BaseModel):
 
 def _project(request: Request):
     from .desktop_context import require_panel_project
+
     return require_panel_project(request)
 
 

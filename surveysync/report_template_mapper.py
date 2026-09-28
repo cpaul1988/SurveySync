@@ -478,7 +478,9 @@ def render_excel_template(
                             return str(value if value is not None else "")
 
                         if cell.data_type == "f":
-                            raise ReportTemplateError("Formula placeholders are unsafe. Map values into separate input cells instead.")
+                            raise ReportTemplateError(
+                                "Formula placeholders are unsafe. Map values into separate input cells instead."
+                            )
                         _write_input(cell, PLACEHOLDER.sub(replace, original))
 
         point_count = 0
@@ -525,7 +527,9 @@ def render_excel_template(
         if output.suffix.lower() != (".xlsm" if keep_vba else ".xlsx"):
             raise ReportTemplateError("Output extension must match the template workbook type.")
         if output.exists():
-            raise ReportTemplateError("Output already exists. Choose a new name; original files are never overwritten.")
+            raise ReportTemplateError(
+                "Output already exists. Choose a new name; original files are never overwritten."
+            )
         output.parent.mkdir(parents=True, exist_ok=True)
         created = False
         try:
@@ -579,7 +583,9 @@ def render_excel_template(
 
 def _write_input(cell: Any, value: Any) -> None:
     if isinstance(cell, MergedCell) or cell.data_type == "f":
-        raise ReportTemplateError("Mapped inputs cannot overwrite a formula or a merged-cell continuation.")
+        raise ReportTemplateError(
+            "Mapped inputs cannot overwrite a formula or a merged-cell continuation."
+        )
     cell.value = value
     if isinstance(value, str):
         cell.data_type = "s"  # PointIDs and client text are data, never formulas.
@@ -599,7 +605,9 @@ def validate_mapping_targets(project: SurveyProject, path: Path, mapping: dict) 
                 raise ReportTemplateError("Scalar mapping worksheet was not found.")
             cell = workbook[item["sheet"]][item["cell"]]
             if isinstance(cell, MergedCell) or cell.data_type == "f":
-                raise ReportTemplateError("Scalar mapping targets a formula or merged-cell continuation.")
+                raise ReportTemplateError(
+                    "Scalar mapping targets a formula or merged-cell continuation."
+                )
             targets.add((item["sheet"], item["cell"]))
         table = mapping.get("point_table")
         if table:
@@ -617,7 +625,9 @@ def validate_mapping_targets(project: SurveyProject, path: Path, mapping: dict) 
                     if (table["sheet"], address) in targets:
                         raise ReportTemplateError("Point table overlaps a scalar mapping.")
                     if isinstance(cell, MergedCell) or cell.data_type == "f":
-                        raise ReportTemplateError("Point table would overwrite a formula or merged-cell continuation.")
+                        raise ReportTemplateError(
+                            "Point table would overwrite a formula or merged-cell continuation."
+                        )
     finally:
         workbook.close()
 

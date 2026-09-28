@@ -134,9 +134,11 @@ def _run(
     cwd: str | Path | None = None,
 ) -> dict[str, Any]:
     if Path(command[0]).suffix.lower() in {".bat", ".cmd"} and any(
-        any(c in value for c in "&|<>^%!\r\n\"") for value in command[1:]
+        any(c in value for c in '&|<>^%!\r\n"') for value in command[1:]
     ):
-        raise GisBridgeError("Unsafe characters for a Windows batch launcher; use a native executable or simpler paths.")
+        raise GisBridgeError(
+            "Unsafe characters for a Windows batch launcher; use a native executable or simpler paths."
+        )
     timeout = max(5, min(int(timeout_seconds), 3600))
     try:
         completed = subprocess.run(
