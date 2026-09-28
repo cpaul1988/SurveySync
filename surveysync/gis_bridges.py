@@ -131,7 +131,13 @@ def find_grass(explicit: str | Path | None = None) -> Path | None:
 def _external_environment() -> dict[str, str]:
     """Do not inject SurveySync's Python runtime into separately installed GIS."""
     env = dict(os.environ)
-    for name in ("PYTHONHOME", "PYTHONPATH", "PYTHONUSERBASE", "VIRTUAL_ENV", "__PYVENV_LAUNCHER__"):
+    for name in (
+        "PYTHONHOME",
+        "PYTHONPATH",
+        "PYTHONUSERBASE",
+        "VIRTUAL_ENV",
+        "__PYVENV_LAUNCHER__",
+    ):
         env.pop(name, None)
     roots = []
     for prefix in (sys.prefix, sys.base_prefix):

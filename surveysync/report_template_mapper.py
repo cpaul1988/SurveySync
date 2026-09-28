@@ -49,6 +49,7 @@ def serialized(fn):
     def wrapped(*args, **kwargs):
         with _STORE_LOCK:
             return fn(*args, **kwargs)
+
     return wrapped
 
 
