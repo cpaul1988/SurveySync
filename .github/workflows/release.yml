@@ -1,8 +1,8 @@
 name: SurveySync Release
 on:
   push:
-    branches: [fix-v9.4.0-verified-audit]
-    paths: ['.github/release-941.json']
+    branches: [fix-v9.4.0-verified-audit, fix-v9.4.1-remaining-audit]
+    paths: ['.github/release-941.json', '.github/release-942.json']
   workflow_dispatch:
     inputs:
       version:
@@ -48,6 +48,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python .github/scripts/publish_verified_941.py
+
+  verified_942:
+    name: Publish independently accepted 9.4.2 (no rebuild)
+    if: github.event_name == 'push' && github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/fix-v9.4.1-remaining-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify publisher safeguards offline
+        run: python -m unittest discover -s .github/scripts/tests -p test_publish_verified_942.py -v
+      - name: Verify Windows provenance and publish exact accepted installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/publish_verified_942.py
 
   beta_approved:
     name: Publish approved Beta.4 (no rebuild)
