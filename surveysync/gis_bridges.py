@@ -261,14 +261,17 @@ def qgis_algorithms(*, executable: str | Path | None = None) -> dict[str, Any]:
     algorithms = []
     for line in result["stdout"].splitlines():
         stripped = line.strip()
-        if not stripped or " " not in stripped:
+        parts = stripped.split(maxsplit=1)
+        if len(parts) != 2:
             continue
-        candidate = stripped.split()[0]
+        candidate = parts[0]
+        if candidate.endswith(":"):
+            continue
         if ":" in candidate and _QGIS_ALGORITHM.fullmatch(candidate):
             algorithms.append(
                 {
                     "id": candidate,
-                    "label": stripped[len(candidate) :].strip(),
+                    "label": parts[1],
                 }
             )
     return {
@@ -294,7 +297,7 @@ def qgis_algorithm_help(
     if result["return_code"] != 0:
         raise GisBridgeError(
             f"QGIS algorithm help failed for {algorithm}."
-            + (f" {result['stderr'].strip()[-1000:]}" if result["stderr"].strip() else "")
+            + (f" {result['stderr'].strip()[-1000:] }" if result["stderr"].strip() else "")
         )
     return {"algorithm_id": algorithm, "executable": str(exe), "help": result["stdout"]}
 
