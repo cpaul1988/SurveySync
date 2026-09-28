@@ -1,4 +1,4 @@
-# SurveySync 9.4.2-beta.1 — remaining-audit candidate
+# SurveySync 9.4.2-beta.2 — remaining-audit candidate
 
 This is a prerelease candidate, not a Stable promotion. Use a copy of a project and retain a full backup. The existing 9.4.1 repairs, Ron's control/three-wire conventions, source observations, historical reports and approved globe/EDSI appearance remain in place.
 
@@ -16,7 +16,7 @@ This is a prerelease candidate, not a Stable promotion. Use a copy of a project 
 
 ## Release identity and packaging
 
-The numeric application version is **9.4.2**, and the physical build identity is **9.4.2-beta.1**. Installer filenames, native title, About, release-note acknowledgment, cache keys and update prompts show the physical identity. Native and Python components compare numbered prereleases, including beta.2 before beta.10. Promotion of already-installed identical bytes does not require another installation.
+The numeric application version is **9.4.2**, and the physical build identity is **9.4.2-beta.2**. Installer filenames, native title, About, release-note acknowledgment, cache keys and update prompts show the physical identity. Native and Python components compare numbered prereleases, including beta.2 before beta.10. Promotion of already-installed identical bytes does not require another installation.
 
 A new build gate rejects mismatched Python/native/installer/UI/version metadata. The candidate must pass repeated native lifecycle checks and real same-numeric-version beta replacement in addition to existing installation, project, report and update tests. Test-only predecessor identities are never published as historical releases.
 
@@ -33,3 +33,7 @@ The candidate is **unsigned**. Signed-manifest verification and certificate-base
 Optional point decoders and external GIS software are not silently installed on users' computers. Actual external GIS examples validated on Linux do not establish every Windows GIS distribution. Real handwriting/OCR/provider accuracy and cancellation, official Trimble binary conversion and field-calibrated rod-height confidence still require independent evidence. A previously intermittent native shutdown timeout remains a tracked item until repeat testing and diagnostics establish the result; a successful single run is not proof of a fix.
 
 Existing reports are not automatically rewritten by installing this candidate. Back up project folders and compare representative results to independent source evidence. No update feed or Stable tag is changed by merely building this candidate.
+
+## Beta.2 field-book follow-up
+
+Field-book cloud engines and second opinions are disabled by the local-only policy, including saved cloud selections and remote Ollama aliases. Original and grid-cleaned OCR views are retained together. Vision uses wider context crops from the original page, with unchanged exact-ID and manual-review requirements. On a 4-GB GPU, Paddle uses CPU while vision retains the GPU budget. Cache keys now include profile context; streamed responses close on failure/cancellation and incomplete results are rejected. Rod-height review summaries normalize units and supersede prior decisions. See docs/LOCAL_FIELDBOOK_PIPELINE.md for the real-sample negative OCR result and hardware/accuracy limits.

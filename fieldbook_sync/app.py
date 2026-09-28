@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from surveysync.local_inference import CLOUD_PROVIDERS, LOCAL_ONLY_MESSAGE, loopback_url
 from .api_models import (
     SettingsIn as SettingsIn,
     SelectProfileIn as SelectProfileIn,
@@ -438,6 +439,8 @@ class Runtime:
             self.storage.save_settings(saved)
         else:
             self.provider = saved_provider if saved_provider in {"auto", "hybrid", "ollama", "paddle", "gemini", "openai", "anthropic", "manual"} else "auto"
+        if self.provider in CLOUD_PROVIDERS:
+            self.provider = "auto"
         self.ollama_model = str(saved.get("ollama_model", self.ollama_model))
         self.ollama_profile = str(saved.get("ollama_profile", "auto")).lower()
         if self.ollama_profile not in OLLAMA_PROFILE_VALUES:
@@ -1045,6 +1048,7 @@ def _summary() -> dict:
             "review_counts": review_counts,
             "qa_review_count": qa_review_count,
             "settings": {
+                "local_only": True,
                 "provider": runtime.provider,
                 "active_provider": active_provider or runtime.provider,
                 "active_provider_label": active_label or runtime.provider,
@@ -1612,6 +1616,12 @@ def api_select_profile(payload: SelectProfileIn) -> dict:
 @app.post("/api/settings")
 def api_settings(payload: SettingsIn) -> dict:
     provider = payload.provider.strip().lower()
+    if provider in CLOUD_PROVIDERS:
+        raise HTTPException(400, LOCAL_ONLY_MESSAGE)
+    try:
+        loopback_url(payload.ollama_base_url or "http://127.0.0.1:11434", base=True)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
     if provider not in {"auto", "hybrid", "ollama", "paddle", "gemini", "openai", "anthropic", "manual"}:
         raise HTTPException(400, "Analysis provider must be Automatic, Hybrid Local, Qwen Local, Paddle OCR, Gemini, OpenAI, Anthropic Claude, or Manual Review.")
     with runtime.lock:
@@ -2312,6 +2322,11 @@ def _analysis_worker(
             raise RuntimeError("Survey structures and field-book pages are both required.")
         if not _analysis_pause_checkpoint(analysis_revision, "before engine startup"):
             return
+        # Refresh old warped derivatives before locating IDs on the original coordinate grid.
+        ensure_enhanced_pages_parallel(
+            pages, runtime.storage.enhanced_dir,
+            max_workers=1, cancel_check=runtime.cancel_event.is_set,
+        )
 
         if provider in {"hybrid", "ollama", "windows_ocr_ollama"}:
             with runtime.lock:
@@ -2528,6 +2543,8 @@ def api_analyze() -> dict:
             raise HTTPException(400, "Import a field book first.")
 
         requested_provider = runtime.provider
+        if requested_provider in CLOUD_PROVIDERS:
+            raise HTTPException(400, LOCAL_ONLY_MESSAGE)
         provider = requested_provider
         threshold = runtime.confidence_threshold
         analysis_revision = runtime.project_revision
@@ -3896,67 +3913,7 @@ def api_recovery_restore() -> dict:
 
 @app.post("/api/results/{point_id}/second-opinion")
 def api_second_opinion(point_id: str) -> dict:
-    with runtime.lock, runtime.storage.lock:
-        _assert_analysis_idle_locked()
-        if not runtime.gemini_api_key:
-            raise HTTPException(400, "Add a Gemini API key in Analysis Engine before requesting a cloud second opinion.")
-        result = next((r for r in runtime.storage.state.results if r.point_id == point_id), None)
-        if not result:
-            raise HTTPException(404, "Result not found.")
-        page_ids = [e.page_id for e in result.evidence_records]
-        page = next((p for p in runtime.storage.state.fieldbook_pages if p.page_id in page_ids), None)
-        if page is None:
-            # Fall back to OCR index.
-            cand = next((c for c in runtime.storage.state.ocr_candidates if c.point_id == point_id), None)
-            page = next((p for p in runtime.storage.state.fieldbook_pages if cand and p.page_id == cand.page_id), None)
-        if page is None:
-            raise HTTPException(400, "No field-book page is linked to this point.")
-        key = runtime.gemini_api_key
-        model = runtime.gemini_model
-        before = result.model_dump(mode="json")
-    try:
-        evidence, unmatched, usage = read_pages_gemini(pages=[page], target_point_ids=[point_id], api_key=key, model=model, profile_context=_field_note_profile_context())
-    except Exception as exc:
-        raise HTTPException(502, str(exc)) from exc
-    with runtime.lock, runtime.storage.lock:
-        result = next((r for r in runtime.storage.state.results if r.point_id == point_id), None)
-        if result is None:
-            raise HTTPException(409, "Result changed while the second opinion was running.")
-        _record_usage_locked("gemini", usage)
-        if evidence:
-            gem = evidence[0]
-            existing_sig = (result.status.value, [(p.dip, p.diameter_in, p.material, p.azimuth_deg) for p in result.pipes])
-            gem_sig = (gem.dipped.value, [(p.dip, p.diameter_in, p.material, p.azimuth_deg) for p in gem.pipes])
-            agree = existing_sig == gem_sig or (result.status == gem.dipped and (not result.pipes or not gem.pipes))
-            gem.primary_engine = f"Gemini second opinion ({model})"
-            gem.model_agreement = agree
-            result.evidence_records.append(gem)
-            for ev in result.evidence_records:
-                if ev is not gem:
-                    ev.secondary_engine = f"Gemini ({model})"
-                    ev.model_agreement = agree
-            if not agree:
-                result.status = DipStatus.REVIEW
-                result.notes = (result.notes + " Gemini second opinion disagreed with the existing interpretation; review required.").strip()
-        else:
-            agree = False
-            result.status = DipStatus.REVIEW
-            result.notes = (result.notes + " Gemini second opinion could not confirm the existing interpretation.").strip()
-        _refresh_intelligence_locked()
-        after = result.model_dump(mode="json")
-        _record_history_locked("Gemini second opinion", point_id, before, after, f"Agreement: {agree}")
-        runtime.storage.save()
-        return {"ok": True, "agreement": agree, "result": result.model_dump(mode="json"), "unmatched": [u.model_dump(mode="json") for u in unmatched]}
-
-
-
-
-
-
-
-
-
-
+    raise HTTPException(400, LOCAL_ONLY_MESSAGE)
 
 @app.get("/api/batch")
 def api_batch() -> list[dict]:

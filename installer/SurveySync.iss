@@ -1,7 +1,7 @@
 #define MyAppName "SurveySync"
 #define MyAppVersion "9.4.2"
 #ifndef MyReleaseID
-  #define MyReleaseID "9.4.2-beta.1"
+  #define MyReleaseID "9.4.2-beta.2"
 #endif
 #define MyAppPublisher "Clever Bird Development"
 #define MyAppURL "https://github.com/cpaul1988/SurveySync"

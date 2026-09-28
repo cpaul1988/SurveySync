@@ -981,6 +981,20 @@
       "documentation": [
         "docs/REMAINING_AUDIT_WORK.md"
       ]
+    },
+    "local_fieldbook_privacy": {
+      "implementation": [
+        "surveysync/local_inference.py",
+        "fieldbook_sync/spatial_preprocessing.py",
+        "fieldbook_sync/ocr_local.py"
+      ],
+      "tests": [
+        "tests/test_local_fieldbook_privacy.py",
+        "tests/test_spatial_fieldbook_preprocessing.py"
+      ],
+      "documentation": [
+        "docs/LOCAL_FIELDBOOK_PIPELINE.md"
+      ]
     }
   }
 }

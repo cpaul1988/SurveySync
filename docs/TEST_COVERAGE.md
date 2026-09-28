@@ -181,3 +181,7 @@ bridges will be used in production.
 ## Unreleased remaining-audit development
 
 See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards, beta build identity, signing preparation and the exact validation boundary. Published 9.4.1 is unchanged; pending or unavailable external tests are not marked passed.
+
+## 9.4.2-beta.2 local field-book follow-up
+
+See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privacy, dual OCR views, original-image context, regression scope, and remaining real-model/hardware/calibration acceptance.

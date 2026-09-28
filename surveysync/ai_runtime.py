@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import requests
+from .local_inference import local_request
 from PIL import Image, ImageOps
 
 
@@ -588,7 +589,7 @@ def foundry_vision_json(
         "input": [{"type": "message", "role": "user", "content": content}],
         "temperature": 0,
     }
-    response = requests.post(f"{service}/v1/responses", json=body, timeout=timeout_seconds)
+    response = local_request("POST", f"{service}/v1/responses", json=body, timeout=timeout_seconds)
     if response.status_code >= 400:
         raise RuntimeError(f"Foundry Local returned HTTP {response.status_code}: {response.text[:800]}")
     payload = response.json()

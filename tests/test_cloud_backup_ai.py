@@ -19,6 +19,8 @@ def test_shared_config_accepts_explicit_cloud_backups(tmp_path):
 
 
 def test_anthropic_vision_reader_keeps_exact_target_gate(tmp_path, monkeypatch):
+    # Archived adapter/parser contract only; transport is mocked below. Production privacy is tested separately.
+    monkeypatch.setattr(ai_reader, "require_local_provider", lambda provider: None)
     image_path = tmp_path / "page.jpg"
     Image.new("RGB", (100, 100), "white").save(image_path)
     returned = {

@@ -93,8 +93,8 @@ def _create_pipeline(enable_hpi: bool, device: str):
 
     common = dict(
         pipeline_version="v1.6",
-        use_doc_orientation_classify=True,
-        use_doc_unwarping=True,
+        use_doc_orientation_classify=False,
+        use_doc_unwarping=False,
         use_layout_detection=True,
         device=device,
     )
@@ -108,12 +108,8 @@ def _create_pipeline(enable_hpi: bool, device: str):
             emit({"event": "warning", "message": f"HPI unavailable; using standard inference: {type(exc).__name__}: {exc}"})
     try:
         return PaddleOCRVL(**common), False
-    except TypeError:
-        # Compatibility with older PaddleOCR builds whose constructor did not yet
-        # expose the device keyword.  Those builds choose GPU automatically when the
-        # installed PaddlePaddle runtime supports it.
-        common.pop("device", None)
-        return PaddleOCRVL(**common), False
+    except TypeError as exc:
+        raise RuntimeError("PaddleOCR must support explicit device and geometry controls. Repair the local OCR environment.") from exc
 
 
 def main() -> int:

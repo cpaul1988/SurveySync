@@ -18,8 +18,8 @@ def build_fixture(root: Path, temp: Path) -> tuple[Path, str, list[str]]:
     assert fixture.resolve().is_relative_to(Path(os.environ['RUNNER_TEMP']).resolve())
     core=(root/'VERSION.txt').read_text(encoding='utf-8-sig').strip()
     target=(root/'RELEASE_ID.txt').read_text(encoding='utf-8-sig').strip()
-    predecessor=core+'-beta.0'
-    assert target == core+'-beta.1', 'Review fixture identities for another candidate'
+    predecessor=core+'-beta.1'
+    assert target == core+'-beta.2', 'Review fixture identities for another candidate'
     shutil.copytree(root, fixture, ignore=shutil.ignore_patterns('.git', '.github', '.venv',
         'runtime', '__pycache__', '*.pyc', 'output', '*-evidence', 'released-baseline',
         'baseline-artifact', '.pytest_cache', '.ruff_cache', '.mypy_cache', '.coverage', 'coverage.xml'))

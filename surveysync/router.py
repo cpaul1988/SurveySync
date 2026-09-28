@@ -166,7 +166,7 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.2-beta.1 is a test candidate, not a Stable promotion. It connects the five remaining audit workflows and retains the 9.4.1 fixes and Ron's calculation conventions.",
+    "9.4.2-beta.2 is a test candidate, not a Stable promotion. It connects the five remaining audit workflows and retains the 9.4.1 fixes and Ron's calculation conventions.",
     "TopoSync Point Clouds can inspect and retain LAS/LAZ sources and sample points when the optional decoders are installed. This is not a full 3D viewer or automatic surface model.",
     "Home and QASync Project Automation provide workflow editing, YAML import/export, history and explicit approval/rejection using the saved definition. GISSync CRS Diagnostics compares operations and sample coordinates without rewriting original survey points.",
     "ReportSync Excel Template Mapper inspects a retained workbook, saves supported field/cell mappings and produces separate draft outputs. Existing formulas and prior files are protected; formulas are preserved, not recalculated.",

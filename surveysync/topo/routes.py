@@ -5,7 +5,6 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-import statistics
 import tempfile
 from pathlib import Path
 from typing import Literal
@@ -16,6 +15,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from .codes import CodeRule, default_rules
+from .calibration import summarize_reviews
 from .detection import DetectionSettings, analyze
 from .exports import candidate_report_csv, reviewed_copy_csv
 from .imports import parse_code_file, parse_points, survey_preview
@@ -384,6 +384,9 @@ def save_review_decision(run_id: str, payload: ReviewDecisionIn) -> dict:
                 "kind": "review",
                 "run_id": run_id,
                 "candidate_id": payload.candidate_id,
+                "vertical_units": (report.get("result", {}).get("settings") or {}).get(
+                    "vertical_units"
+                ),
                 "decision": payload.decision,
                 "reason": payload.reason,
                 "candidate": {
@@ -417,24 +420,14 @@ def save_review_decision(run_id: str, payload: ReviewDecisionIn) -> dict:
 def review_calibration() -> dict:
     root, _ = workspace()
     reviews = list_records(root, "review", limit=500)
-    confirmed = [item for item in reviews if item.get("decision") == "confirmed_bust"]
-    rejected = [item for item in reviews if item.get("decision") == "not_bust"]
-    scatters: list[float] = []
-    for item in confirmed:
-        scatter = (item.get("candidate") or {}).get("offset_std_dev")
-        if isinstance(scatter, (int, float)):
-            scatters.append(float(scatter))
-    suggestion = None
-    if scatters:
-        median_scatter = statistics.median(scatters)
-        suggestion = round(max(0.05, min(0.25, median_scatter * 2.0)), 3)
-    return {
-        "review_count": len(reviews),
-        "confirmed_bust_count": len(confirmed),
-        "not_bust_count": len(rejected),
-        "needs_review_count": sum(1 for item in reviews if item.get("decision") == "needs_review"),
-        "median_confirmed_scatter": round(statistics.median(scatters), 4) if scatters else None,
-        "suggested_consistency_ft": suggestion,
-        "advisory_only": True,
-        "message": "Review history can suggest a tolerance, but SurveySync never changes QC settings or elevations automatically.",
-    }
+    # Older reviews retain their original run; recover units instead of guessing feet.
+    for item in reviews:
+        if not item.get("vertical_units"):
+            try:
+                report = load_record(root, item.get("run_id", ""), "analysis")
+                item["vertical_units"] = (report.get("result", {}).get("settings") or {}).get(
+                    "vertical_units"
+                )
+            except (ValueError, OSError):
+                pass
+    return summarize_reviews(reviews)

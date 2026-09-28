@@ -80,6 +80,8 @@ def test_ai_reader_blocks_non_target_and_bad_no_basis(tmp_path, monkeypatch):
     import json
     from PIL import Image
     import fieldbook_sync.ai_reader as ai_reader
+    # Archived adapter/parser contract only; transport is mocked below. Production privacy is tested separately.
+    monkeypatch.setattr(ai_reader, "require_local_provider", lambda provider: None)
 
     image_path = tmp_path / "page.jpg"
     Image.new("RGB", (100, 100), "white").save(image_path)
@@ -256,6 +258,8 @@ def test_gemini_batch_reader_enforces_page_and_point_provenance(tmp_path, monkey
     import json
     from PIL import Image
     import fieldbook_sync.ai_reader as ai_reader
+    # Archived adapter/parser contract only; transport is mocked below. Production privacy is tested separately.
+    monkeypatch.setattr(ai_reader, "require_local_provider", lambda provider: None)
     from fieldbook_sync.models import FieldBookPage
 
     p1 = tmp_path / "p1.jpg"
@@ -406,14 +410,17 @@ def test_qwen_ollama_structured_vision_and_page_guard(tmp_path, monkeypatch):
     class FakeResponse:
         status_code = 200
         text = ""
+        def close(self): pass
         def json(self):
             return {
                 "message": {"role": "assistant", "content": json.dumps(payload)},
+                "done": True,
                 "prompt_eval_count": 120,
                 "eval_count": 42,
             }
 
-    monkeypatch.setattr(ai_reader.requests, "post", lambda *a, **k: FakeResponse())
+    monkeypatch.setattr(ai_reader, "require_local_ollama_model", lambda *a: None)
+    monkeypatch.setattr(ai_reader, "local_request", lambda *a, **k: FakeResponse())
     evidence, unmatched, usage = ai_reader.read_pages_ollama(
         pages=[page], target_point_ids=["5000"], model="qwen3.8:27b"
     )
@@ -447,10 +454,12 @@ def test_qwen_ollama_blocks_non_target_id(tmp_path, monkeypatch):
     class FakeResponse:
         status_code = 200
         text = ""
+        def close(self): pass
         def json(self):
-            return {"message": {"content": json.dumps(payload)}}
+            return {"done": True, "message": {"content": json.dumps(payload)}}
 
-    monkeypatch.setattr(ai_reader.requests, "post", lambda *a, **k: FakeResponse())
+    monkeypatch.setattr(ai_reader, "require_local_ollama_model", lambda *a: None)
+    monkeypatch.setattr(ai_reader, "local_request", lambda *a, **k: FakeResponse())
     evidence, unmatched, _ = ai_reader.read_pages_ollama(pages=[page], target_point_ids=["5000"], model="qwen3.8:27b")
     assert not evidence
     assert len(unmatched) == 1
@@ -463,10 +472,11 @@ def test_ollama_model_discovery(monkeypatch):
     class FakeResponse:
         status_code = 200
         text = ""
+        def close(self): pass
         def json(self):
             return {"models": [{"name": "qwen3.8:27b"}, {"name": "llama3.2-vision:latest"}]}
 
-    monkeypatch.setattr(ai_reader.requests, "get", lambda *a, **k: FakeResponse())
+    monkeypatch.setattr(ai_reader, "local_request", lambda *a, **k: FakeResponse())
     models = ai_reader.list_ollama_models()
     assert "qwen3.8:27b" in models
     assert "llama3.2-vision:latest" in models

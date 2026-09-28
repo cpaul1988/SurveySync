@@ -145,7 +145,7 @@ def test_toposync_review_history_and_calibration(tmp_path, monkeypatch):
                 "point_count": 20,
                 "probable_count": 1,
                 "suppressed_count": 0,
-                "settings": {},
+                "settings": {"vertical_units": "international_feet"},
                 "candidates": [
                     {
                         "candidate_id": "RHB-0001",

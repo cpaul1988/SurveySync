@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from surveysync.local_inference import require_local_provider, loopback_url, local_request, require_local_ollama_model
 
 import base64
 import io
@@ -378,6 +379,7 @@ def read_page_openai(
     profile_context: str = "",
     field_note_profile_override: str = "",
 ) -> tuple[List[PageEvidence], List[UnmatchedEvidence], ProviderUsage]:
+    require_local_provider("openai")
     targets = [normalize_point_id(v) for v in target_point_ids if normalize_point_id(v)]
     if not targets:
         return [], [], ProviderUsage()
@@ -465,6 +467,7 @@ def read_page_anthropic(
     Claude is an explicitly selected cloud backup. The same exact PointID provenance
     validation used for other cloud providers is applied before any evidence is accepted.
     """
+    require_local_provider("anthropic")
     targets = [normalize_point_id(v) for v in target_point_ids if normalize_point_id(v)]
     if not targets:
         return [], [], ProviderUsage()
@@ -555,6 +558,7 @@ def read_pages_gemini(
     by requests/day. Every returned page_id and PointID is validated against the exact
     application-owned batch before an evidence record can be created.
     """
+    require_local_provider("gemini")
     if not pages:
         return [], [], ProviderUsage()
     targets = [normalize_point_id(v) for v in target_point_ids if normalize_point_id(v)]
@@ -647,14 +651,14 @@ def _ollama_usage(response_json: Dict[str, Any]) -> ProviderUsage:
 
 
 def _normalize_ollama_base_url(base_url: str) -> str:
-    return (base_url or OLLAMA_BASE_URL).strip().rstrip("/") or OLLAMA_BASE_URL
+    return loopback_url(base_url or OLLAMA_BASE_URL, base=True)
 
 
 def list_ollama_models(*, base_url: str = OLLAMA_BASE_URL, timeout_seconds: int = 5) -> List[str]:
     """Return locally installed Ollama model names. No internet access is used."""
     url = f"{_normalize_ollama_base_url(base_url)}/api/tags"
     try:
-        response = requests.get(url, timeout=timeout_seconds)
+        response = local_request("GET", url, timeout=timeout_seconds)
     except requests.ConnectTimeout as exc:
         raise RuntimeError("Ollama service connection timed out while checking installed models.") from exc
     except requests.ConnectionError as exc:
@@ -679,7 +683,7 @@ def ollama_running_models(*, base_url: str = OLLAMA_BASE_URL, timeout_seconds: i
     """Return currently loaded Ollama models with an estimated CPU/GPU split."""
     url = f"{_normalize_ollama_base_url(base_url)}/api/ps"
     try:
-        response = requests.get(url, timeout=timeout_seconds)
+        response = local_request("GET", url, timeout=timeout_seconds)
     except requests.RequestException:
         return []
     if response.status_code >= 400:
@@ -726,11 +730,12 @@ def warm_ollama_model(
         "stream": False,
         "think": False,
         "options": {"temperature": 0, "num_predict": 8},
-        "keep_alive": "15m",
+        "keep_alive": "1m",
     }
+    require_local_ollama_model(base_url, model)
     url = f"{_normalize_ollama_base_url(base_url)}/api/chat"
     try:
-        response = requests.post(url, json=body, timeout=(10, timeout_seconds))
+        response = local_request("POST", url, json=body, timeout=(10, timeout_seconds))
     except requests.ReadTimeout as exc:
         raise RuntimeError(f"Ollama model '{model}' did not finish loading within {timeout_seconds} seconds.") from exc
     except requests.ConnectTimeout as exc:
@@ -773,6 +778,7 @@ def read_pages_ollama(
     base_url: str = OLLAMA_BASE_URL,
     timeout_seconds: int = 300,
     profile_context: str = "",
+    cancel_check: Callable[[], bool] | None = None,
     progress_callback: Callable[[Dict[str, Any]], None] | None = None,
 ) -> tuple[List[PageEvidence], List[UnmatchedEvidence], ProviderUsage]:
     """Read rendered field-book pages with a local Ollama vision model.
@@ -780,6 +786,8 @@ def read_pages_ollama(
     v8.1.21 consumes Ollama's streaming response so long local inference continues to
     produce coordinator progress instead of looking like a dead worker.
     """
+    if cancel_check and cancel_check():
+        raise RuntimeError("Local vision cancelled before sending field-book data.")
     if not pages:
         return [], [], ProviderUsage()
     targets = [normalize_point_id(v) for v in target_point_ids if normalize_point_id(v)]
@@ -811,14 +819,15 @@ def read_pages_ollama(
         "think": False,
         "format": GEMINI_BATCH_SCHEMA,
         "options": {"temperature": 0, "top_p": 0.9},
-        "keep_alive": "15m",
+        "keep_alive": "1m",
     }
+    require_local_ollama_model(base_url, model)
     url = f"{_normalize_ollama_base_url(base_url)}/api/chat"
     started = time.monotonic()
     if progress_callback:
         progress_callback({"state": "requesting", "elapsed_seconds": 0.0, "model": model_name, "chunks": 0})
     try:
-        response = requests.post(url, json=body, stream=True, timeout=(10, timeout_seconds))
+        response = local_request("POST", url, json=body, stream=True, timeout=(10, timeout_seconds))
     except requests.ReadTimeout as exc:
         raise RuntimeError(f"Ollama inference timed out for model '{model_name}' after {timeout_seconds} seconds without output.") from exc
     except requests.ConnectTimeout as exc:
@@ -827,110 +836,124 @@ def read_pages_ollama(
         raise RuntimeError("Ollama service is unavailable. Start Ollama and retry the analysis.") from exc
     except requests.RequestException as exc:
         raise RuntimeError(f"Ollama inference request failed: {exc}") from exc
-    if response.status_code >= 400:
-        detail = response.text[:700]
-        try:
-            detail = response.json().get("error") or detail
-        except Exception:
-            logging.getLogger(__name__).warning("Recovery fallback in ai_reader; operation did not complete.", exc_info=True)
-        low = str(detail).lower()
-        if response.status_code == 404 or "not found" in low:
-            raise RuntimeError(f"Ollama model '{model_name}' is not installed. Run: ollama pull {model_name}")
-        if "memory" in low or "out of memory" in low:
-            raise RuntimeError(f"Ollama ran out of memory while running model '{model_name}': {detail}")
-        raise RuntimeError(f"Ollama returned HTTP {response.status_code}: {detail}")
+    try:
+        if response.status_code >= 400:
+            detail = response.text[:700]
+            try:
+                detail = response.json().get("error") or detail
+            except Exception:
+                logging.getLogger(__name__).warning("Recovery fallback in ai_reader; operation did not complete.", exc_info=True)
+            low = str(detail).lower()
+            if response.status_code == 404 or "not found" in low:
+                raise RuntimeError(f"Ollama model '{model_name}' is not installed. Run: ollama pull {model_name}")
+            if "memory" in low or "out of memory" in low:
+                raise RuntimeError(f"Ollama ran out of memory while running model '{model_name}': {detail}")
+            raise RuntimeError(f"Ollama returned HTTP {response.status_code}: {detail}")
 
-    chunks: List[str] = []
-    final_payload: Dict[str, Any] = {}
-    chunk_count = 0
-    # Compatibility with simple response wrappers and older Ollama proxies that
-    # buffer the whole response even when stream=true.
-    if not hasattr(response, "iter_lines"):
+        chunks: List[str] = []
+        final_payload: Dict[str, Any] = {}
+        chunk_count = 0
+        # Compatibility with simple response wrappers and older Ollama proxies that
+        # buffer the whole response even when stream=true.
+        if not hasattr(response, "iter_lines"):
+            try:
+                final_payload = response.json()
+                message = final_payload.get("message") or {}
+                piece = message.get("content")
+                if isinstance(piece, str):
+                    chunks.append(piece)
+                chunk_count = 1
+            except Exception as exc:
+                raise RuntimeError(f"Ollama response could not be read: {exc}") from exc
         try:
-            final_payload = response.json()
-            message = final_payload.get("message") or {}
-            piece = message.get("content")
-            if isinstance(piece, str):
-                chunks.append(piece)
-            chunk_count = 1
+            line_iter = response.iter_lines(decode_unicode=True) if hasattr(response, "iter_lines") else []
+            for raw_line in line_iter:
+                if cancel_check and cancel_check():
+                    raise RuntimeError("Local vision cancelled; partial interpretation discarded.")
+                if time.monotonic() - started > timeout_seconds:
+                    raise RuntimeError("Local vision exceeded its request deadline.")
+                if not raw_line:
+                    continue
+                payload = json.loads(raw_line)
+                if payload.get("error"):
+                    detail = str(payload.get("error"))
+                    if "memory" in detail.lower():
+                        raise RuntimeError(f"Ollama ran out of memory while running model '{model_name}': {detail}")
+                    raise RuntimeError(f"Ollama inference failed: {detail}")
+                message = payload.get("message") or {}
+                piece = message.get("content")
+                if isinstance(piece, str) and piece:
+                    chunks.append(piece)
+                if sum(len(x) for x in chunks) > 2_000_000:
+                    raise RuntimeError("Local vision response exceeded the safe size limit.")
+                chunk_count += 1
+                if progress_callback:
+                    progress_callback({
+                        "state": "generating",
+                        "elapsed_seconds": time.monotonic() - started,
+                        "model": model_name,
+                        "chunks": chunk_count,
+                        "output_chars": sum(len(x) for x in chunks),
+                    })
+                if payload.get("done"):
+                    final_payload = payload
+                    break
+        except requests.ReadTimeout as exc:
+            raise RuntimeError(f"Ollama inference timed out for model '{model_name}' after {timeout_seconds} seconds without a streamed update.") from exc
+        except requests.ConnectionError as exc:
+            raise RuntimeError("Ollama connection was interrupted during inference. Completed OCR checkpoints were preserved.") from exc
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"Ollama streaming response contained invalid JSON: {exc}") from exc
+
+        if cancel_check and cancel_check():
+            raise RuntimeError("Local vision cancelled; partial interpretation discarded.")
+        if not final_payload.get("done"):
+            raise RuntimeError("Local vision stream ended before completion; partial interpretation discarded.")
+        text = "".join(chunks).strip()
+        if not text:
+            raise RuntimeError("Ollama/Qwen response contained no generated content.")
+        try:
+            parsed = json.loads(text)
         except Exception as exc:
-            raise RuntimeError(f"Ollama response could not be read: {exc}") from exc
-    try:
-        line_iter = response.iter_lines(decode_unicode=True) if hasattr(response, "iter_lines") else []
-        for raw_line in line_iter:
-            if not raw_line:
+            raise RuntimeError(f"Ollama/Qwen response could not be parsed as structured JSON: {exc}") from exc
+        usage = _ollama_usage(final_payload)
+        if progress_callback:
+            progress_callback({
+                "state": "complete",
+                "elapsed_seconds": time.monotonic() - started,
+                "model": model_name,
+                "chunks": chunk_count,
+                "output_tokens": usage.output_tokens,
+            })
+
+        evidence: List[PageEvidence] = []
+        unmatched: List[UnmatchedEvidence] = []
+        for item in parsed.get("entries", []) or []:
+            page = page_by_id.get(str(item.get("page_id", "")))
+            if page is None:
                 continue
-            payload = json.loads(raw_line)
-            if payload.get("error"):
-                detail = str(payload.get("error"))
-                if "memory" in detail.lower():
-                    raise RuntimeError(f"Ollama ran out of memory while running model '{model_name}': {detail}")
-                raise RuntimeError(f"Ollama inference failed: {detail}")
-            message = payload.get("message") or {}
-            piece = message.get("content")
-            if isinstance(piece, str) and piece:
-                chunks.append(piece)
-            chunk_count += 1
-            if progress_callback:
-                progress_callback({
-                    "state": "generating",
-                    "elapsed_seconds": time.monotonic() - started,
-                    "model": model_name,
-                    "chunks": chunk_count,
-                    "output_chars": sum(len(x) for x in chunks),
-                })
-            if payload.get("done"):
-                final_payload = payload
-                break
-    except requests.ReadTimeout as exc:
-        raise RuntimeError(f"Ollama inference timed out for model '{model_name}' after {timeout_seconds} seconds without a streamed update.") from exc
-    except requests.ConnectionError as exc:
-        raise RuntimeError("Ollama connection was interrupted during inference. Completed OCR checkpoints were preserved.") from exc
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"Ollama streaming response contained invalid JSON: {exc}") from exc
+            ev, blocked = _entry_to_evidence(item, page=page, target_set=target_set)
+            if ev:
+                evidence.append(ev)
+            if blocked:
+                unmatched.append(blocked)
+        for item in parsed.get("unmatched", []) or []:
+            page = page_by_id.get(str(item.get("page_id", "")))
+            if page is None:
+                continue
+            unmatched.append(UnmatchedEvidence(
+                source_name=page.source_name,
+                page_number=page.page_number,
+                page_id=page.page_id,
+                point_id_raw=item.get("point_id_raw"),
+                confidence=float(item.get("confidence", 0) or 0),
+                reason=item.get("reason", "Uncertain handwritten PointID or association."),
+                bbox=item.get("bbox"),
+            ))
+        return evidence, unmatched, usage
 
-    text = "".join(chunks).strip()
-    if not text:
-        raise RuntimeError("Ollama/Qwen response contained no generated content.")
-    try:
-        parsed = json.loads(text)
-    except Exception as exc:
-        raise RuntimeError(f"Ollama/Qwen response could not be parsed as structured JSON: {exc}") from exc
-    usage = _ollama_usage(final_payload)
-    if progress_callback:
-        progress_callback({
-            "state": "complete",
-            "elapsed_seconds": time.monotonic() - started,
-            "model": model_name,
-            "chunks": chunk_count,
-            "output_tokens": usage.output_tokens,
-        })
-
-    evidence: List[PageEvidence] = []
-    unmatched: List[UnmatchedEvidence] = []
-    for item in parsed.get("entries", []) or []:
-        page = page_by_id.get(str(item.get("page_id", "")))
-        if page is None:
-            continue
-        ev, blocked = _entry_to_evidence(item, page=page, target_set=target_set)
-        if ev:
-            evidence.append(ev)
-        if blocked:
-            unmatched.append(blocked)
-    for item in parsed.get("unmatched", []) or []:
-        page = page_by_id.get(str(item.get("page_id", "")))
-        if page is None:
-            continue
-        unmatched.append(UnmatchedEvidence(
-            source_name=page.source_name,
-            page_number=page.page_number,
-            page_id=page.page_id,
-            point_id_raw=item.get("point_id_raw"),
-            confidence=float(item.get("confidence", 0) or 0),
-            reason=item.get("reason", "Uncertain handwritten PointID or association."),
-            bbox=item.get("bbox"),
-        ))
-    return evidence, unmatched, usage
+    finally:
+        response.close()
 
 
 def read_pages_foundry(
