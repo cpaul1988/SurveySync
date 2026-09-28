@@ -1,0 +1,35 @@
+name: Import Candidate Lifecycle Corrections
+on:
+  push:
+    branches: [fix-v9.4.1-remaining-audit]
+    paths: ['.github/lifecycle942/**', '.github/workflows/import-lifecycle942.yml']
+permissions:
+  contents: write
+concurrency:
+  group: surveysync-942-lifecycle-import
+  cancel-in-progress: false
+jobs:
+  import-reviewed-source:
+    if: github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/fix-v9.4.1-remaining-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify every source hash and apply lifecycle corrections
+        run: |
+          python .github/lifecycle942/apply.py
+          git rm -r .github/lifecycle942
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Deliver HTTP Exit before orderly shutdown and bound native AI status inspection'
+          git push origin HEAD:refs/heads/fix-v9.4.1-remaining-audit
+          git rev-parse HEAD
+          git archive --format=zip --output=lifecycle-correction-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lifecycle-correction-source
+          path: lifecycle-correction-source.zip
+          retention-days: 14
