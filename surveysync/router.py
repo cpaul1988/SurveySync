@@ -814,12 +814,11 @@ def ui_config_save(payload: UiConfigIn):
 
 @router.get("/api/v9/ai/status")
 def ai_status(refresh: bool=False):
-    base = get_local_ai_status(force=bool(refresh))
     try:
         field_app = _fieldbook_app_module()
         detailed = field_app._automatic_ai_status(force=bool(refresh))
     except Exception:
-        detailed = base
+        detailed = get_local_ai_status(force=bool(refresh))
     cfg = config_store.load()
     return {**detailed, "configured_provider": cfg.ai_provider}
 

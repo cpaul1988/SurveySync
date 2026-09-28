@@ -20,6 +20,12 @@ The numeric application version is **9.4.2**, and the physical build identity is
 
 A new build gate rejects mismatched Python/native/installer/UI/version metadata. The candidate must pass repeated native lifecycle checks and real same-numeric-version beta replacement in addition to existing installation, project, report and update tests. Test-only predecessor identities are never published as historical releases.
 
+## Lifecycle hardening from repeated acceptance
+
+HTTP Exit now schedules shutdown only after the complete acknowledgement has passed through all buffering middleware and the final transport send. A fixed 150 ms delay was not sufficient: a deterministic delayed-transport regression reproduces the old ordering failure. No exit timeout is increased, and the native close path still uses orderly shutdown.
+
+Foundry Local capability inspection runs in a separately owned, deadline-bounded subprocess instead of loading a potentially stalled native catalog call into the GUI/server process for a status tile. A timeout is shown as unknown readiness, never falsely ready; model download and inference remain separate explicit operations. Concurrent refreshes share a completed capability probe, and the status route no longer performs a duplicate forced probe. This is not validation of live model accuracy or active-analysis cancellation.
+
 ## Known boundaries
 
 The candidate is **unsigned**. Signed-manifest verification and certificate-based signing hooks are preparation only: production certificate/private-key configuration, public-key enrollment and strict trust enforcement are not activated. The optional signature verifier must be packaged before strict deployment.

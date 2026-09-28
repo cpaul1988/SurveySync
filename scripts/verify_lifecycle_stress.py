@@ -16,6 +16,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+import traceback
 import urllib.request
 
 import psutil
@@ -107,6 +108,7 @@ def main():
                     raise TimeoutError('Native service did not start')
                 assert release['release_id'] == report['expected_release_id'], release
                 record['startup_seconds'] = round(time.monotonic() - started, 3)
+                record['phase'] = 'project-setup'
                 if not projects:
                     for name in ('LifecycleA', 'LifecycleB'):
                         request('/api/v9/project/create', {'parent_folder': str(state/'projects'), 'name': name, 'crs': 'EPSG:2278'})
@@ -115,7 +117,8 @@ def main():
                         request('/api/v9/points/import', {'file_path': str(source)})
                         projects.append(project); preserved[str(project)] = snapshot(project)
                 if mode == 'project-switch':
-                    for project in [projects[0], projects[1], projects[0], projects[1], projects[0]]:
+                    for number, project in enumerate([projects[0], projects[1], projects[0], projects[1], projects[0]], 1):
+                        record['phase'] = f'project-switch-{number}'
                         request('/api/v9/project/open', {'path': str(project)})
                     time.sleep((0, .3, 1.5, 3)[(index//3) % 4])
                 elif mode == 'native-window-close':
@@ -129,11 +132,13 @@ def main():
                     else:
                         raise TimeoutError('Native window did not appear')
                     time.sleep((0, .2, 1, 2)[(index//3) % 4])
+                record['phase'] = 'exit-request'
                 before_exit = time.monotonic()
                 if mode == 'native-window-close':
-                    windows[0].post_message(0x0010)
+                    windows[0].post_message(0x0010)  # normal Windows close request, not force-kill
                 else:
                     record['exit_reply'] = request('/api/application/exit', {})
+                record['phase'] = 'exit-wait'
                 process.wait(timeout=max(.01, 15 - (time.monotonic()-before_exit)))
                 record['exit_seconds'] = round(time.monotonic()-before_exit, 3)
                 assert process.returncode == 0, f'Native launcher exit code {process.returncode}'
@@ -146,6 +151,7 @@ def main():
                 record.update(status='PASS', api_closed=True, clean_exit=True, source_points_preserved=True)
             except Exception as exc:
                 record['failure'] = f'{type(exc).__name__}: {exc}'
+                record['traceback'] = traceback.format_exc()
                 record['api_open_at_failure'] = service_open()
                 if process.poll() is None:
                     try:

@@ -63,6 +63,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Request
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from surveysync.http_shutdown import EXIT_REQUESTED, ExitAfterResponseMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -2705,15 +2706,10 @@ def api_analyze() -> dict:
 
 
 @app.post("/api/application/exit")
-def api_application_exit() -> dict:
-    # Return the HTTP response before stopping the local server so browser fallback
-    # receives a clean acknowledgement instead of a connection-reset error.
-    def _delayed_shutdown() -> None:
-        time.sleep(0.15)
-        request_application_shutdown("Exit requested from the FieldBook Sync UI.")
-
-    t = threading.Thread(target=_delayed_shutdown, name="FBS-ui-exit", daemon=True)
-    t.start()
+def api_application_exit(request: Request) -> dict:
+    # The outer ASGI middleware requests shutdown only after the full response
+    # has traversed all buffering middleware and the final transport send.
+    request.scope[EXIT_REQUESTED] = True
     return {"ok": True, "message": "FieldBook Sync is closing."}
 
 
@@ -4402,6 +4398,12 @@ from .batch_workers import (
 
 from surveysync.router import router as surveysync_router
 app.include_router(surveysync_router)
+
+# Register last so the transport-delivery guard wraps the buffering HTTP layers.
+app.add_middleware(
+    ExitAfterResponseMiddleware,
+    callback=lambda: request_application_shutdown("Exit requested from the FieldBook Sync UI."),
+)
 
 if __name__ == "__main__":
     run_server()
