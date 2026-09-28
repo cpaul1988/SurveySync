@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.1",
+  "version": "9.4.2",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -815,16 +815,22 @@
         "surveysync/pointcloud.py",
         "surveysync/pointcloud_routes.py",
         "surveysync/integration_routes.py",
-        "surveysync/router.py"
+        "surveysync/router.py",
+        "surveysync/static/desktop_workflows.js",
+        "surveysync/desktop_context.py"
       ],
       "tests": [
-        "tests/test_v940_pointcloud_workflows.py"
+        "tests/test_v940_pointcloud_workflows.py",
+        "tests/test_remaining_audit.py",
+        "tests/test_remaining_preservation.py",
+        "scripts/verify_remaining_workflows.py"
       ],
       "documentation": [
         "docs/POINT_CLOUD_SUPPORT.md",
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
         "docs/TEST_COVERAGE.md",
-        "THIRD_PARTY_NOTICES.md"
+        "THIRD_PARTY_NOTICES.md",
+        "docs/REMAINING_AUDIT_WORK.md"
       ]
     },
     "v940_workflow_automation": {
@@ -835,16 +841,22 @@
         "surveysync/integration_routes.py",
         "surveysync/operations_routes.py",
         "surveysync/project.py",
-        "surveysync/router.py"
+        "surveysync/router.py",
+        "surveysync/static/desktop_workflows.js",
+        "surveysync/desktop_context.py"
       ],
       "tests": [
-        "tests/test_v940_pointcloud_workflows.py"
+        "tests/test_v940_pointcloud_workflows.py",
+        "tests/test_remaining_audit.py",
+        "tests/test_remaining_preservation.py",
+        "scripts/verify_remaining_workflows.py"
       ],
       "documentation": [
         "docs/WORKFLOW_AUTOMATION.md",
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
         "docs/TEST_COVERAGE.md",
-        "THIRD_PARTY_NOTICES.md"
+        "THIRD_PARTY_NOTICES.md",
+        "docs/REMAINING_AUDIT_WORK.md"
       ]
     },
     "v940_crs_diagnostics": {
@@ -852,17 +864,23 @@
       "implementation": [
         "surveysync/crs_diagnostics.py",
         "surveysync/crs_diagnostic_routes.py",
-        "surveysync/integration_routes.py"
+        "surveysync/integration_routes.py",
+        "surveysync/static/desktop_workflows.js",
+        "surveysync/desktop_context.py"
       ],
       "tests": [
-        "tests/test_v940_crs_report_gis_bridges.py"
+        "tests/test_v940_crs_report_gis_bridges.py",
+        "tests/test_remaining_audit.py",
+        "tests/test_remaining_preservation.py",
+        "scripts/verify_remaining_workflows.py"
       ],
       "documentation": [
         "docs/CRS_DIAGNOSTICS.md",
         "docs/API_REFERENCE.md",
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
         "docs/TEST_COVERAGE.md",
-        "THIRD_PARTY_NOTICES.md"
+        "THIRD_PARTY_NOTICES.md",
+        "docs/REMAINING_AUDIT_WORK.md"
       ]
     },
     "v940_reportsync_template_mapper": {
@@ -870,16 +888,22 @@
       "implementation": [
         "surveysync/report_template_mapper.py",
         "surveysync/report_template_routes.py",
-        "surveysync/integration_routes.py"
+        "surveysync/integration_routes.py",
+        "surveysync/static/desktop_workflows.js",
+        "surveysync/desktop_context.py"
       ],
       "tests": [
-        "tests/test_v940_crs_report_gis_bridges.py"
+        "tests/test_v940_crs_report_gis_bridges.py",
+        "tests/test_remaining_audit.py",
+        "tests/test_remaining_preservation.py",
+        "scripts/verify_remaining_workflows.py"
       ],
       "documentation": [
         "docs/REPORT_TEMPLATE_MAPPER.md",
         "docs/API_REFERENCE.md",
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
-        "docs/TEST_COVERAGE.md"
+        "docs/TEST_COVERAGE.md",
+        "docs/REMAINING_AUDIT_WORK.md"
       ]
     },
     "v940_optional_qgis_grass_bridges": {
@@ -887,17 +911,23 @@
       "implementation": [
         "surveysync/gis_bridges.py",
         "surveysync/gis_bridge_routes.py",
-        "surveysync/integration_routes.py"
+        "surveysync/integration_routes.py",
+        "surveysync/static/desktop_workflows.js",
+        "surveysync/desktop_context.py"
       ],
       "tests": [
-        "tests/test_v940_crs_report_gis_bridges.py"
+        "tests/test_v940_crs_report_gis_bridges.py",
+        "tests/test_remaining_audit.py",
+        "tests/test_remaining_preservation.py",
+        "scripts/verify_remaining_workflows.py"
       ],
       "documentation": [
         "docs/GIS_PROCESSING_BRIDGES.md",
         "docs/API_REFERENCE.md",
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md",
         "docs/TEST_COVERAGE.md",
-        "THIRD_PARTY_NOTICES.md"
+        "THIRD_PARTY_NOTICES.md",
+        "docs/REMAINING_AUDIT_WORK.md"
       ]
     },
     "verified_audit_repairs": {
@@ -919,6 +949,51 @@
       "documentation": [
         "docs/VERIFIED_AUDIT_REPAIRS.md",
         "RELEASE_NOTES_v9_4_1.md"
+      ]
+    },
+    "unreleased_build_identity": {
+      "introduced": "unreleased",
+      "implementation": [
+        "surveysync/release_identity.py",
+        "surveysync/updater.py",
+        "installer/app_launcher.go",
+        "installer/update_helper.go"
+      ],
+      "tests": [
+        "tests/test_remaining_audit.py",
+        "installer/app_launcher_test.go"
+      ],
+      "documentation": [
+        "docs/REMAINING_AUDIT_WORK.md"
+      ]
+    },
+    "unreleased_signing_preparation": {
+      "introduced": "unreleased",
+      "status": "CODE PREPARED; PRODUCTION KEYS NOT PROVISIONED",
+      "implementation": [
+        "surveysync/manifest_trust.py",
+        "scripts/sign_manifest.py",
+        "scripts/sign_windows_artifacts.ps1"
+      ],
+      "tests": [
+        "tests/test_remaining_audit.py"
+      ],
+      "documentation": [
+        "docs/REMAINING_AUDIT_WORK.md"
+      ]
+    },
+    "local_fieldbook_privacy": {
+      "implementation": [
+        "surveysync/local_inference.py",
+        "fieldbook_sync/spatial_preprocessing.py",
+        "fieldbook_sync/ocr_local.py"
+      ],
+      "tests": [
+        "tests/test_local_fieldbook_privacy.py",
+        "tests/test_spatial_fieldbook_preprocessing.py"
+      ],
+      "documentation": [
+        "docs/LOCAL_FIELDBOOK_PIPELINE.md"
       ]
     }
   }

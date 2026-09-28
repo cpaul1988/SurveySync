@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'ui-evidence'
 BASE = 'http://127.0.0.1:18767'
 SEEN = 'surveysync-release-notes-seen-v2'
-RELEASE = '9.4.1'
+RELEASE = (ROOT/'RELEASE_ID.txt').read_text(encoding='utf-8-sig').strip()
 MODULES = ['Home', 'FieldBookSync', 'ControlSync', 'UtilitySync', 'TopoSync',
            'COGOSync', 'BoundarySync', 'GISSync', 'ReportSync', 'QASync', 'CrewSync']
 
@@ -65,7 +65,7 @@ def main():
                     errors = []
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.route('**/api/v9/update/check', lambda route: route.fulfill(
-                        json={'update_available': False, 'current_version': '9.4.1', 'channel': 'beta'}))
+                        json={'update_available': False, 'current_version': '9.4.2', 'channel': 'beta'}))
                     try:
                         for mode in ('dark', 'light'):
                             request('/api/v9/config/ui', {'appearance': mode, 'theme': 'edsi', 'accent': 'default'})

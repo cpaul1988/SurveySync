@@ -1,25 +1,26 @@
 {
   "product": "SurveySync",
-  "version": "9.4.1",
-  "build_type": "verified-audit-repair",
-  "baseline": "9.4.0 Stable plus PR #12 verified repairs",
-  "candidate_branch": "fix-v9.4.0-verified-audit",
+  "version": "9.4.2",
+  "build_type": "local-fieldbook-candidate",
+  "baseline": "9.4.1 Stable plus PR #13",
+  "candidate_branch": "fix-v9.4.1-remaining-audit",
   "feedback": {
     "checked_before_build": true,
-    "checked_local_date": "2026-09-27",
+    "checked_local_date": "2026-09-28",
     "latest_intake": "FBR-0016",
     "newer_intake_items": 0,
-    "note": "Read connected Intake A1:F1001. No live test submission or provider calls. Error tracker has not been rechecked in this continuation."
+    "note": "Connected feedback tracker re-read 2026-09-28: Intake remains 16 submissions, latest FBR-0016. No tracker writes or live test submissions."
   },
   "qa": {
-    "status": "Pending versioned Windows acceptance",
+    "status": "Candidate gates required; bind completed results to the exact source and installer",
     "coverage_floor_percent": 54,
-    "prior_repair_checkpoint": "c79f37c1b6c9e4b342775a081b46315359457038",
-    "prior_tests_passed": 471,
+    "prior_source": "572918f9211eb3116bbcef1eade59ac5ea82aeba",
+    "prior_tests_passed": 614,
     "prior_tests_skipped": 1
   },
   "release": {
     "published": false,
     "require_exact_tested_installer": true
-  }
+  },
+  "release_id": "9.4.2-beta.2"
 }

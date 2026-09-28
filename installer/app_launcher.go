@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -17,7 +18,7 @@ import (
 	"unsafe"
 )
 
-var appVersion = "9.4.1"
+var appVersion = "9.4.2"
 
 const productName = "SurveySync"
 
@@ -98,6 +99,7 @@ func appendLog(path, msg string) {
 
 type pendingUpdate struct {
 	Version       string `json:"version"`
+	ReleaseID     string `json:"release_id"`
 	InstallerPath string `json:"installer_path"`
 	Sha256        string `json:"sha256"`
 	SizeBytes     int64  `json:"size_bytes"`
@@ -189,7 +191,7 @@ func discardStalePendingUpdate(logFile string) {
 		appendLog(logFile, "WARNING | Could not inspect pending update during startup: "+err.Error())
 		return
 	}
-	cmp, err := compareVersions(strings.TrimSpace(pending.Version), appVersion)
+	cmp, err := comparePendingRelease(pending)
 	if err != nil {
 		appendLog(logFile, "WARNING | Pending update has an invalid version and was left untouched: "+err.Error())
 		return
@@ -294,7 +296,7 @@ func launchPendingUpdate(logFile string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("read pending update handoff: %w", err)
 	}
-	cmp, err := compareVersions(strings.TrimSpace(pending.Version), appVersion)
+	cmp, err := comparePendingRelease(pending)
 	if err != nil {
 		return false, fmt.Errorf("pending update version is invalid: %w", err)
 	}
@@ -499,4 +501,102 @@ func main() {
 	}
 	appendLog(logFile, "ERROR | Application runtime exited unexpectedly: "+err.Error())
 	messageBox(productName, "SurveySync closed unexpectedly.\r\n\r\nA diagnostic launcher log was saved at:\r\n"+logFile, 0x00000010)
+}
+
+// Same-version beta updates must not be discarded as numerically stale.
+func compareReleaseIDs(a, b string) (int, error) {
+	re := regexp.MustCompile(`^v?([0-9]+(?:\.[0-9]+){0,3})(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$`)
+	ma, mb := re.FindStringSubmatch(strings.TrimSpace(a)), re.FindStringSubmatch(strings.TrimSpace(b))
+	if len(ma) == 0 || len(mb) == 0 || len(a) > 200 || len(b) > 200 {
+		return 0, fmt.Errorf("invalid release identity")
+	}
+	// Validate every numeric identifier, even if a core-version difference decides order.
+	numeric := regexp.MustCompile(`^[0-9]+$`)
+	for _, m := range [][]string{ma, mb} {
+		for _, n := range strings.Split(m[1], ".") {
+			v, e := strconv.Atoi(n)
+			if e != nil || v > 65535 {
+				return 0, fmt.Errorf("invalid version range")
+			}
+		}
+		for _, n := range strings.Split(m[2], ".") {
+			if numeric.MatchString(n) && len(n) > 1 && n[0] == '0' {
+				return 0, fmt.Errorf("leading zero in prerelease")
+			}
+		}
+	}
+	cmp, err := compareVersions(ma[1], mb[1])
+	if err != nil || cmp != 0 {
+		return cmp, err
+	}
+	if ma[2] == mb[2] {
+		return 0, nil
+	}
+	if ma[2] == "" {
+		return 1, nil
+	}
+	if mb[2] == "" {
+		return -1, nil
+	}
+	pa, pb := strings.Split(ma[2], "."), strings.Split(mb[2], ".")
+	for i := 0; i < len(pa) && i < len(pb); i++ {
+		x, y := pa[i], pb[i]
+		if x == y {
+			continue
+		}
+		nx, ny := numeric.MatchString(x), numeric.MatchString(y)
+		if nx && ny {
+			if len(x) < len(y) {
+				return -1, nil
+			}
+			if len(x) > len(y) {
+				return 1, nil
+			}
+		} else if nx != ny {
+			if nx {
+				return -1, nil
+			}
+			return 1, nil
+		}
+		if x < y {
+			return -1, nil
+		}
+		return 1, nil
+	}
+	if len(pa) < len(pb) {
+		return -1, nil
+	}
+	return 1, nil
+}
+
+func comparePendingRelease(p pendingUpdate) (int, error) {
+	target := strings.TrimSpace(p.ReleaseID)
+	if target == "" {
+		target = p.Version
+	}
+	// Prevent a release ID from upgrading a different numeric version.
+	core := strings.Split(strings.TrimPrefix(target, "v"), "-")[0]
+	core = strings.Split(core, "+")[0]
+	numeric, err := compareVersions(core, p.Version)
+	if err != nil || numeric != 0 {
+		return 0, fmt.Errorf("pending version/identity mismatch")
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		return 0, err
+	}
+	current := appVersion
+	raw, err := os.ReadFile(filepath.Join(filepath.Dir(exe), "RELEASE_ID.txt"))
+	if err == nil {
+		current = strings.TrimSpace(string(raw))
+	} else if !os.IsNotExist(err) {
+		return 0, err
+	}
+	currentCore := strings.Split(strings.TrimPrefix(current, "v"), "-")[0]
+	currentCore = strings.Split(currentCore, "+")[0]
+	cmp, err := compareVersions(currentCore, appVersion)
+	if err != nil || cmp != 0 {
+		return 0, fmt.Errorf("installed version/identity mismatch")
+	}
+	return compareReleaseIDs(target, current)
 }

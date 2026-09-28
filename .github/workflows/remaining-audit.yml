@@ -1,0 +1,90 @@
+name: SurveySync Remaining Audit Acceptance
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: surveysync-remaining-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  connected-desktop:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Install unchanged locked application dependencies
+        run: python -m pip install --require-hashes -r requirements-dev.lock
+      - name: Install isolated acceptance dependencies
+        run: |
+          python -m pip install playwright==1.57.0 laspy[lazrs]==2.6.1 cryptography==45.0.7
+          python -m playwright install chromium
+      - name: Regenerate approved globe branding
+        shell: pwsh
+        run: ./scripts/generate_surveysync_icon.ps1
+      - name: Full unchanged release gate including new regressions
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force remaining-evidence | Out-Null
+          python scripts/release_gate.py 2>&1 | Tee-Object remaining-evidence/release-gate.log
+          if ($LASTEXITCODE -ne 0) { throw 'Full release gate failed.' }
+      - name: Native prerelease identity and update component tests
+        shell: pwsh
+        run: |
+          go test ./installer/app_launcher.go ./installer/app_launcher_test.go
+          if ($LASTEXITCODE -ne 0) { throw 'Native release ordering failed.' }
+          go test ./installer/update_helper.go ./installer/update_helper_test.go
+          if ($LASTEXITCODE -ne 0) { throw 'Native update helper failed.' }
+      - name: Real LAS and LAZ decoder acceptance
+        run: python scripts/verify_optional_backends.py
+      - name: Real desktop panel controls, approvals, outputs and stale-project guards
+        run: python scripts/verify_remaining_workflows.py
+      - name: Retain actual evidence and source
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force remaining-evidence | Out-Null
+          git rev-parse HEAD | Set-Content remaining-evidence/tested-source.txt
+          git archive --format=zip --output=remaining-evidence/tested-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: remaining-desktop-evidence
+          path: remaining-evidence/
+          retention-days: 14
+  actual-external-gis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install actual external GIS runtimes on disposable runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qgis qgis-providers python3-qgis grass
+      - name: Install locked app and optional LAS/LAZ test dependencies
+        run: |
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install laspy[lazrs]==2.6.1
+      - name: Execute real QGIS centroid and GRASS region jobs plus LAZ sample
+        run: python scripts/verify_optional_backends.py --gis
+      - name: Retain external tool evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remaining-external-gis-evidence
+          path: remaining-evidence/
+          retention-days: 14

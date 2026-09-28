@@ -1,3 +1,11 @@
+# SurveySync 9.4.2-beta.2 - local field-book privacy and evidence
+
+Enforces on-device document inference, blocks remote endpoints/cloud models, retains original plus grid-cleaned OCR views, widens original-image context crops, reserves low VRAM for vision, closes cancelled/incomplete streams, and fixes rod-height review units/latest-decision summaries. See docs/LOCAL_FIELDBOOK_PIPELINE.md for implementation and unverified field/hardware boundaries.
+
+# SurveySync 9.4.2-beta.1 — remaining-audit candidate
+
+Connects point-cloud intake, workflow automation, CRS diagnostics, Excel template mapping and external GIS panels. Preserves 9.4.1 repairs and approved themes. Full build identity now appears consistently in installers, About and update prompts. Candidate acceptance adds repeated native lifecycle and same-numeric-version beta replacement checks. Not promoted to Stable; signing and field-accuracy limits remain explicit.
+
 # 9.4.1 — Verified audit repairs
 
 Control integrity, numeric/unit calculations, import headers/repeats, native lifecycle, Windows recovery and verified update handoff. See RELEASE_NOTES_v9_4_1.md for scope and limits.

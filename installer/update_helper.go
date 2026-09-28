@@ -39,6 +39,7 @@ var (
 
 type updateHandoff struct {
 	Version       string `json:"version"`
+	ReleaseID     string `json:"release_id"`
 	InstallerPath string `json:"installer_path"`
 	Sha256        string `json:"sha256"`
 	SizeBytes     int64  `json:"size_bytes"`
@@ -309,11 +310,23 @@ func main() {
 		_ = os.Rename(*pendingFile, *pendingFile+".failed")
 	} else {
 		installed, readErr := os.ReadFile(filepath.Join(destination, "VERSION.txt"))
-		if readErr != nil || strings.TrimSpace(string(installed)) != pending.Version {
+		identity, identityErr := os.ReadFile(filepath.Join(destination, "RELEASE_ID.txt"))
+		identityOK := pending.ReleaseID == "" || (identityErr == nil && strings.TrimSpace(string(identity)) == pending.ReleaseID)
+		if readErr != nil || strings.TrimSpace(string(installed)) != pending.Version || !identityOK {
 			status.State = "installer_failed"
 			status.Message = "Setup returned success but the expected version was not found in the target directory."
 			_ = os.Rename(*pendingFile, *pendingFile+".failed")
 		} else {
+			// Record the accepted artifact only after checking the installed build identity.
+			id := strings.TrimSpace(string(identity))
+			if id == "" {
+				id = pending.Version
+			}
+			receipt, _ := json.Marshal(map[string]interface{}{"version": pending.Version, "release_id": id, "sha256": actualHash})
+			receiptPath := filepath.Join(filepath.Dir(*pendingFile), "installed_update.json")
+			if writeErr := os.WriteFile(receiptPath, receipt, 0600); writeErr != nil {
+				updaterAppendLog(*logFile, "Could not record installed artifact: "+writeErr.Error())
+			}
 			status.State = "installed"
 			status.Message = "Setup completed and installed version was verified."
 			_ = os.Remove(*pendingFile)

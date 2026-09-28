@@ -49,6 +49,7 @@ from .ai_reader import (
     read_pages_foundry,
 )
 from .image_processing import crop_normalized_bbox
+from .spatial_preprocessing import structure_context_bbox
 from .ocr_local import PaddleCancelled, compare_ocr_to_evidence, locate_target_ids, paddle_status
 from .models import (
     DipStatus,
@@ -153,12 +154,6 @@ def _direct_vision_analysis(
                         analysis_batch = []
                         for source_page in batch:
                             qpage = deepcopy(source_page)
-                            if (
-                                source_page.enhanced_image_path
-                                and Path(source_page.enhanced_image_path).exists()
-                            ):
-                                qpage.image_path = source_page.enhanced_image_path
-                                qpage.mime_type = "image/jpeg"
                             analysis_batch.append(qpage)
                         evidence, unmatched, usage = context._retry_operation(
                             lambda: read_pages_ollama(
@@ -170,6 +165,7 @@ def _direct_vision_analysis(
                                 if model == context.MAX_ACCURACY_OLLAMA_MODEL
                                 else 300,
                                 progress_callback=context._qwen_progress,
+                                cancel_check=context.runtime.cancel_event.is_set,
                                 profile_context=context._field_note_profile_context(),
                             ),
                             component="qwen",
@@ -471,22 +467,23 @@ def _windows_local_analysis(
         local_unmatched: list[UnmatchedEvidence] = []
         usage = ProviderUsage()
         if vision_provider in {"foundry", "ollama"}:
-            src = (
-                original.enhanced_image_path
-                if original.enhanced_image_path and Path(original.enhanced_image_path).exists()
-                else original.image_path
-            )
+            src = original.image_path
             token = hashlib.sha1(
                 json.dumps(
-                    {"page": cand.page_id, "point": cand.point_id, "bbox": cand.bbox or []},
+                    {
+                        "page": cand.page_id,
+                        "point": cand.point_id,
+                        "bbox": cand.bbox or [],
+                        "context": "v2-original",
+                    },
                     sort_keys=True,
                 ).encode()
             ).hexdigest()[:14]
             crop_path = crop_dir / f"{cand.page_id}_{cand.point_id}_{token}.jpg"
             cropped = (
-                crop_path
-                if crop_path.exists()
-                else crop_normalized_bbox(src, cand.bbox, crop_path, padding=0.3)
+                crop_normalized_bbox(
+                    src, structure_context_bbox(cand.bbox), crop_path, padding=0.08
+                )
                 if cand.bbox
                 else None
             )
@@ -519,6 +516,7 @@ def _windows_local_analysis(
                         base_url=local_base_url,
                         timeout_seconds=900 if model == context.MAX_ACCURACY_OLLAMA_MODEL else 300,
                         progress_callback=context._qwen_progress,
+                        cancel_check=context.runtime.cancel_event.is_set,
                         profile_context=context._field_note_profile_context(),
                     )
                     engine_name = f"Qwen / Ollama ({model})"
@@ -717,22 +715,21 @@ def _hybrid_local_analysis(
         original = page_by_id.get(cand.page_id)
         if not original:
             raise RuntimeError(f"Field-book page {cand.page_id} is no longer available.")
-        src = (
-            original.enhanced_image_path
-            if original.enhanced_image_path and Path(original.enhanced_image_path).exists()
-            else original.image_path
-        )
+        src = original.image_path
         crop_token = hashlib.sha1(
             json.dumps(
-                {"page": cand.page_id, "point": cand.point_id, "bbox": cand.bbox or []},
+                {
+                    "page": cand.page_id,
+                    "point": cand.point_id,
+                    "bbox": cand.bbox or [],
+                    "context": "v2-original",
+                },
                 sort_keys=True,
             ).encode("utf-8")
         ).hexdigest()[:14]
         crop_path = crop_dir / f"{cand.page_id}_{cand.point_id}_{crop_token}.jpg"
         cropped = (
-            crop_path
-            if crop_path.exists()
-            else crop_normalized_bbox(src, cand.bbox, crop_path, padding=0.28)
+            crop_normalized_bbox(src, structure_context_bbox(cand.bbox), crop_path, padding=0.08)
             if cand.bbox
             else None
         )
@@ -761,7 +758,12 @@ def _hybrid_local_analysis(
         ):
             return False
         crop_page, image_path = _candidate_crop(cand)
-        cache_key = interpretation_cache_key(image_path, point_id=cand.point_id, model=model)
+        cache_key = interpretation_cache_key(
+            image_path,
+            point_id=cand.point_id,
+            model=model,
+            profile_context=context._field_note_profile_context(),
+        )
         cached = (
             load_interpretation_cache(context.runtime.interpretation_cache_dir, cache_key)
             if plan.interpretation_cache_enabled
@@ -783,6 +785,7 @@ def _hybrid_local_analysis(
                         base_url=local_base_url,
                         timeout_seconds=900 if model == context.MAX_ACCURACY_OLLAMA_MODEL else 300,
                         progress_callback=context._qwen_progress,
+                        cancel_check=context.runtime.cancel_event.is_set,
                         profile_context=context._field_note_profile_context(),
                     ),
                     component="qwen",

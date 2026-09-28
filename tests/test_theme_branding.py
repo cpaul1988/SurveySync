@@ -8,6 +8,8 @@ import pytest
 from fieldbook_sync.app import app
 
 ROOT = Path(__file__).resolve().parents[1]
+CORE_VERSION = (ROOT/"VERSION.txt").read_text(encoding="utf-8-sig").strip()
+RELEASE_ID = (ROOT/"RELEASE_ID.txt").read_text(encoding="utf-8-sig").strip()
 GLOBE = '/surveysync-static/surveysync_globe.svg'
 
 
@@ -29,7 +31,7 @@ class BrandParser(HTMLParser):
 def test_both_shells_load_shared_branding_after_themes(relative):
     parser = BrandParser()
     parser.feed((ROOT / relative).read_text(encoding='utf-8'))
-    assert parser.stylesheets[-1] == '/surveysync-static/theme-branding.css?v=9.4.1'
+    assert parser.stylesheets[-1] == f'/surveysync-static/theme-branding.css?v={RELEASE_ID}'
     clients = [image for image in parser.images if image.get('class') == 'ss-client-logo']
     globes = [image for image in parser.images if image.get('class') == 'ss-brand-globe']
     assert len(clients) == len(globes) >= 3

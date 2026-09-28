@@ -59,6 +59,7 @@ TESTS = [
 
 def commands(python: str, node: str) -> list[list[str]]:
     steps = [
+        [python, "scripts/validate_release_identity.py"],
         [python, "scripts/validate_release_docs.py"],
         [python, "scripts/validate_static_quality.py"],
         [python, "-m", "ruff", "check", "surveysync", "fieldbook_sync"],

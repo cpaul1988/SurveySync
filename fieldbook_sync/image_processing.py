@@ -106,25 +106,21 @@ def _opencv_enhance(src: Path, dst: Path) -> bool:
 
 
 def enhance_fieldbook_image(src: str | Path, dst: str | Path) -> Path:
-    """Create a high-legibility, analysis-ready derivative of a field-book page.
+    """Create a grid-lightened OCR derivative without changing page geometry.
 
-    When OpenCV is available this performs conservative page-boundary perspective correction,
-    small-angle deskew, local contrast enhancement and sharpening. If OpenCV is unavailable it
-    falls back to a Pillow-only EXIF/orientation + contrast/sharpen path. The original file is
-    never modified. PaddleOCR-VL additionally performs its own orientation/unwarping internally.
+    Dark strokes and original bytes are preserved. Semantic vision uses the source,
+    not this derivative; no perspective correction/deskew can invalidate OCR boxes.
     """
     src = Path(src)
     dst = Path(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
-    if _opencv_enhance(src, dst):
-        return dst
-    with Image.open(src) as im:
-        im = ImageOps.exif_transpose(im).convert("L")
-        im = ImageOps.autocontrast(im, cutoff=0.5)
-        im = ImageEnhance.Contrast(im).enhance(1.28)
-        im = im.filter(ImageFilter.UnsharpMask(radius=1.4, percent=145, threshold=3))
-        im = im.convert("RGB")
-        im.save(dst, format="JPEG", quality=94, optimize=True)
+    if src.resolve() == dst.resolve():
+        raise ValueError("An enhanced image must not replace its source.")
+    from .spatial_preprocessing import suppress_grid
+    with Image.open(src) as original:
+        # No perspective warp or deskew: OCR boxes must match the original page.
+        im = suppress_grid(ImageOps.exif_transpose(original).convert("RGB"))
+        im.save(dst, format="JPEG", quality=97, optimize=True)
     return dst
 
 

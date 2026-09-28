@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 import requests
+from .local_inference import local_request
 from PIL import Image, ImageOps
 
 
@@ -251,7 +252,7 @@ def _model_cached(model: Any) -> bool:
     return False
 
 
-def _probe_foundry_local(alias: str = DEFAULT_FOUNDRY_VISION_MODEL) -> ComponentStatus:
+def _probe_foundry_local_direct(alias: str = DEFAULT_FOUNDRY_VISION_MODEL) -> ComponentStatus:
     if not _is_windows():
         return ComponentStatus("foundry_local", "Microsoft Foundry Local", detail="Windows only.", model=alias)
     try:
@@ -281,12 +282,34 @@ def _probe_foundry_local(alias: str = DEFAULT_FOUNDRY_VISION_MODEL) -> Component
         )
 
 
+def _probe_foundry_local(alias: str = DEFAULT_FOUNDRY_VISION_MODEL) -> ComponentStatus:
+    if not _is_windows():
+        return ComponentStatus("foundry_local", "Microsoft Foundry Local", detail="Windows only.", model=alias)
+    # Merely checking availability must not load an unbounded native catalog
+    # operation into the GUI/server process. Actual inference remains separate.
+    import importlib.util
+    from .status_probe_process import StatusProbeError, StatusProbeTimeout, run_foundry_status_probe
+    if importlib.util.find_spec("foundry_local_sdk") is None:
+        return ComponentStatus("foundry_local", "Microsoft Foundry Local", detail=FOUNDRY_PACKAGE_HINT, model=alias)
+    try:
+        return ComponentStatus(**run_foundry_status_probe(alias))
+    except StatusProbeTimeout as exc:
+        logger.info("Foundry capability status is unknown: %s", exc)
+        return ComponentStatus("foundry_local", "Microsoft Foundry Local", installed=True,
+            detail="Status inspection timed out; readiness is unknown. Refresh to check again.",
+            state="probe_timeout", model=alias)
+    except StatusProbeError as exc:
+        logger.warning("Foundry capability inspection failed: %s", exc)
+        return ComponentStatus("foundry_local", "Microsoft Foundry Local", installed=True,
+            detail=str(exc), state="probe_failed", model=alias)
+
+
 def get_local_ai_status(*, force: bool = False) -> dict[str, Any]:
     """Return local-only AI capabilities. Expensive probes are cached briefly."""
     global _status_cache
     now = time.monotonic()
     with _status_lock:
-        if not force and _status_cache and now - _status_cache[0] < 20:
+        if _status_cache and ((not force and now - _status_cache[0] < 20) or _status_cache[0] >= now):
             return json.loads(json.dumps(_status_cache[1]))
         windows_ocr = _probe_windows_ocr()
         windows_language = _probe_windows_language()
@@ -299,7 +322,7 @@ def get_local_ai_status(*, force: bool = False) -> dict[str, Any]:
             "privacy": "local_only",
             "cost": "free_local",
         }
-        _status_cache = (now, payload)
+        _status_cache = (time.monotonic(), payload)
         return json.loads(json.dumps(payload))
 
 
@@ -566,7 +589,7 @@ def foundry_vision_json(
         "input": [{"type": "message", "role": "user", "content": content}],
         "temperature": 0,
     }
-    response = requests.post(f"{service}/v1/responses", json=body, timeout=timeout_seconds)
+    response = local_request("POST", f"{service}/v1/responses", json=body, timeout=timeout_seconds)
     if response.status_code >= 400:
         raise RuntimeError(f"Foundry Local returned HTTP {response.status_code}: {response.text[:800]}")
     payload = response.json()

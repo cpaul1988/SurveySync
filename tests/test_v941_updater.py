@@ -97,6 +97,7 @@ def test_large_or_wrong_product_manifest_rejected(tmp_path,monkeypatch):
 
 def test_same_or_older_release_does_not_reinstall(monkeypatch):
     monkeypatch.setattr(updater,'__version__','9.4.1')
+    monkeypatch.setattr(updater,'installed_release_id',lambda version:'9.4.1')
     r=release();r['version']='9.4.1'
     assert updater.select_release({'channels':{'stable':r}},'stable')['update_available'] is False
     r['version']='9.4.0'
@@ -110,7 +111,11 @@ def test_release_stamps_agree():
     from surveysync.router import SURVEYSYNC_RELEASE_NOTES_ID
     root=Path(__file__).resolve().parents[1]
     version=(root/'VERSION.txt').read_text().strip()
-    assert version==surveysync.__version__==SURVEYSYNC_RELEASE_NOTES_ID=='9.4.1'
+    release_id=(root/'RELEASE_ID.txt').read_text(encoding='utf-8').strip()
+    from surveysync.release_identity import release_order
+    assert version==surveysync.__version__
+    assert SURVEYSYNC_RELEASE_NOTES_ID==release_id
+    assert release_order(release_id)[0]==release_order(version)[0]
     assert f'var appVersion = "{version}"' in (root/'installer/app_launcher.go').read_text(encoding='utf-8')
     assert f'#define MyAppVersion "{version}"' in (root/'installer/SurveySync.iss').read_text(encoding='utf-8')
     assert 'Beta.4' not in (root/'installer/SurveySync.iss').read_text(encoding='utf-8')

@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 import socket
 import subprocess
@@ -43,12 +44,27 @@ def main():
                      'surveysync/leveling.py','fieldbook_sync/job_engine.py','surveysync/static/app.js'):
         assert hashlib.sha256((install/relative).read_bytes()).digest() == hashlib.sha256((ROOT/relative).read_bytes()).digest(), relative
     state = temp/'verified-native-state';state.mkdir(exist_ok=False)
-    env = dict(os.environ, SURVEYSYNC_CONFIG_ROOT=str(state/'config'), SURVEYSYNC_FIELD_ROOT=str(state/'field'))
+    # Passive stack diagnostics are confined to the disposable child interpreter.
+    # They do not change shutdown timing/behavior or replace the native bridge.
+    hook = state/'diagnostic-hook';hook.mkdir()
+    child_python = (install/'.venv/Scripts/python.exe').resolve()
+    trace = OUT/'native-thread-stacks.log'
+    code = ("from pathlib import Path\nimport sys, faulthandler\n"
+            f"if Path(sys.executable).resolve() == Path({str(child_python)!r}):\n"
+            f"    _ss_trace = open({str(trace)!r}, 'a', encoding='utf-8')\n"
+            "    faulthandler.enable(file=_ss_trace)\n"
+            "    faulthandler.dump_traceback_later(10, repeat=True, file=_ss_trace)\n")
+    compile(code, 'sitecustomize.py', 'exec')
+    (hook/'sitecustomize.py').write_text(code, encoding='utf-8')
+    env = dict(os.environ, PYTHONPATH=str(hook), SURVEYSYNC_CONFIG_ROOT=str(state/'config'), SURVEYSYNC_FIELD_ROOT=str(state/'field'))
     results = {'status':'FAIL','cycles':[], 'installer_scope':'unreleased repair candidate'}
     project_folder = None
     process = None
+    attempt = {}
     try:
         for cycle in (1,2):
+            attempt = {'cycle':cycle,'status':'STARTING'}
+            results['cycles'].append(attempt)
             args = [str(install/'SurveySync.exe')]
             if project_folder: args.append(str(project_folder))
             process = subprocess.Popen(args, cwd=install, env=env)
@@ -76,16 +92,35 @@ def main():
                 assert 'Code: CP' in Path(data['deliverables']['final_control_txt']).read_text(encoding="utf-8")
                 assert abs(data['residuals'][0]['dn'] - (1000-(1000+1000.03+999.99)/3)) < 1e-9
                 revisions.append(data['revision'])
+            attempt.update(status='EXIT_REQUESTED',revisions=revisions,launcher_pid=process.pid)
             start=time.monotonic()
             reply=request('/api/application/exit', {})
+            attempt['reply']=reply
             process.wait(timeout=15)
             assert process.returncode==0, process.returncode
             assert not port_open(), 'Local API remains running after native exit'
-            results['cycles'].append({'cycle':cycle,'revisions':revisions,'exit_seconds':round(time.monotonic()-start,3),'exit_code':process.returncode,'api_closed':True,'reply':reply})
+            attempt.update(status='PASS',exit_seconds=round(time.monotonic()-start,3),exit_code=process.returncode,api_closed=True)
             process=None
         results['status']='PASS'
+    except Exception as exc:
+        attempt.update(failure=f'{type(exc).__name__}: {exc}',api_still_running=port_open())
+        raise
     finally:
+        for file in state.rglob('*.log'):
+            if file.is_file():
+                relative=str(file.relative_to(state)).replace('\\','_').replace('/','_')
+                shutil.copyfile(file,OUT/('native-diagnostic-'+relative))
         if process is not None and process.poll() is None:
+            import psutil
+            from pywinauto import Desktop
+            children=psutil.Process(process.pid).children(recursive=True)
+            results['owned_processes']=[p.as_dict(attrs=['pid','name','cmdline']) for p in children]
+            windows=[]
+            for pid in [process.pid]+[p.pid for p in children]:
+                for window in Desktop(backend='win32').windows(process=pid,visible_only=True):
+                    windows.append({'pid':pid,'title':window.window_text(),'class':window.class_name()})
+                    window.capture_as_image().save(OUT/f'native-timeout-{pid}-{len(windows)}.png')
+            results['owned_windows']=windows
             subprocess.run(['taskkill','/PID',str(process.pid),'/T','/F'],check=False)
         (OUT/'native-results.json').write_text(json.dumps(results,indent=2), encoding="utf-8")
     print(json.dumps(results,indent=2))

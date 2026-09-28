@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .models import DipStatus, FieldBookPage, OcrCandidate, PageEvidence
 from .survey import normalize_point_id
@@ -298,7 +298,7 @@ def _parse_bridge_output(proc: subprocess.CompletedProcess[str]) -> dict:
 
 
 
-_OCR_CACHE_SCHEMA = "fbs-paddle-v807-cache-v1"
+_OCR_CACHE_SCHEMA = "fbs-paddle-spatial-v2-original-grid"
 
 
 def _sha256_file(path: str | Path, chunk_size: int = 1024 * 1024) -> str:
@@ -377,7 +377,51 @@ def clear_ocr_cache(cache_dir: str | Path) -> None:
     root.mkdir(parents=True, exist_ok=True)
     reset_cache_stats(root)
 
-def run_paddle_pages(
+def run_paddle_pages(pages, app_root, timeout=3600, **kwargs):
+    """Read original and grid-cleaned views in one bounded worker, preserving both.
+
+    The cleaned image is an additional observation, never a replacement for original
+    handwriting. Both views have identical dimensions and independent content hashes.
+    """
+    from copy import deepcopy
+    expanded, owners, grouped, cached_flags = [], [], [], []
+    for index, page in enumerate(pages):
+        original = deepcopy(page)
+        original.enhanced_image_path = None
+        with Image.open(page.image_path) as source_image:
+            if source_image.getexif().get(274, 1) != 1:
+                oriented = Path(page.image_path).with_name(Path(page.image_path).stem + "_oriented.png")
+                ImageOps.exif_transpose(source_image).convert("RGB").save(oriented)
+                original.image_path = str(oriented)
+        expanded.append(original)
+        owners.append(index)
+        grouped.append([])
+        cached_flags.append([])
+        if page.enhanced_image_path and Path(page.enhanced_image_path).exists():
+            with Image.open(original.image_path) as src, Image.open(page.enhanced_image_path) as cleaned:
+                if src.size != cleaned.size:
+                    raise ValueError("OCR derivative geometry differs from the original. Reimport this field book.")
+            expanded.append(deepcopy(page))
+            owners.append(index)
+    expected = [owners.count(i) for i in range(len(pages))]
+    callback = kwargs.pop("page_callback", None)
+    error_callback = kwargs.pop("page_error_callback", None)
+    def receive(number, page, payload, cached):
+        owner = owners[number - 1]
+        grouped[owner].append(payload)
+        cached_flags[owner].append(cached)
+        if callback and len(grouped[owner]) == expected[owner]:
+            callback(owner + 1, pages[owner], {"views": grouped[owner]}, all(cached_flags[owner]))
+    def failed(number, page, message, attempt):
+        owner = owners[number - 1]
+        if error_callback:
+            error_callback(owner + 1, pages[owner], message, attempt)
+    _run_paddle_views(expanded, app_root, timeout, page_callback=receive,
+                      page_error_callback=failed, **kwargs)
+    return [{"views": items} for items in grouped]
+
+
+def _run_paddle_views(
     pages: Sequence[FieldBookPage],
     app_root: Path,
     timeout: int = 3600,

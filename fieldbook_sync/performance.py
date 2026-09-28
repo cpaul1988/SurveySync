@@ -258,7 +258,7 @@ def build_performance_plan(mode: str = "auto", profile: HardwareProfile | None =
         interpretation_cache_enabled=True,
         accuracy_first=True,
         enable_hpi=hpi,
-        prefer_gpu=True,
+        prefer_gpu=bool(profile.nvidia_gpu and profile.nvidia_vram_bytes >= 6 * 1024**3),
         pipeline_overlap=overlap_capable,
         qwen_workers=1,
         near_match_routing=True,

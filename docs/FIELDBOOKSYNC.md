@@ -51,3 +51,7 @@ FieldBookSync project-state backup, recovery-copy, and recovery-parse failures a
 ## 9.3.0 engineering hardening
 
 See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared release gates, dependency locks, domain extraction, diagnostics and standalone TopoSync rod-height range QC. Windows acceptance and distribution signing remain outstanding.
+
+## 9.4.2-beta.2 local field-book follow-up
+
+See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privacy, dual OCR views, original-image context, regression scope, and remaining real-model/hardware/calibration acceptance.

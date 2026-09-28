@@ -13,6 +13,8 @@ from fieldbook_sync.app import app as installed_app
 import surveysync.router as routes
 
 ROOT = Path(__file__).resolve().parents[1]
+CORE_VERSION = (ROOT/"VERSION.txt").read_text(encoding="utf-8-sig").strip()
+RELEASE_ID = (ROOT/"RELEASE_ID.txt").read_text(encoding="utf-8-sig").strip()
 
 
 def client():
@@ -56,15 +58,15 @@ def test_static_symlink_escape_rejected(tmp_path, monkeypatch):
 def test_release_notes_without_project():
     with client() as http:
         data = http.get('/api/v9/release-notes').json()
-    assert data['release_id'] == '9.4.1'
-    assert data['version'] == '9.4.1'
+    assert data['release_id'] == RELEASE_ID
+    assert data['version'] == CORE_VERSION
     assert len(data['notes']) >= 4
 
 
 def test_both_shells_share_fieldbook_presentation():
     for relative in ('surveysync/static/index.html', 'fieldbook_sync/static/index.html'):
         html = (ROOT / relative).read_text(encoding='utf-8')
-        assert '/surveysync-static/fieldbook-standard.css?v=9.4.1' in html
+        assert f'/surveysync-static/fieldbook-standard.css?v={RELEASE_ID}' in html
     css = (ROOT / 'surveysync/static/fieldbook-standard.css').read_text(encoding='utf-8')
     assert '.surveysync-workspace' in css
     assert '--panel:#1b1f24' in css

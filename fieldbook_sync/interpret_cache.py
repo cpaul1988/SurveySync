@@ -13,7 +13,7 @@ from .cache_stats import get_incremental_cache_stats, record_cache_delete, recor
 from .models import PageEvidence, UnmatchedEvidence
 
 # Bump whenever the Qwen crop prompt/schema or cache semantics change.
-INTERPRETATION_CACHE_SCHEMA = "fbs-qwen-crop-v3-dip-status"
+INTERPRETATION_CACHE_SCHEMA = "fbs-qwen-crop-v4-dip-status-local-spatial"
 
 
 def _sha256_file(path: str | Path, chunk_size: int = 1024 * 1024) -> str:
@@ -33,12 +33,14 @@ def interpretation_cache_key(
     point_id: str,
     model: str,
     schema: str = INTERPRETATION_CACHE_SCHEMA,
+    profile_context: str = "",
 ) -> str:
     payload = "|".join([
         schema,
         _sha256_file(image_path),
         str(point_id).strip(),
         str(model).strip(),
+        profile_context,
     ]).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 

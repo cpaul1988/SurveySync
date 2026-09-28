@@ -9,18 +9,23 @@ from __future__ import annotations
 import copy
 import json
 import re
+import threading
+from functools import wraps
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from openpyxl import load_workbook
+from openpyxl.utils.cell import coordinate_to_tuple, column_index_from_string
+from openpyxl.cell.cell import MergedCell
+from zipfile import BadZipFile
 
 from .audit import utc_now
 from .project import SurveyProject, safe_name
 from .reporting import register_deliverable
 
-PLACEHOLDER = re.compile(r"{{s*([A-Za-z0-9_.-]+)s*}}")
+PLACEHOLDER = re.compile(r"{{\s*([A-Za-z0-9_.-]+)\s*}}")
 
 ALLOWED_POINT_FIELDS = {
     "point_id",
@@ -34,6 +39,18 @@ ALLOWED_POINT_FIELDS = {
     "horizontal_units",
     "vertical_units",
 }
+
+
+_STORE_LOCK = threading.RLock()
+
+
+def serialized(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        with _STORE_LOCK:
+            return fn(*args, **kwargs)
+
+    return wrapped
 
 
 class ReportTemplateError(ValueError):
@@ -125,11 +142,13 @@ def _resolve(context: dict[str, Any], field: str) -> Any:
 def _scan_placeholders(path: Path) -> list[dict[str, Any]]:
     try:
         workbook = load_workbook(path, read_only=False, data_only=False)
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, BadZipFile, KeyError) as exc:
         raise ReportTemplateError(f"Excel template could not be opened: {exc}") from exc
     found: list[dict[str, Any]] = []
     try:
         for sheet in workbook.worksheets:
+            if sheet.max_row * sheet.max_column > 1000000:
+                raise ReportTemplateError("Template is too large for bounded inspection.")
             for row in sheet.iter_rows():
                 for cell in row:
                     value = cell.value
@@ -163,7 +182,7 @@ def inspect_excel_template(path: str | Path) -> dict[str, Any]:
             data_only=False,
             keep_vba=source.suffix.lower() == ".xlsm",
         )
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, BadZipFile, KeyError) as exc:
         raise ReportTemplateError(f"Excel template could not be opened: {exc}") from exc
     try:
         sheets = [
@@ -214,17 +233,22 @@ def _normalize_mapping(mapping: dict[str, Any]) -> dict[str, Any]:
     scalar_raw = mapping.get("scalar_cells") or []
     if not isinstance(scalar_raw, list):
         raise ReportTemplateError("scalar_cells must be a list.")
-    scalar_cells = []
+    scalar_cells: list[dict[str, str]] = []
     for index, item in enumerate(scalar_raw):
         if not isinstance(item, dict):
             raise ReportTemplateError(f"Scalar mapping {index + 1} must be an object.")
         field = str(item.get("field") or "").strip()
         sheet = str(item.get("sheet") or "").strip()
         cell = str(item.get("cell") or "").strip().upper()
-        if not field or not sheet or not cell:
+        if not field or not sheet or not re.fullmatch(r"[A-Z]{1,3}[1-9][0-9]{0,6}", cell):
             raise ReportTemplateError(
                 f"Scalar mapping {index + 1} requires field, sheet, and cell."
             )
+        row, column = coordinate_to_tuple(cell)
+        if row > 1048576 or column > 16384:
+            raise ReportTemplateError("Scalar mapping exceeds Excel worksheet bounds.")
+        if any(x["sheet"] == sheet and x["cell"] == cell for x in scalar_cells):
+            raise ReportTemplateError("Two scalar fields cannot target the same cell.")
         scalar_cells.append({"field": field, "sheet": sheet, "cell": cell})
 
     table_raw = mapping.get("point_table")
@@ -243,9 +267,15 @@ def _normalize_mapping(mapping: dict[str, Any]) -> dict[str, Any]:
             point_field = str(field or "").strip()
             if not col or not re.fullmatch(r"[A-Z]{1,3}", col):
                 raise ReportTemplateError(f"Invalid Excel column: {column}")
+            if column_index_from_string(col) > 16384:
+                raise ReportTemplateError("Point mapping exceeds Excel worksheet bounds.")
+            if col in normalized_columns:
+                raise ReportTemplateError("Duplicate point table column.")
             if point_field not in ALLOWED_POINT_FIELDS:
                 raise ReportTemplateError(f"Unsupported point table field: {point_field}")
             normalized_columns[col] = point_field
+        if start_row > 1048576:
+            raise ReportTemplateError("Point table start row exceeds Excel limits.")
         point_table = {
             "sheet": sheet,
             "start_row": start_row,
@@ -269,6 +299,7 @@ def _source_row(project: SurveyProject, source_id: str) -> dict[str, Any]:
     return dict(row)
 
 
+@serialized
 def register_excel_template(
     project: SurveyProject,
     path: str | Path,
@@ -277,11 +308,6 @@ def register_excel_template(
     mapping: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     inspection = inspect_excel_template(path)
-    source = project.import_source(
-        Path(path),
-        "ReportSync",
-        "Original company/client Excel report template retained immutably.",
-    )
     template_id = uuid4().hex
     learned_scalar = []
     if mapping is None:
@@ -304,6 +330,12 @@ def register_excel_template(
             "point_table": None,
             "replace_placeholders": True,
         }
+    )
+    validate_mapping_targets(project, Path(path), normalized)
+    source = project.import_source(
+        Path(path),
+        "ReportSync",
+        "Original company/client Excel report template retained immutably.",
     )
     entry = {
         "template_id": template_id,
@@ -342,10 +374,14 @@ def _template_entry(project: SurveyProject, template_id: str) -> dict[str, Any]:
     raise ReportTemplateError("Report template mapping was not found.")
 
 
+@serialized
 def save_template_mapping(
     project: SurveyProject, template_id: str, mapping: dict[str, Any]
 ) -> dict[str, Any]:
     normalized = _normalize_mapping(mapping)
+    current = _template_entry(project, template_id)
+    path = _immutable_source_path(project, _source_row(project, current["source_id"]))
+    validate_mapping_targets(project, path, normalized)
     store = _load_store(project)
     updated = None
     for item in store["templates"]:
@@ -370,6 +406,7 @@ def save_template_mapping(
     return updated
 
 
+@serialized
 def delete_template(project: SurveyProject, template_id: str) -> dict[str, Any]:
     store = _load_store(project)
     kept = [
@@ -429,17 +466,18 @@ def render_excel_template(
     template_path = _immutable_source_path(project, source)
     mapping = _normalize_mapping(dict(entry.get("mapping") or {}))
     keep_vba = template_path.suffix.lower() == ".xlsm"
+    validate_mapping_targets(project, template_path, mapping)
+    context = _context(project)
     try:
         workbook = load_workbook(template_path, data_only=False, keep_vba=keep_vba)
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, BadZipFile, KeyError) as exc:
         raise ReportTemplateError(f"Excel template could not be opened: {exc}") from exc
 
-    context = _context(project)
     try:
         for item in mapping["scalar_cells"]:
             if item["sheet"] not in workbook.sheetnames:
                 raise ReportTemplateError(f"Worksheet not found: {item['sheet']}")
-            workbook[item["sheet"]][item["cell"]] = _resolve(context, item["field"])
+            _write_input(workbook[item["sheet"]][item["cell"]], _resolve(context, item["field"]))
 
         replaced_placeholders = 0
         if mapping["replace_placeholders"]:
@@ -456,7 +494,11 @@ def render_excel_template(
                             replaced_placeholders += 1
                             return str(value if value is not None else "")
 
-                        cell.value = PLACEHOLDER.sub(replace, original)
+                        if cell.data_type == "f":
+                            raise ReportTemplateError(
+                                "Formula placeholders are unsafe. Map values into separate input cells instead."
+                            )
+                        _write_input(cell, PLACEHOLDER.sub(replace, original))
 
         point_count = 0
         table = mapping["point_table"]
@@ -471,7 +513,7 @@ def render_excel_template(
                 row_number = start + index
                 _copy_row_style(sheet, start, row_number, columns)
                 for column, field in table["columns"].items():
-                    sheet[f"{column}{row_number}"] = point.get(field)
+                    _write_input(sheet[f"{column}{row_number}"], point.get(field))
             if not points:
                 for column in columns:
                     sheet[f"{column}{start}"] = None
@@ -485,7 +527,7 @@ def render_excel_template(
             output = (
                 project.paths.reports
                 / "TemplateExports"
-                / f"{safe_name(entry['name'])}_{stamp}{extension}"
+                / f"{safe_name(entry['name'])}_{stamp}_{uuid4().hex[:12]}{extension}"
             )
         if output == template_path:
             raise ReportTemplateError(
@@ -499,8 +541,23 @@ def render_excel_template(
             raise ReportTemplateError(
                 "Rendered output cannot be written inside the immutable Source folder."
             )
+        if output.suffix.lower() != (".xlsm" if keep_vba else ".xlsx"):
+            raise ReportTemplateError("Output extension must match the template workbook type.")
+        if output.exists():
+            raise ReportTemplateError(
+                "Output already exists. Choose a new name; original files are never overwritten."
+            )
         output.parent.mkdir(parents=True, exist_ok=True)
-        workbook.save(output)
+        created = False
+        try:
+            with output.open("xb") as destination:
+                created = True
+                workbook.save(destination)
+        except Exception:
+            # Never delete a competing/preexisting file after an exclusive-create race.
+            if created:
+                output.unlink(missing_ok=True)
+            raise
     finally:
         workbook.close()
 
@@ -539,3 +596,60 @@ def render_excel_template(
         "replaced_placeholders": replaced_placeholders,
         "deliverable": deliverable,
     }
+
+
+def _write_input(cell: Any, value: Any) -> None:
+    if isinstance(cell, MergedCell) or cell.data_type == "f":
+        raise ReportTemplateError(
+            "Mapped inputs cannot overwrite a formula or a merged-cell continuation."
+        )
+    cell.value = value
+    if isinstance(value, str):
+        cell.data_type = "s"  # PointIDs and client text are data, never formulas.
+
+
+def validate_mapping_targets(project: SurveyProject, path: Path, mapping: dict) -> None:
+    context = _context(project)
+    try:
+        workbook = load_workbook(path, data_only=False, keep_vba=path.suffix.lower() == ".xlsm")
+    except (OSError, ValueError, BadZipFile, KeyError) as exc:
+        raise ReportTemplateError(f"Cannot validate template: {exc}") from exc
+    try:
+        targets = set()
+        for item in mapping["scalar_cells"]:
+            _resolve(context, item["field"])
+            if item["sheet"] not in workbook.sheetnames:
+                raise ReportTemplateError("Scalar mapping worksheet was not found.")
+            cell = workbook[item["sheet"]][item["cell"]]
+            if isinstance(cell, MergedCell) or cell.data_type == "f":
+                raise ReportTemplateError(
+                    "Scalar mapping targets a formula or merged-cell continuation."
+                )
+            targets.add((item["sheet"], item["cell"]))
+        table = mapping.get("point_table")
+        if table:
+            if table["sheet"] not in workbook.sheetnames:
+                raise ReportTemplateError("Point table worksheet was not found.")
+            with project.db.connect() as conn:
+                count = conn.execute("SELECT COUNT(*) FROM canonical_points").fetchone()[0]
+            start = table["start_row"]
+            if start + max(1, count) - 1 > 1048576 or count * len(table["columns"]) > 1000000:
+                raise ReportTemplateError("Mapped point table exceeds supported workbook size.")
+            for row in range(start, start + max(1, count)):
+                for col in table["columns"]:
+                    address = f"{col}{row}"
+                    cell = workbook[table["sheet"]][address]
+                    if (table["sheet"], address) in targets:
+                        raise ReportTemplateError("Point table overlaps a scalar mapping.")
+                    if isinstance(cell, MergedCell) or cell.data_type == "f":
+                        raise ReportTemplateError(
+                            "Point table would overwrite a formula or merged-cell continuation."
+                        )
+    finally:
+        workbook.close()
+
+
+def template_details(project: SurveyProject, template_id: str) -> dict:
+    entry = _template_entry(project, template_id)
+    path = _immutable_source_path(project, _source_row(project, entry["source_id"]))
+    return {"template": entry, "inspection": inspect_excel_template(path)}

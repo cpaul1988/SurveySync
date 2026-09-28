@@ -7,17 +7,19 @@ invokes them as separate processes with shell=False.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 from .project import SurveyProject
 
 _QGIS_ALGORITHM = re.compile(r"^[A-Za-z0-9_.:-]+$")
-_GRASS_MODULE = re.compile(r"^(?:g|r|v|db|i).[A-Za-z0-9_.-]+$")
+_GRASS_MODULE = re.compile(r"^(?:g|r|v|db|i)\.[A-Za-z0-9_.-]+$")
 _PARAM_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 _MAX_OUTPUT = 250_000
 
@@ -117,15 +119,55 @@ def _grass_candidates() -> list[Path]:
 
 
 def find_qgis_process(explicit: str | Path | None = None) -> Path | None:
-    candidates = _existing([explicit]) if explicit else []
-    candidates.extend(_qgis_candidates())
+    candidates = _existing([explicit]) if explicit else _qgis_candidates()
     return candidates[0] if candidates else None
 
 
 def find_grass(explicit: str | Path | None = None) -> Path | None:
-    candidates = _existing([explicit]) if explicit else []
-    candidates.extend(_grass_candidates())
+    candidates = _existing([explicit]) if explicit else _grass_candidates()
     return candidates[0] if candidates else None
+
+
+def _external_environment() -> dict[str, str]:
+    """Do not inject SurveySync's Python runtime into separately installed GIS."""
+    env = dict(os.environ)
+    for name in (
+        "PYTHONHOME",
+        "PYTHONPATH",
+        "PYTHONUSERBASE",
+        "VIRTUAL_ENV",
+        "__PYVENV_LAUNCHER__",
+    ):
+        env.pop(name, None)
+    roots = []
+    for prefix in (sys.prefix, sys.base_prefix):
+        root = Path(prefix).resolve()
+        if str(root) not in {"/", "/usr", "/usr/local"}:
+            roots.append(root)
+    for name in ("PATH", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
+        if name not in env:
+            continue
+        kept = []
+        for entry in env[name].split(os.pathsep):
+            if not entry:
+                continue
+            candidate = Path(entry).resolve()
+            if not any(candidate.is_relative_to(root) for root in roots):
+                kept.append(entry)
+        if kept:
+            env[name] = os.pathsep.join(kept)
+        else:
+            env.pop(name, None)
+    return env
+
+
+def _grass_temporary_flag(executable: Path) -> str:
+    help_result = _run([str(executable), "--help"], timeout_seconds=20)
+    help_text = help_result["stdout"] + "\n" + help_result["stderr"]
+    for flag in ("--tmp-project", "--tmp-location"):
+        if flag in help_text:
+            return flag
+    raise GisBridgeError("GRASS launcher does not advertise a supported temporary-project option.")
 
 
 def _run(
@@ -134,6 +176,12 @@ def _run(
     timeout_seconds: int,
     cwd: str | Path | None = None,
 ) -> dict[str, Any]:
+    if Path(command[0]).suffix.lower() in {".bat", ".cmd"} and any(
+        any(c in value for c in '&|<>^%!\r\n"') for value in command[1:]
+    ):
+        raise GisBridgeError(
+            "Unsafe characters for a Windows batch launcher; use a native executable or simpler paths."
+        )
     timeout = max(5, min(int(timeout_seconds), 3600))
     try:
         completed = subprocess.run(
@@ -145,6 +193,7 @@ def _run(
             check=False,
             cwd=str(Path(cwd).expanduser().resolve()) if cwd else None,
             shell=False,
+            env=_external_environment(),
         )
     except subprocess.TimeoutExpired as exc:
         raise GisBridgeError(f"GIS process timed out after {timeout} seconds.") from exc
@@ -174,9 +223,9 @@ def _version(executable: Path, args: list[str]) -> str:
     return text.splitlines()[0][:300] if text else ""
 
 
-def bridge_status() -> dict[str, Any]:
-    qgis = find_qgis_process()
-    grass = find_grass()
+def bridge_status(qgis_executable=None, grass_executable=None) -> dict[str, Any]:
+    qgis = find_qgis_process(qgis_executable)
+    grass = find_grass(grass_executable)
     return {
         "qgis": {
             "ready": bool(qgis),
@@ -188,7 +237,7 @@ def bridge_status() -> dict[str, Any]:
             "ready": bool(grass),
             "path": str(grass or ""),
             "version": _version(grass, ["--version"]) if grass else "",
-            "integration": "external grass --tmp-project --exec",
+            "integration": "external grass temporary-project --exec",
         },
         "embedded_gpl_code": False,
         "shell_execution": False,
@@ -212,14 +261,17 @@ def qgis_algorithms(*, executable: str | Path | None = None) -> dict[str, Any]:
     algorithms = []
     for line in result["stdout"].splitlines():
         stripped = line.strip()
-        if not stripped or " " not in stripped:
+        parts = stripped.split(maxsplit=1)
+        if len(parts) != 2:
             continue
-        candidate = stripped.split()[0]
+        candidate = parts[0]
+        if candidate.endswith(":"):
+            continue
         if ":" in candidate and _QGIS_ALGORITHM.fullmatch(candidate):
             algorithms.append(
                 {
                     "id": candidate,
-                    "label": stripped[len(candidate) :].strip(),
+                    "label": parts[1],
                 }
             )
     return {
@@ -260,6 +312,8 @@ def _parameter_args(parameters: dict[str, Any]) -> list[str]:
             rendered = "true" if value else "false"
         elif value is None:
             rendered = ""
+        elif isinstance(value, float) and not math.isfinite(value):
+            raise GisBridgeError(f"Processing parameter {name} must be finite.")
         elif isinstance(value, (str, int, float)):
             rendered = str(value)
         else:
@@ -339,7 +393,7 @@ def run_grass_module(
     parameter_args = _parameter_args(parameters)
     command = [
         str(exe),
-        "--tmp-project",
+        _grass_temporary_flag(exe),
         project_crs,
         "--exec",
         module_name,

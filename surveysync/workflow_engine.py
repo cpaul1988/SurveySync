@@ -7,6 +7,9 @@ approval before execution.
 
 from __future__ import annotations
 
+import copy
+import threading
+from functools import wraps
 import json
 import sqlite3
 from pathlib import Path
@@ -60,6 +63,20 @@ ACTION_POLICIES: dict[str, dict[str, Any]] = {
 
 class WorkflowError(RuntimeError):
     pass
+
+
+# One lock serializes definition edits and approvals in this application process.
+# It is not a distributed lock for simultaneously opened network-share projects.
+_ENGINE_LOCK = threading.RLock()
+
+
+def serialized(function):
+    @wraps(function)
+    def call(*args, **kwargs):
+        with _ENGINE_LOCK:
+            return function(*args, **kwargs)
+
+    return call
 
 
 def _workflow_path(project: SurveyProject) -> Path:
@@ -116,6 +133,13 @@ def _normalize_action(raw: Any, index: int) -> dict[str, Any]:
     params = raw.get("params") or {}
     if not isinstance(params, dict):
         raise WorkflowError(f"Workflow action {index + 1} params must be an object.")
+    try:
+        encoded = json.dumps(params, allow_nan=False)
+        if len(encoded.encode("utf-8")) > 65536:
+            raise ValueError("Action parameters exceed 64 KB")
+        params = json.loads(encoded)
+    except (TypeError, ValueError, RecursionError) as exc:
+        raise WorkflowError(f"Action parameters must be bounded finite JSON: {exc}") from exc
     policy = ACTION_POLICIES[action_type]
     return {
         "type": action_type,
@@ -125,6 +149,10 @@ def _normalize_action(raw: Any, index: int) -> dict[str, Any]:
 
 
 def normalize_workflow(spec: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(spec, dict):
+        raise WorkflowError("Each workflow must be an object.")
+    if "enabled" in spec and type(spec["enabled"]) is not bool:
+        raise WorkflowError("Workflow enabled must be true or false.")
     name = str(spec.get("name") or "").strip()
     if not name:
         raise WorkflowError("Workflow name is required.")
@@ -136,6 +164,8 @@ def normalize_workflow(spec: dict[str, Any]) -> dict[str, Any]:
     actions_raw = spec.get("actions") or []
     if not isinstance(actions_raw, list) or not actions_raw:
         raise WorkflowError("Workflow requires at least one action.")
+    if len(actions_raw) > 100:
+        raise WorkflowError("At most 100 actions are supported per workflow.")
     workflow_id = str(spec.get("workflow_id") or spec.get("id") or uuid4().hex).strip()
     if not workflow_id:
         raise WorkflowError("Workflow ID is invalid.")
@@ -154,6 +184,7 @@ def list_workflows(project: SurveyProject) -> list[dict[str, Any]]:
     return [normalize_workflow(dict(item)) for item in document["workflows"]]
 
 
+@serialized
 def save_workflow(project: SurveyProject, spec: dict[str, Any]) -> dict[str, Any]:
     workflow = normalize_workflow(spec)
     document = _read_workflow_document(project)
@@ -186,6 +217,7 @@ def save_workflow(project: SurveyProject, spec: dict[str, Any]) -> dict[str, Any
     return workflow
 
 
+@serialized
 def delete_workflow(project: SurveyProject, workflow_id: str) -> dict[str, Any]:
     target = safe_name(workflow_id)
     document = _read_workflow_document(project)
@@ -216,9 +248,12 @@ def export_workflows_yaml(project: SurveyProject) -> str:
     return yaml.safe_dump(document, sort_keys=False, allow_unicode=True)
 
 
+@serialized
 def import_workflows_yaml(project: SurveyProject, yaml_text: str) -> dict[str, Any]:
+    if not isinstance(yaml_text, str) or len(yaml_text.encode("utf-8")) > 1024 * 1024:
+        raise WorkflowError("Workflow YAML must be text no larger than 1 MB.")
     try:
-        raw = yaml.safe_load(str(yaml_text or ""))
+        raw = yaml.safe_load(yaml_text)
     except yaml.YAMLError as exc:
         raise WorkflowError(f"Workflow YAML is invalid: {exc}") from exc
     if isinstance(raw, list):
@@ -229,7 +264,11 @@ def import_workflows_yaml(project: SurveyProject, yaml_text: str) -> dict[str, A
         raise WorkflowError("Workflow YAML must be a list or contain a 'workflows' list.")
     if not isinstance(workflows, list):
         raise WorkflowError("Workflow YAML 'workflows' value must be a list.")
-    normalized = [normalize_workflow(dict(item)) for item in workflows]
+    if len(workflows) > 200:
+        raise WorkflowError("At most 200 workflows are supported per project.")
+    normalized = [normalize_workflow(item) for item in workflows]
+    if len({w["workflow_id"] for w in normalized}) != len(normalized):
+        raise WorkflowError("Workflow IDs must be unique.")
     _write_workflow_document(project, {"version": 1, "workflows": normalized})
     project.db.audit(
         "Core",
@@ -394,6 +433,9 @@ def _continue_run(
     approved_index: int | None = None,
 ) -> dict[str, Any]:
     workflow = _workflow_by_id(project, str(state["workflow_id"]))
+    # Never approve an edited definition in place of the action the user reviewed.
+    if state.get("workflow_snapshot") != workflow:
+        raise WorkflowError("Workflow changed after this run began. Reject it and start a new run.")
     actions = workflow["actions"]
     state["status"] = "RUNNING"
     state["pending_action"] = None
@@ -477,6 +519,7 @@ def _continue_run(
     return state
 
 
+@serialized
 def start_workflow(
     project: SurveyProject,
     workflow_id: str,
@@ -492,6 +535,7 @@ def start_workflow(
         "run_id": run_id,
         "workflow_id": workflow["workflow_id"],
         "workflow_name": workflow["name"],
+        "workflow_snapshot": copy.deepcopy(workflow),
         "trigger": trigger_override or workflow["trigger"],
         "status": "QUEUED",
         "next_action_index": 0,
@@ -517,6 +561,7 @@ def start_workflow(
     return _continue_run(project, state)
 
 
+@serialized
 def approve_run(
     project: SurveyProject,
     run_id: str,
@@ -551,6 +596,8 @@ def approve_run(
         )
         return state
 
+    if state.get("workflow_snapshot") != _workflow_by_id(project, str(state["workflow_id"])):
+        raise WorkflowError("Workflow changed after this run began. Reject it and start a new run.")
     state["approval_note"] = str(note or "")
     project.db.audit(
         "Core",

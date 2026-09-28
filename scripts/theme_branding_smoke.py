@@ -20,7 +20,7 @@ from playwright.sync_api import expect, sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'ui-evidence'
 BASE = 'http://127.0.0.1:18768'
-RELEASE = '9.4.1'
+RELEASE = (ROOT/'RELEASE_ID.txt').read_text(encoding='utf-8-sig').strip()
 CLIENT_THEMES = ('edsi', 'edsidark', 'edsilight')
 NORMAL_THEMES = ('classic', 'slate', 'midnight', 'lightpro', 'contrast', 'carbon',
                  'obsidian', 'teal', 'violet', 'graphite', 'frost', 'arctic', 'sandstone')
