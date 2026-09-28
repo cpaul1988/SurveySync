@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from .crs_diagnostics import (
@@ -33,10 +33,9 @@ class ProjectCrsDiagnosticIn(BaseModel):
     sample_y: float | None = None
 
 
-def _project():
-    from . import router as main_router
-
-    return main_router.require_project()
+def _project(request: Request):
+    from .desktop_context import require_panel_project
+    return require_panel_project(request)
 
 
 @router.post("/api/v9/crs/profile")
@@ -62,10 +61,10 @@ def crs_operations_route(payload: CrsOperationIn):
 
 
 @router.post("/api/v9/crs/project-diagnostics")
-def project_crs_diagnostics_route(payload: ProjectCrsDiagnosticIn):
+def project_crs_diagnostics_route(request: Request, payload: ProjectCrsDiagnosticIn):
     try:
         return project_crs_diagnostics(
-            _project(),
+            _project(request),
             target_crs=payload.target_crs,
             sample_x=payload.sample_x,
             sample_y=payload.sample_y,

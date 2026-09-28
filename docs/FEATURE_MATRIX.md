@@ -114,3 +114,8 @@ Standalone point import, editable code classifications, feature-chain range dete
 | COGOSync | Cross-section cut/fill, average-end-area earthwork and 2D slope catch | Implemented Beta | `earthwork.py`, `cogo_routes.py` | `test_v932_earthwork.py` |
 | ControlSync | Conventional 2D weighted least-squares network adjustment | Implemented Beta | `network_adjustment.py`, `network_routes.py` | `test_v932_network_adjustment.py` |
 | ControlSync | Weighted benchmark-network leveling adjustment | Implemented Beta | `level_network.py`, `level_network_routes.py` | `test_v932_level_network.py` |
+
+
+## Unreleased remaining-audit development
+
+See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards, beta build identity, signing preparation and the exact validation boundary. Published 9.4.1 is unchanged; pending or unavailable external tests are not marked passed.

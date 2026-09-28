@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from .pointcloud import (
@@ -29,10 +29,9 @@ class PointCloudSampleIn(PointCloudPathIn):
     max_points: int = Field(default=1000, ge=1, le=10000)
 
 
-def _project():
-    from . import router as main_router
-
-    return main_router.require_project()
+def _project(request: Request):
+    from .desktop_context import require_panel_project
+    return require_panel_project(request)
 
 
 @router.get("/api/v9/pointcloud/status")
@@ -49,8 +48,8 @@ def pointcloud_inspect(payload: PointCloudPathIn):
 
 
 @router.post("/api/v9/pointcloud/import")
-def pointcloud_import(payload: PointCloudImportIn):
-    project = _project()
+def pointcloud_import(request: Request, payload: PointCloudImportIn):
+    project = _project(request)
     try:
         return import_point_cloud(project, payload.file_path, notes=payload.notes)
     except (OSError, PointCloudError, ValueError) as exc:
@@ -66,5 +65,5 @@ def pointcloud_sample(payload: PointCloudSampleIn):
 
 
 @router.get("/api/v9/pointcloud/sources")
-def pointcloud_source_list():
-    return {"sources": point_cloud_sources(_project())}
+def pointcloud_source_list(request: Request):
+    return {"sources": point_cloud_sources(_project(request))}

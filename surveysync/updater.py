@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from . import __version__
+from .release_identity import release_order, installed_release_id
 from .config import ConfigStore, DEFAULT_UPDATE_MANIFEST_URL
 
 _DOWNLOAD_LOCK = threading.Lock()
@@ -64,7 +65,8 @@ def fetch_manifest(store: ConfigStore) -> dict:
         raw = response.read(MAX_MANIFEST_BYTES + 1)
     if len(raw) > MAX_MANIFEST_BYTES:
         raise ValueError("Update manifest exceeds the supported size.")
-    data = json.loads(raw.decode("utf-8-sig"))
+    from .manifest_trust import decode_manifest
+    data = decode_manifest(raw)
     if not isinstance(data, dict):
         raise ValueError("Update manifest must be a JSON object.")
     if data.get("product", "SurveySync") != "SurveySync":
@@ -82,8 +84,19 @@ def select_release(manifest: dict, channel: str) -> dict:
         raise ValueError(f"Manifest does not contain release channel '{channel}'.")
     version = str(rel.get("version") or "").strip()
     numeric_version = version_tuple(version)
+    identity = str(rel.get("release_id") or (rel.get("release_tag") if channel != "stable" else None) or version).removeprefix("v")
+    order = release_order(identity)
+    if order[0] != numeric_version:
+        raise ValueError("Release identity does not match the numeric version.")
+    # A promoted stable feed may explicitly retain the tested beta artifact's
+    # physical build identity. Never pretend its installed stamp changed.
+    current_id = installed_release_id(__version__)
     url = _https(str(rel.get("installer_url") or ""))
     sha = str(rel.get("sha256") or "").lower().strip()
+    if channel == "stable" and order[1] != 1 and not (
+        rel.get("promoted_from") == "beta" and rel.get("artifact_identity") == "sha256:" + sha
+    ):
+        raise ValueError("Stable prerelease identity requires an explicit exact-artifact Beta promotion.")
     size = rel.get("size_bytes")
     if not re.fullmatch(r"[0-9a-f]{64}", sha):
         raise ValueError("Release SHA-256 is invalid.")
@@ -91,12 +104,25 @@ def select_release(manifest: dict, channel: str) -> dict:
         raise ValueError("Release size_bytes must be a positive bounded integer.")
     return {**rel, "version": version, "installer_url": url, "sha256": sha,
             "size_bytes": size, "channel": channel,
-            "update_available": numeric_version > version_tuple(__version__)}
+            "release_id": identity, "current_release_id": current_id,
+            "update_available": order > release_order(current_id)}
 
 
 def check(store: ConfigStore) -> dict:
     cfg = store.load()
     rel = select_release(fetch_manifest(store), cfg.release_channel)
+    # Verified helper receipt avoids reinstalling identical bytes on beta promotion.
+    receipt_path = store.root / "installed_update.json"
+    if receipt_path.is_file() and rel["version"] == __version__:
+        try:
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            if (receipt.get("version") == __version__
+                    and receipt.get("release_id") == rel["current_release_id"]
+                    and receipt.get("sha256") == rel["sha256"]):
+                rel["update_available"] = False
+                rel["same_installed_artifact"] = True
+        except (OSError, ValueError, TypeError, AttributeError):
+            pass
     return {"configured": True, "current_version": __version__, **rel}
 
 
@@ -153,7 +179,7 @@ def _stage(store: ConfigStore) -> dict:
             raise ValueError("Update configuration changed during download; check again.")
         temporary.replace(dest)
         temporary = None
-        pending = {"version": rel["version"], "installer_path": str(dest),
+        pending = {"version": rel["version"], "release_id": rel.get("release_id", rel["version"]), "installer_path": str(dest),
                    "sha256": rel["sha256"], "size_bytes": total}
         handoff = store.root / "pending_update.json"
         with tempfile.NamedTemporaryFile(mode="w", dir=store.root, prefix="pending-", suffix=".tmp",

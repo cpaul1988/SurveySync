@@ -28,19 +28,31 @@ class PointCloudError(RuntimeError):
 def runtime_status() -> dict[str, Any]:
     pdal = shutil.which("pdal")
     laspy_ready = importlib.util.find_spec("laspy") is not None
+    laz_ready = False
+    if laspy_ready:
+        try:
+            import laspy
+            laz_ready = bool(laspy.LazBackend.detect_available())
+        except (ImportError, OSError, RuntimeError):
+            pass
     return {
+        "laz_backend_ready": laz_ready,
         "native_las_metadata": True,
         "laspy_ready": bool(laspy_ready),
         "pdal_ready": bool(pdal),
         "pdal_path": str(pdal or ""),
         "las_supported": True,
-        "laz_supported": bool(laspy_ready or pdal),
+        "laz_supported": bool(laz_ready or pdal),
         "sampling_supported": bool(laspy_ready),
         "note": (
             "LAS metadata works without optional software. "
             "Install laspy with a LAZ backend or PDAL for compressed LAZ/COPC support."
         ),
     }
+
+
+def source_size(path: Path) -> int:
+    return path.stat().st_size
 
 
 def _u16(data: bytes, offset: int) -> int:
@@ -112,6 +124,20 @@ def _native_las_header(path: Path) -> dict[str, Any]:
         raise PointCloudError("LAS header contains non-finite scale/offset/bounds values.")
     if any(value <= 0 for value in (scale_x, scale_y, scale_z)):
         raise PointCloudError("LAS header contains a non-positive coordinate scale.")
+
+    expected_sizes = {0: 20, 1: 28, 2: 26, 3: 34, 4: 57, 5: 63,
+                      6: 30, 7: 36, 8: 38, 9: 59, 10: 67}
+    if version_major != 1 or version_minor > 4 or point_format not in expected_sizes:
+        raise PointCloudError("Unsupported LAS version or point format.")
+    minimum = 375 if version_minor == 4 else 235 if version_minor == 3 else 227
+    if header_size < minimum or len(data) < minimum or offset_to_points < header_size:
+        raise PointCloudError("LAS header is truncated or has invalid offsets.")
+    if point_record_length < expected_sizes[point_format]:
+        raise PointCloudError("LAS point record length is too small for its format.")
+    if any(lo > hi for lo, hi in ((min_x,max_x), (min_y,max_y), (min_z,max_z))):
+        raise PointCloudError("LAS bounds are inverted.")
+    if not compressed_flag and source_size(path) < offset_to_points + point_count * point_record_length:
+        raise PointCloudError("LAS file is truncated: point records do not match its declared count.")
 
     return {
         "reader": "native_las_header",

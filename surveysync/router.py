@@ -162,7 +162,8 @@ core_logger = configure_core_logging(config_store.root / "logs")
 project_lock = RLock()
 current_project: SurveyProject | None = None
 
-SURVEYSYNC_RELEASE_NOTES_ID = "9.4.1"
+from .release_identity import installed_release_id
+SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
     "9.4.1 is the verified audit-repair update. Ron's manual three-point control now preserves source PointIDs, source codes and residual attribution; repeated calculations create separate revisions and preserve previous valid results on handled failures.",

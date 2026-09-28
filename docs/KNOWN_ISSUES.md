@@ -63,3 +63,8 @@ Standalone point import, editable code classifications, feature-chain range dete
 - TopoSync review-history calibration is advisory. It does not self-train the rod-height detector, change thresholds automatically, or make a statistical probability claim.
 - Real field-verified positive and negative rod-height datasets are still required to validate production false-positive/false-negative behavior.
 
+
+
+## Unreleased remaining-audit development
+
+See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards, beta build identity, signing preparation and the exact validation boundary. Published 9.4.1 is unchanged; pending or unavailable external tests are not marked passed.

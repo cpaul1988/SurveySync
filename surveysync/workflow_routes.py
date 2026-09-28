@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
@@ -61,10 +61,9 @@ class WorkflowYamlIn(BaseModel):
     yaml_text: str = Field(min_length=1)
 
 
-def _project():
-    from . import router as main_router
-
-    return main_router.require_project()
+def _project(request: Request):
+    from .desktop_context import require_panel_project
+    return require_panel_project(request)
 
 
 @router.get("/api/v9/workflows/status")
@@ -73,39 +72,39 @@ def workflow_status():
 
 
 @router.get("/api/v9/workflows")
-def workflows():
-    return {"workflows": list_workflows(_project())}
+def workflows(request: Request):
+    return {"workflows": list_workflows(_project(request))}
 
 
 @router.post("/api/v9/workflows")
-def workflow_save(payload: WorkflowSaveIn):
+def workflow_save(request: Request, payload: WorkflowSaveIn):
     try:
-        return save_workflow(_project(), payload.model_dump())
+        return save_workflow(_project(request), payload.model_dump())
     except (WorkflowError, ValueError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
 
 
 @router.post("/api/v9/workflows/delete")
-def workflow_delete(payload: WorkflowDeleteIn):
+def workflow_delete(request: Request, payload: WorkflowDeleteIn):
     try:
-        return delete_workflow(_project(), payload.workflow_id)
+        return delete_workflow(_project(request), payload.workflow_id)
     except (WorkflowError, ValueError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
 
 
 @router.post("/api/v9/workflows/run")
-def workflow_run(payload: WorkflowRunIn):
+def workflow_run(request: Request, payload: WorkflowRunIn):
     try:
-        return start_workflow(_project(), payload.workflow_id, context=payload.context)
+        return start_workflow(_project(request), payload.workflow_id, context=payload.context)
     except (WorkflowError, ValueError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
 
 
 @router.post("/api/v9/workflows/approve")
-def workflow_approve(payload: WorkflowApprovalIn):
+def workflow_approve(request: Request, payload: WorkflowApprovalIn):
     try:
         return approve_run(
-            _project(),
+            _project(request),
             payload.run_id,
             approved=payload.approved,
             note=payload.note,
@@ -115,27 +114,37 @@ def workflow_approve(payload: WorkflowApprovalIn):
 
 
 @router.get("/api/v9/workflow-runs")
-def workflow_runs(limit: int = 100):
-    return {"runs": list_runs(_project(), limit)}
+def workflow_runs(request: Request, limit: int = 100):
+    return {"runs": list_runs(_project(request), limit)}
 
 
 @router.post("/api/v9/workflows/dispatch")
-def workflow_dispatch(payload: WorkflowDispatchIn):
+def workflow_dispatch(request: Request, payload: WorkflowDispatchIn):
     try:
-        runs = dispatch_trigger(_project(), payload.trigger, context=payload.context)
+        runs = dispatch_trigger(_project(request), payload.trigger, context=payload.context)
     except (WorkflowError, ValueError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
     return {"trigger": payload.trigger, "run_count": len(runs), "runs": runs}
 
 
 @router.get("/api/v9/workflows/export-yaml", response_class=PlainTextResponse)
-def workflow_export_yaml():
-    return PlainTextResponse(export_workflows_yaml(_project()), media_type="text/yaml")
+def workflow_export_yaml(request: Request):
+    return PlainTextResponse(export_workflows_yaml(_project(request)), media_type="text/yaml")
 
 
 @router.post("/api/v9/workflows/import-yaml")
-def workflow_import_yaml(payload: WorkflowYamlIn):
+def workflow_import_yaml(request: Request, payload: WorkflowYamlIn):
     try:
-        return import_workflows_yaml(_project(), payload.yaml_text)
+        return import_workflows_yaml(_project(request), payload.yaml_text)
     except (WorkflowError, ValueError, OSError) as exc:
         raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/api/v9/workflows/save-yaml")
+def workflow_save_yaml_file(request: Request):
+    from uuid import uuid4
+    project = _project(request)
+    path = project.paths.reports / "Workflows" / ("workflows_" + uuid4().hex + ".yaml")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(export_workflows_yaml(project), encoding="utf-8")
+    return {"output_path": str(path)}

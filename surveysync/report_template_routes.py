@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from .report_template_mapper import (
@@ -42,10 +42,9 @@ class ExcelTemplateDeleteIn(BaseModel):
     template_id: str = Field(min_length=1)
 
 
-def _project():
-    from . import router as main_router
-
-    return main_router.require_project()
+def _project(request: Request):
+    from .desktop_context import require_panel_project
+    return require_panel_project(request)
 
 
 @router.post("/api/v9/reports/templates/inspect")
@@ -57,15 +56,15 @@ def report_template_inspect(payload: ExcelTemplateInspectIn):
 
 
 @router.get("/api/v9/reports/templates")
-def report_templates():
-    return {"templates": list_templates(_project())}
+def report_templates(request: Request):
+    return {"templates": list_templates(_project(request))}
 
 
 @router.post("/api/v9/reports/templates")
-def report_template_register(payload: ExcelTemplateRegisterIn):
+def report_template_register(request: Request, payload: ExcelTemplateRegisterIn):
     try:
         return register_excel_template(
-            _project(),
+            _project(request),
             payload.file_path,
             name=payload.name,
             mapping=payload.mapping,
@@ -75,18 +74,18 @@ def report_template_register(payload: ExcelTemplateRegisterIn):
 
 
 @router.post("/api/v9/reports/templates/mapping")
-def report_template_mapping_save(payload: ExcelTemplateMappingIn):
+def report_template_mapping_save(request: Request, payload: ExcelTemplateMappingIn):
     try:
-        return save_template_mapping(_project(), payload.template_id, payload.mapping)
+        return save_template_mapping(_project(request), payload.template_id, payload.mapping)
     except (ReportTemplateError, OSError, ValueError) as exc:
         raise HTTPException(400, str(exc)) from exc
 
 
 @router.post("/api/v9/reports/templates/render")
-def report_template_render(payload: ExcelTemplateRenderIn):
+def report_template_render(request: Request, payload: ExcelTemplateRenderIn):
     try:
         return render_excel_template(
-            _project(),
+            _project(request),
             payload.template_id,
             output_path=payload.output_path or None,
         )
@@ -95,8 +94,17 @@ def report_template_render(payload: ExcelTemplateRenderIn):
 
 
 @router.post("/api/v9/reports/templates/delete")
-def report_template_delete(payload: ExcelTemplateDeleteIn):
+def report_template_delete(request: Request, payload: ExcelTemplateDeleteIn):
     try:
-        return delete_template(_project(), payload.template_id)
+        return delete_template(_project(request), payload.template_id)
+    except (ReportTemplateError, OSError, ValueError) as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/api/v9/reports/templates/details")
+def report_template_details(request: Request, template_id: str):
+    from .report_template_mapper import template_details
+    try:
+        return template_details(_project(request), template_id)
     except (ReportTemplateError, OSError, ValueError) as exc:
         raise HTTPException(400, str(exc)) from exc

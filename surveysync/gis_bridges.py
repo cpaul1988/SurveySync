@@ -7,6 +7,7 @@ invokes them as separate processes with shell=False.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
@@ -17,7 +18,7 @@ from typing import Any
 from .project import SurveyProject
 
 _QGIS_ALGORITHM = re.compile(r"^[A-Za-z0-9_.:-]+$")
-_GRASS_MODULE = re.compile(r"^(?:g|r|v|db|i).[A-Za-z0-9_.-]+$")
+_GRASS_MODULE = re.compile(r"^(?:g|r|v|db|i)\.[A-Za-z0-9_.-]+$")
 _PARAM_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 _MAX_OUTPUT = 250_000
 
@@ -117,14 +118,12 @@ def _grass_candidates() -> list[Path]:
 
 
 def find_qgis_process(explicit: str | Path | None = None) -> Path | None:
-    candidates = _existing([explicit]) if explicit else []
-    candidates.extend(_qgis_candidates())
+    candidates = _existing([explicit]) if explicit else _qgis_candidates()
     return candidates[0] if candidates else None
 
 
 def find_grass(explicit: str | Path | None = None) -> Path | None:
-    candidates = _existing([explicit]) if explicit else []
-    candidates.extend(_grass_candidates())
+    candidates = _existing([explicit]) if explicit else _grass_candidates()
     return candidates[0] if candidates else None
 
 
@@ -134,6 +133,10 @@ def _run(
     timeout_seconds: int,
     cwd: str | Path | None = None,
 ) -> dict[str, Any]:
+    if Path(command[0]).suffix.lower() in {".bat", ".cmd"} and any(
+        any(c in value for c in "&|<>^%!\r\n\"") for value in command[1:]
+    ):
+        raise GisBridgeError("Unsafe characters for a Windows batch launcher; use a native executable or simpler paths.")
     timeout = max(5, min(int(timeout_seconds), 3600))
     try:
         completed = subprocess.run(
@@ -174,9 +177,9 @@ def _version(executable: Path, args: list[str]) -> str:
     return text.splitlines()[0][:300] if text else ""
 
 
-def bridge_status() -> dict[str, Any]:
-    qgis = find_qgis_process()
-    grass = find_grass()
+def bridge_status(qgis_executable=None, grass_executable=None) -> dict[str, Any]:
+    qgis = find_qgis_process(qgis_executable)
+    grass = find_grass(grass_executable)
     return {
         "qgis": {
             "ready": bool(qgis),
@@ -260,6 +263,8 @@ def _parameter_args(parameters: dict[str, Any]) -> list[str]:
             rendered = "true" if value else "false"
         elif value is None:
             rendered = ""
+        elif isinstance(value, float) and not math.isfinite(value):
+            raise GisBridgeError(f"Processing parameter {name} must be finite.")
         elif isinstance(value, (str, int, float)):
             rendered = str(value)
         else:

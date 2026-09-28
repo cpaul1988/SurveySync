@@ -41,6 +41,8 @@ if (-not $SkipLauncherBuild) {
     else { throw 'Go is required to rebuild the current launchers. Stale prebuilt binaries cannot be released.' }
 }
 
+& (Join-Path $Root 'scripts\sign_windows_artifacts.ps1') -Paths @((Join-Path $Root 'SurveySync.exe'), (Join-Path $Root 'SurveySyncUpdater.exe'))
+
 & $python.Source (Join-Path $Root 'scripts\verify_native.py')
 if ($LASTEXITCODE -ne 0) { throw 'Native launcher verification failed.' }
 
@@ -63,6 +65,7 @@ try {
 finally { Pop-Location }
 
 if (-not (Test-Path $Output)) { throw "Installer was not created: $Output" }
+& (Join-Path $Root 'scripts\sign_windows_artifacts.ps1') -Paths @($Output)
 $hash = (Get-FileHash $Output -Algorithm SHA256).Hash.ToLowerInvariant()
 $hashPath = "$Output.sha256"
 "$hash  $(Split-Path -Leaf $Output)" | Set-Content -Encoding ascii $hashPath

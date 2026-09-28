@@ -182,6 +182,17 @@ def operation_diagnostics(
     except (ProjError, ValueError) as exc:
         raise CrsDiagnosticError(f"Invalid source or target CRS: {exc}") from exc
 
+    if (sample_x is None) != (sample_y is None):
+        raise CrsDiagnosticError("Supply both sample X/easting and Y/northing, or neither.")
+    if sample_x is not None and not all(v is not None and math.isfinite(v) for v in (sample_x, sample_y)):
+        raise CrsDiagnosticError("Sample coordinates must be finite.")
+    if area_of_interest:
+        try:
+            w, so, e, n = [float(area_of_interest[k]) for k in ("west", "south", "east", "north")]
+            if not all(math.isfinite(v) for v in (w,so,e,n)) or not (-180 <= w <= e <= 180 and -90 <= so <= n <= 90):
+                raise ValueError("Invalid bounds")
+        except (KeyError, ValueError, TypeError) as exc:
+            raise CrsDiagnosticError("Area of interest requires ordered finite longitude/latitude bounds.") from exc
     aoi = None
     if area_of_interest:
         try:
@@ -243,12 +254,16 @@ def operation_diagnostics(
             raise CrsDiagnosticError("Provide both sample_x and sample_y.")
         try:
             lon, lat = _point_to_wgs84(float(sample_x), float(sample_y), source)
-            transformed = Transformer.from_crs(source, target, always_xy=True).transform(
+            if not group.transformers:
+                raise CrsDiagnosticError("No coordinate operation is available in this runtime.")
+            transformed = group.transformers[0].transform(
                 float(sample_x), float(sample_y)
             )
         except (ProjError, ValueError, TypeError) as exc:
             raise CrsDiagnosticError(f"Sample coordinate transform failed: {exc}") from exc
         tx, ty = float(transformed[0]), float(transformed[1])
+        if not all(math.isfinite(v) for v in (tx, ty, lon, lat)):
+            raise CrsDiagnosticError("Sample lies outside the transform's valid domain.")
         source_area = _area_dict(source.area_of_use)
         target_lon, target_lat = _point_to_wgs84(tx, ty, target)
         sample = {

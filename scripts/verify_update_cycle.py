@@ -166,6 +166,7 @@ def cycle(name, fixture, candidate, webroot, url, certpath, state):
             assert '__version__ = "9.4.1"' in original
             core.write_text(original.replace('__version__ = "9.4.1"','__version__ = "9.4.0"'),encoding='utf-8')
             (destination/'VERSION.txt').write_text('9.4.0\n',encoding='utf-8')
+            (destination/'RELEASE_ID.txt').write_text('9.4.0\n',encoding='utf-8')
             shutil.rmtree(destination/'surveysync/__pycache__',ignore_errors=True)
             subprocess.run(['go','build','-trimpath','-ldflags','-s -w -H=windowsgui -X main.appVersion=9.4.0',
                             '-o',str(destination/'SurveySync.exe'),'installer/app_launcher.go'],cwd=ROOT,check=True)
