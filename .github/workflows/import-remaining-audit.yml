@@ -1,0 +1,45 @@
+name: Import Remaining Audit Source
+on:
+  push:
+    branches: [fix-v9.4.1-remaining-audit]
+    paths: ['.github/remaining-import/**', '.github/workflows/import-remaining-audit.yml']
+permissions:
+  contents: write
+concurrency:
+  group: surveysync-remaining-audit-import
+  cancel-in-progress: false
+jobs:
+  import-reviewed-source:
+    if: github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/fix-v9.4.1-remaining-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify every source digest and import isolated changes
+        run: |
+          python .github/remaining-import/apply.py
+          git rm -r .github/remaining-import
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Connect remaining audit desktop workflows and release identity safeguards (unreleased)'
+      - name: Format modified governed files with the locked formatter
+        run: |
+          python -m pip install ruff==0.16.8
+          python -m ruff format surveysync/pointcloud.py surveysync/pointcloud_routes.py surveysync/workflow_engine.py surveysync/workflow_routes.py surveysync/crs_diagnostics.py surveysync/crs_diagnostic_routes.py surveysync/report_template_mapper.py surveysync/report_template_routes.py surveysync/gis_bridges.py surveysync/gis_bridge_routes.py
+          git add -- surveysync/pointcloud.py surveysync/pointcloud_routes.py surveysync/workflow_engine.py surveysync/workflow_routes.py surveysync/crs_diagnostics.py surveysync/crs_diagnostic_routes.py surveysync/report_template_mapper.py surveysync/report_template_routes.py surveysync/gis_bridges.py surveysync/gis_bridge_routes.py
+          if ! git diff --cached --quiet; then
+            git commit -m 'Format remaining-audit governed sources without changing quality policies'
+          fi
+      - name: Push only to the isolated branch and retain source
+        run: |
+          git push origin HEAD:refs/heads/fix-v9.4.1-remaining-audit
+          git rev-parse HEAD
+          git archive --format=zip --output=remaining-audit-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: remaining-audit-source
+          path: remaining-audit-source.zip
+          retention-days: 14
