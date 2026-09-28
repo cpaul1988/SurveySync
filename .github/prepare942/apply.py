@@ -1,4 +1,8 @@
-"""Import reviewed candidate source only after every before/after hash matches."""
+"""Import reviewed application source within the Actions token's contents scope.
+
+Workflow changes are validated but not written here; the authorized connector
+applies those separately. This job never requests additional token permissions.
+"""
 import gzip
 import hashlib
 import json
@@ -18,6 +22,7 @@ scripts/release_gate.py tests/test_v931_release_candidate.py tests/test_v941_upd
 tests/test_v9_api.py scripts/verify_update_cycle.py scripts/validate_release_identity.py
 scripts/build_beta_fixture.py tests/test_release_stamp_contract.py RELEASE_NOTES_v9_4_2.md
 QA_REPORT_v9_4_2.md'''.split())
+WORKFLOWS = {'.github/workflows/ui-validation.yml', '.github/workflows/repair-acceptance.yml'}
 
 
 def digest(data):
@@ -59,12 +64,13 @@ def main():
         encoded = new.encode('utf-8')
         if digest(encoded) != item['after']:
             raise RuntimeError('Candidate source checksum mismatch: '+item['path'])
-        writes.append((path,encoded))
+        if item['path'] not in WORKFLOWS:
+            writes.append((path,encoded))
     for path,encoded in writes:
         path.parent.mkdir(parents=True,exist_ok=True)
         path.write_bytes(encoded)
-    subprocess.run(['git','add','--',*sorted(ALLOWED)],check=True)
-    print(f'Imported {len(writes)} verified source files. No published release/feed changed.')
+    subprocess.run(['git','add','--',*sorted(ALLOWED-WORKFLOWS)],check=True)
+    print(f'Imported {len(writes)} verified application files; workflow edits require the separate authorized action. No release/feed changed.')
 
 
 if __name__ == '__main__':
