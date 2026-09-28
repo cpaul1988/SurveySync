@@ -166,14 +166,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.2-beta.2 is a test candidate, not a Stable promotion. It connects the five remaining audit workflows and retains the 9.4.1 fixes and Ron's calculation conventions.",
-    "TopoSync Point Clouds can inspect and retain LAS/LAZ sources and sample points when the optional decoders are installed. This is not a full 3D viewer or automatic surface model.",
-    "Home and QASync Project Automation provide workflow editing, YAML import/export, history and explicit approval/rejection using the saved definition. GISSync CRS Diagnostics compares operations and sample coordinates without rewriting original survey points.",
-    "ReportSync Excel Template Mapper inspects a retained workbook, saves supported field/cell mappings and produces separate draft outputs. Existing formulas and prior files are protected; formulas are preserved, not recalculated.",
-    "GISSync External Processing discovers separately installed QGIS/GRASS tools, shows algorithms/help and requires confirmation before execution. Missing tools fail visibly; the external Python environment is isolated from SurveySync.",
-    "Full beta release identities are displayed and compared by the app and native update components. The installer filename, native title, About screen and these release notes identify the candidate build rather than calling it Stable.",
-    "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a copy of a project. Existing historical reports are not automatically rewritten.",
-    "This candidate remains unsigned. Signed-manifest and certificate hooks are preparation only; no production signing keys or trust enforcement are configured. Live OCR/provider accuracy, official Trimble conversion and rod-height field calibration still require independent evidence."
+    "9.4.3-beta.1 adds Visual Survey QA in Home and QASync: linked local plan view, point table and issue list.",
+    "Review duplicate IDs, missing coordinates/elevations, mixed coordinate contexts, configurable elevation jumps and matching saved rod-height candidates. Point records remain individually identified even when PointIDs repeat.",
+    "Select a point or issue to inspect retained source identity, coordinates and supporting evidence. Save a reasoned review decision to the project audit trail.",
+    "Preview explicit signed elevation offsets by record and approve a separate ZIP containing a corrected CSV and exact JSON evidence. Original sources and project coordinates are never overwritten by this workspace.",
+    "The plan view is local and does not transform coordinates. Jump flags compare consecutive same-description records within a source, not nearest neighbors or proven acquisition chronology. Up to 20,000 points and 50 recent saved rod analyses are supported.",
+    "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a project copy.",
+    "This is an unpublished candidate based on Stable 9.4.2. Existing field-validation and unsigned-release limitations remain."
 ]
 
 

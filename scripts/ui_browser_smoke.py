@@ -65,7 +65,7 @@ def main():
                     errors = []
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.route('**/api/v9/update/check', lambda route: route.fulfill(
-                        json={'update_available': False, 'current_version': '9.4.2', 'channel': 'beta'}))
+                        json={'update_available': False, 'current_version': '9.4.3', 'channel': 'beta'}))
                     try:
                         for mode in ('dark', 'light'):
                             request('/api/v9/config/ui', {'appearance': mode, 'theme': 'edsi', 'accent': 'default'})

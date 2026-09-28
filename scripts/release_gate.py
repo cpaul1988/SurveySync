@@ -9,6 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FORMATTED = [
+    "surveysync/visual_qa.py",
+    "surveysync/visual_qa_routes.py",
     "surveysync/topo",
     "surveysync/api_models.py",
     "surveysync/control_math.py",

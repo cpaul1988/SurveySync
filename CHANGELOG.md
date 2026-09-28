@@ -1,3 +1,7 @@
+# 9.4.3-beta.1 — Visual Survey QA candidate
+
+Linked local plan, canonical point table, evidence-based issue selection, audit-backed review decisions and explicitly approved correction copies. Source records remain unchanged. See docs/VISUAL_SURVEY_QA.md.
+
 # SurveySync 9.4.2-beta.2 - local field-book privacy and evidence
 
 Enforces on-device document inference, blocks remote endpoints/cloud models, retains original plus grid-cleaned OCR views, widens original-image context crops, reserves low VRAM for vision, closes cancelled/incomplete streams, and fixes rod-height review units/latest-decision summaries. See docs/LOCAL_FIELDBOOK_PIPELINE.md for implementation and unverified field/hardware boundaries.

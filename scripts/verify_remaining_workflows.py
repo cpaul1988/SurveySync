@@ -62,7 +62,7 @@ def main():
                 page=context.new_page();errors=[]
                 page.on('pageerror',lambda e:errors.append(str(e)))
                 page.on('dialog',lambda d:d.accept())
-                page.route('**/api/v9/update/check',lambda r:r.fulfill(json={'update_available':False,'current_version':'9.4.2','channel':'stable'}))
+                page.route('**/api/v9/update/check',lambda r:r.fulfill(json={'update_available':False,'current_version':'9.4.3','channel':'stable'}))
                 def nav(module,label,view):
                     page.locator(f'.module-tab[data-module="{module}"]').click()
                     page.locator('#moduleNav .module-nav-btn').filter(has_text=label).last.click()
