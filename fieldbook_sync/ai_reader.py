@@ -1032,7 +1032,8 @@ def read_pages_foundry(
     return evidence, unmatched, usage
 
 def list_gemini_models(*, api_key: str, timeout_seconds: int = 30) -> List[str]:
-    """Return vision-capable generateContent model names available to this Gemini key."""
+    """Legacy discovery entry point; blocked by the field-book privacy policy."""
+    require_local_provider("gemini")
     try:
         response = requests.get(
             f"{GEMINI_BASE_URL}/models",

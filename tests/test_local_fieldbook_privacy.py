@@ -59,6 +59,7 @@ def test_real_transport_ignores_proxy_and_rejects_redirect(monkeypatch):
     ("read_page_openai", {"image_path": "missing", "mime_type": "image/jpeg", "source_name": "test", "page_number": 1, "page_id": "p1", "target_point_ids": [], "api_key": "unused"}),
     ("read_page_anthropic", {"image_path": "missing", "mime_type": "image/jpeg", "source_name": "test", "page_number": 1, "page_id": "p1", "target_point_ids": [], "api_key": "unused"}),
     ("read_pages_gemini", {"pages": [], "target_point_ids": [], "api_key": "unused"}),
+    ("list_gemini_models", {"api_key": "unused"}),
 ])
 def test_cloud_blocked_before_images_or_network(reader, kwargs, monkeypatch):
     from fieldbook_sync import ai_reader
