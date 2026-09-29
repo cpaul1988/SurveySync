@@ -162,3 +162,8 @@ This is the canonical human-readable release history. Detailed per-build QA evid
 - Keep partial field rechecks open; detect and finish partial 9.4.5 returns.
 - Add a project-bound, hash-verified review report download.
 - Block readiness for unresolved revision matches and invalidate earlier report/acknowledgment readiness when review workflow evidence changes.
+
+## 9.4.7-beta.1 — candidate
+
+- Added project-bound ControlSync reshoot crew packets, staged returned shots, before/after QC, reviewer approval and hashed approved control export.
+- Limited approved reshoot QC revision to the requested control and made same-second latest-run ordering deterministic.

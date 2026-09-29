@@ -166,13 +166,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.6-beta.1 repairs the revision and delivery review workflow introduced in 9.4.5.",
-    "Partial crew returns keep the recheck open until every requested record has an observation. Old partial returns from 9.4.5 can be completed.",
-    "Review reports have a project-bound, SHA-256 verified download control; desktop sessions can reveal the saved report folder.",
-    "Unresolved duplicate revision matches block deliverable readiness. A later review workflow change invalidates the prior report and reviewer acknowledgment.",
-    "Existing survey sources and canonical coordinates remain unchanged; field-book AI work remains parked.",
-    "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a project copy.",
-    "This is an unpublished candidate based on Stable 9.4.5. Windows installer acceptance and field validation remain required."
+    "9.4.7-beta.1 adds a ControlSync reshoot request and return workflow for failed three-shot controls.",
+    "Issue a crew packet with reserved PointIDs and return instructions from the latest Control QC run.",
+    "Stage CSV or Trimble return files; preview residual and field QC without adding observations to the project.",
+    "Approve a passing return with a reviewer note to import its shots and revise only the requested control.",
+    "Download a hashed, audited approved control package with source and review evidence.",
+    "The SurveySync globe and existing theme branding remain part of the desktop shell; read these release notes before field testing.",
+    "This is an unpublished candidate based on Stable 9.4.6. Windows installer and field acceptance remain required."
 ]
 
 

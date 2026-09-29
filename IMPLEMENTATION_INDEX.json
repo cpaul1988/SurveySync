@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.6",
+  "version": "9.4.7",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1053,6 +1053,23 @@
       ],
       "documentation": [
         "docs/REVISION_REVIEW_WORKFLOW.md"
+      ]
+    },
+    "control_reshoot_roundtrip": {
+      "introduced": "9.4.7",
+      "implementation": [
+        "surveysync/control.py",
+        "surveysync/control_reshoots.py",
+        "surveysync/control_workspace_routes.py",
+        "surveysync/static/control_reshoots.js",
+        "surveysync/static/index.html"
+      ],
+      "tests": [
+        "tests/test_control_reshoots.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_4_7.md",
+        "docs/CONTROL_RESHOOT_WORKFLOW.md"
       ]
     }
   }

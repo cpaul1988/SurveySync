@@ -1,5 +1,9 @@
 # SurveySync Release History
 
+## 9.4.7 BetaCandidate — ControlSync reshoots
+
+Adds a crew request, staged returned observations, review and approved control export to Ron’s three-shot QC. See `RELEASE_NOTES_v9_4_7.md` and `docs/CONTROL_RESHOOT_WORKFLOW.md`.
+
 ## 9.4.0 BetaCandidate — integration, automation, interoperability, and product refresh
 
 Completes the first eight-item open-source integration roadmap: attributed COGO foundations, independent pySurveying-style network validation, hardened Trimble JobXML compatibility, optional LAS/LAZ point-cloud support, approval-gated YAML workflow automation, PROJ CRS diagnostics, ReportSync Excel Template Mapper, and optional external QGIS/GRASS processing bridges. Also completes the SurveySync 9.4 product identity refresh.

@@ -42,8 +42,6 @@ from .control_import_mapping import CONTROL_ALIASES, read_control_delimited, det
 ALIASES = CONTROL_ALIASES
 
 
-
-
 def _field_map(fieldnames: list[str], rows: list[dict] | None = None, mapping: dict | None = None) -> dict[str,str]:
     detected=detect_control_mapping(fieldnames, rows or []).get("mapping", {})
     if mapping:
@@ -795,6 +793,7 @@ def run_best_triplet_qc(
     max_pdop: float | None=None,
     max_hdop: float | None=None,
     max_vdop: float | None=None,
+    only_control_id: str | None=None,
 ) -> dict:
     """Run Ronald's validated three-shot arithmetic/residual method over every control.
 
@@ -836,6 +835,10 @@ def run_best_triplet_qc(
     for row in resolved_rows:
         grouped[str(row.get("_effective_control_id") or row.get("control_id") or "")].append(row)
     controls=sorted(k for k in grouped if k)
+    if only_control_id is not None:
+        if only_control_id not in grouped:
+            raise ValueError(f"No included observations found for control {only_control_id}.")
+        controls=[only_control_id]
     results=[]; accepted=0; reshoot=0; candidate_total=0
     for control_id in controls:
         rows=grouped[control_id]
@@ -950,12 +953,10 @@ def get_control_qc_run(db: AuditDB, run_id: str="") -> dict:
         if run_id:
             row=conn.execute("SELECT result_json FROM control_qc_runs WHERE run_id=?",(run_id,)).fetchone()
         else:
-            row=conn.execute("SELECT result_json FROM control_qc_runs ORDER BY ts_utc DESC LIMIT 1").fetchone()
+            row=conn.execute("SELECT result_json FROM control_qc_runs ORDER BY ts_utc DESC, rowid DESC LIMIT 1").fetchone()
     if not row:
         return {}
     return json.loads(row[0] or "{}")
-
-
 
 
 def list_solutions(db: AuditDB, control_id: str | None = None, limit: int = 100) -> list[dict]:
@@ -980,5 +981,3 @@ def list_solutions(db: AuditDB, control_id: str | None = None, limit: int = 100)
         d["active"]=(d["solution_id"]==selected) if selected else not any(x.get("control_id")==cid for x in out)
         out.append(d)
     return out
-
-
