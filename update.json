@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-09-29T01:32:18Z",
+  "generated_utc": "2026-09-29T02:51:59Z",
   "publisher_tool": "GitHub Actions",
   "product": "SurveySync",
   "channels": {
@@ -18,35 +18,35 @@
       "required": false
     },
     "beta": {
-      "version": "9.4.4",
-      "release_id": "9.4.4-beta.1",
+      "version": "9.4.5",
+      "release_id": "9.4.5-beta.1",
       "channel": "beta",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.4/SurveySync_Setup_9.4.4-beta.1.exe",
-      "size_bytes": 9034736,
-      "sha256": "71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
-      "artifact_identity": "sha256:71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
-      "release_tag": "v9.4.4",
-      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.4-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.4-beta.1 - QA review reports\n\nAdds a PDF and CSV review package to Visual Survey QA under Home and QASync. Reports include full-project findings, saved decisions and reasons, record UUIDs, coordinate context, registered source references, and before/after elevations from separately approved correction exports. Screen filters and unsaved previews are excluded.\n\nThe ZIP contains QA_Review.pdf, findings.csv, corrections.csv, exact JSON evidence, and SHA-256 checksums. Native desktop saves a unique package under Exports/VisualQA/Reports and reveals its folder; browser sessions download it.\n\nOriginal observations and canonical coordinates are unchanged. Source hashes are registered import hashes, not fresh verification. Prepared-by labels and checksums are not professional or cryptographic signatures. Stale project/evidence, invalid input, and oversized reports fail explicitly. See docs/QA_REVIEW_REPORTS.md for scope and limits.\n\nThis is a candidate; publication requires acceptance of its exact installer. Field-book hardware validation, official Trimble conversion and production signing remain outside this update.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.5/SurveySync_Setup_9.4.5-beta.1.exe",
+      "size_bytes": 9044728,
+      "sha256": "7faf9035c38b4ab0c02bb0970dc05ff09026316df944c25c6602901b470d51d2",
+      "artifact_identity": "sha256:7faf9035c38b4ab0c02bb0970dc05ff09026316df944c25c6602901b470d51d2",
+      "release_tag": "v9.4.5",
+      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.5-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.5-beta.1 — revision and delivery review\n\nAdds a connected project review workspace under Home, QASync and ReportSync. Compare revised point CSVs against canonical records with movement arrows, signed coordinate/elevation differences, additions and removals. Duplicate PointIDs remain ambiguous until old UUIDs are explicitly paired to incoming rows. CRS and units must match the project; no conversion is assumed.\n\nTurn QA findings into crew PDF/CSV rechecks and record returned observations. Assign and release numeric point ranges with overlap and occupied-ID checks. Attach hashed photos, sketches and field-book PDFs to findings, then choose evidence for the PDF/CSV review report.\n\nThe readiness checklist tracks coordinate context, outstanding findings and rechecks, reservation conflicts, a current report and a reviewer acknowledgment. Teams can opt into enforcing the required checks when the existing deliverable package is built. Default package behavior remains available until the gate is enabled. Source files and canonical coordinates are unchanged.\n\nSee docs/REVISION_REVIEW_WORKFLOW.md for inputs, limits and behavior. This is an unpublished candidate; its exact Windows installer requires acceptance before Beta or Stable promotion.",
       "required": false,
-      "published_utc": "2026-09-29T01:32:17Z"
+      "published_utc": "2026-09-29T02:51:59Z"
     },
     "stable": {
-      "version": "9.4.4",
-      "release_id": "9.4.4-beta.1",
+      "version": "9.4.5",
+      "release_id": "9.4.5-beta.1",
       "channel": "stable",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.4/SurveySync_Setup_9.4.4-beta.1.exe",
-      "size_bytes": 9034736,
-      "sha256": "71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
-      "artifact_identity": "sha256:71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
-      "release_tag": "v9.4.4",
-      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.4-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.4-beta.1 - QA review reports\n\nAdds a PDF and CSV review package to Visual Survey QA under Home and QASync. Reports include full-project findings, saved decisions and reasons, record UUIDs, coordinate context, registered source references, and before/after elevations from separately approved correction exports. Screen filters and unsaved previews are excluded.\n\nThe ZIP contains QA_Review.pdf, findings.csv, corrections.csv, exact JSON evidence, and SHA-256 checksums. Native desktop saves a unique package under Exports/VisualQA/Reports and reveals its folder; browser sessions download it.\n\nOriginal observations and canonical coordinates are unchanged. Source hashes are registered import hashes, not fresh verification. Prepared-by labels and checksums are not professional or cryptographic signatures. Stale project/evidence, invalid input, and oversized reports fail explicitly. See docs/QA_REVIEW_REPORTS.md for scope and limits.\n\nThis is a candidate; publication requires acceptance of its exact installer. Field-book hardware validation, official Trimble conversion and production signing remain outside this update.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.5/SurveySync_Setup_9.4.5-beta.1.exe",
+      "size_bytes": 9044728,
+      "sha256": "7faf9035c38b4ab0c02bb0970dc05ff09026316df944c25c6602901b470d51d2",
+      "artifact_identity": "sha256:7faf9035c38b4ab0c02bb0970dc05ff09026316df944c25c6602901b470d51d2",
+      "release_tag": "v9.4.5",
+      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.5-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.5-beta.1 — revision and delivery review\n\nAdds a connected project review workspace under Home, QASync and ReportSync. Compare revised point CSVs against canonical records with movement arrows, signed coordinate/elevation differences, additions and removals. Duplicate PointIDs remain ambiguous until old UUIDs are explicitly paired to incoming rows. CRS and units must match the project; no conversion is assumed.\n\nTurn QA findings into crew PDF/CSV rechecks and record returned observations. Assign and release numeric point ranges with overlap and occupied-ID checks. Attach hashed photos, sketches and field-book PDFs to findings, then choose evidence for the PDF/CSV review report.\n\nThe readiness checklist tracks coordinate context, outstanding findings and rechecks, reservation conflicts, a current report and a reviewer acknowledgment. Teams can opt into enforcing the required checks when the existing deliverable package is built. Default package behavior remains available until the gate is enabled. Source files and canonical coordinates are unchanged.\n\nSee docs/REVISION_REVIEW_WORKFLOW.md for inputs, limits and behavior. This is an unpublished candidate; its exact Windows installer requires acceptance before Beta or Stable promotion.",
       "required": false,
-      "published_utc": "2026-09-29T01:32:17Z",
+      "published_utc": "2026-09-29T02:51:59Z",
       "promoted_from": "beta",
-      "promoted_utc": "2026-09-29T01:32:17Z",
-      "tested_channel_published_utc": "2026-09-29T01:32:17Z"
+      "promoted_utc": "2026-09-29T02:51:59Z",
+      "tested_channel_published_utc": "2026-09-29T02:51:59Z"
     }
   }
 }
