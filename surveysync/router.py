@@ -127,6 +127,7 @@ from .field_cloud import trimble_list_projects, import_cloud_file, list_sync_log
 from .trimble_job import prepare_jobxml, parse_jobxml_points, trimble_runtime_status, TrimbleJobError
 from .logging_config import configure_logging as configure_core_logging
 from .control_workspace_routes import router as control_workspace_router
+from .level_recheck_routes import router as level_recheck_router
 from .topo.routes import router as topo_router
 from .support_center import router as support_center_router
 from .data_inspector import router as data_inspector_router
@@ -147,6 +148,7 @@ STATIC = Path(__file__).resolve().parent / "static"
 router = APIRouter()
 for subrouter in (
     control_workspace_router,
+    level_recheck_router,
     topo_router,
     support_center_router,
     data_inspector_router,
@@ -166,13 +168,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.7-beta.1 adds a ControlSync reshoot request and return workflow for failed three-shot controls.",
-    "Issue a crew packet with reserved PointIDs and return instructions from the latest Control QC run.",
-    "Stage CSV or Trimble return files; preview residual and field QC without adding observations to the project.",
-    "Approve a passing return with a reviewer note to import its shots and revise only the requested control.",
-    "Download a hashed, audited approved control package with source and review evidence.",
+    "9.4.8-beta.1 adds a reviewed level-loop recheck for Ron's three-wire workflow.",
+    "Inspect setup sights, wire checks, distance balance and closure before issuing a crew packet.",
+    "Stage returned three-wire readings and preview the entire loop with a job-specific closure tolerance.",
+    "Approve a passing return to activate a new level revision while preserving original readings and shared turning-point sights.",
+    "Download an audited, hash-verified level review package with the before/after closure and source evidence.",
     "The SurveySync globe and existing theme branding remain part of the desktop shell; read these release notes before field testing.",
-    "This is an unpublished candidate based on Stable 9.4.6. Windows installer and field acceptance remain required."
+    "This is an unpublished candidate based on Stable 9.4.7. Windows installer and representative field acceptance remain required."
 ]
 
 

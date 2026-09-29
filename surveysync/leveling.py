@@ -390,7 +390,25 @@ def _load_observations(db: AuditDB, run_id: str) -> tuple[dict, list[dict]]:
         if not run:
             raise ValueError("Level run was not found.")
         rows = conn.execute("SELECT * FROM level_observations WHERE run_id=? ORDER BY sequence_no", (run_id,)).fetchall()
-    return dict(run), [dict(r) for r in rows]
+        sights = conn.execute("SELECT sequence_no,side,readings_json FROM level_recheck_sights WHERE run_id=? AND active=1", (run_id,)).fetchall()
+    observations = [dict(r) for r in rows]
+    by_sequence = {row["sequence_no"]: row for row in observations}
+    for sight in sights:
+        if sight["sequence_no"] not in by_sequence:
+            raise ValueError("An approved level recheck refers to a missing original observation.")
+        apply_recheck_sight(by_sequence[sight["sequence_no"]], sight["side"], json.loads(sight["readings_json"]))
+    return dict(run), observations
+
+
+def apply_recheck_sight(row: dict, side: str, readings: dict) -> None:
+    """Replace one approved sight while preserving the other side of a turning-point row."""
+    prefix = "bs" if side == "BS" else "fs"
+    if side not in {"BS", "FS"}:
+        raise ValueError("Level recheck side must be BS or FS.")
+    for key in ("upper", "middle", "lower"):
+        row[f"{prefix}_{key}"] = finite_number(readings[key], f"{side} {key}")
+    row["backsight" if side == "BS" else "foresight"] = None
+    row["distance_bs" if side == "BS" else "distance_fs"] = readings.get("distance")
 
 
 def solve_saved_run(
@@ -426,13 +444,14 @@ def solve_saved_run(
         row_layout=row_layout,
     )
     with db.connect() as conn:
+        recheck_ids = [r[0] for r in conn.execute("SELECT sight_id FROM level_recheck_sights WHERE run_id=? AND active=1 ORDER BY sequence_no,side", (run_id,))]
         revision = int(conn.execute("SELECT COALESCE(MAX(revision),0)+1 FROM level_solutions WHERE run_id=?", (run_id,)).fetchone()[0])
         solution_id = uuid4().hex
         conn.execute(
             "INSERT INTO level_solutions(solution_id,run_id,ts_utc,revision,closure,adjusted,method,settings_json,results_json,qc_json) VALUES(?,?,?,?,?,?,?,?,?,?)",
             (
                 solution_id, run_id, utc_now(), revision, result.get("closure"), 1 if result.get("adjusted") else 0, result["adjustment_method"],
-                json.dumps({"middle_wire_tolerance": middle_wire_tolerance, "max_distance_imbalance": max_distance_imbalance, "closure_tolerance": closure_tolerance, "stadia_multiplier": stadia_multiplier, "calculation_profile": calculation_profile, "row_layout": result["row_layout"]}, sort_keys=True),
+                json.dumps({"middle_wire_tolerance": middle_wire_tolerance, "max_distance_imbalance": max_distance_imbalance, "closure_tolerance": closure_tolerance, "stadia_multiplier": stadia_multiplier, "calculation_profile": calculation_profile, "row_layout": result["row_layout"], "recheck_sight_ids": recheck_ids}, sort_keys=True),
                 json.dumps(result["results"], sort_keys=True),
                 json.dumps({k: result[k] for k in ("sum_bs", "sum_fs", "delta_elevation", "distance_imbalance", "qc_flags", "closure_pass")}, sort_keys=True),
             ),

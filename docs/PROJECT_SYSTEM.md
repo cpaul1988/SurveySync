@@ -36,3 +36,7 @@ Project database schema 6 adds a SHA-256 chained `audit_chain` table keyed by mo
 Direct database edits to historical audit rows are detectable by `verify_audit_chain()` and become a blocking Project Health finding. The current chain head is also included in deliverable-package manifests.
 
 The chain is bound to a persistent per-project `chain_id`, preventing a valid chain from another SurveySync project from being transplanted and accepted as local history.
+
+## Schema 7: level recheck provenance
+
+Approved level recheck sights are append-only records in `level_recheck_sights`; one sight per run/sequence/side is active. The original `level_observations` rows remain unchanged. Opening a schema-6 project creates a migration backup before adding the new table. A new level solution records the active sight IDs in its settings for revision provenance.

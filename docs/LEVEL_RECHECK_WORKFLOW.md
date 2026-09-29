@@ -1,0 +1,9 @@
+# Ron's level-loop recheck workflow
+
+1. Import the reviewed level observations, enter starting and known ending benchmark elevations, then solve using Ron's three-wire workbook profile and the correct row layout. The profile defaults to **No adjustment**.
+2. Open **Level-Loop Crew Recheck** in ControlSync. Inspect the setup's BS/FS sights, wire checks, distance balance and overall closure. Choose a suspect setup, enter the job-specific closure tolerance, crew and instructions, then issue a request. The crew ZIP contains a request record and a return template for the setup's BS and FS sights.
+3. Stage a completed CSV/TXT/TSV template. It must contain exactly the requested sequence, PointID and side for each sight, with ordered upper/middle/lower readings. SurveySync retains the source and previews the whole level loop with the saved row layout, field checks and explicit tolerance. No accepted reading or active solution changes at staging.
+4. Review the before/after closure, distance balance, flagged wire checks and source. Reject or approve with a reviewer and reason. Approval requires the whole loop to pass the job tolerance and sight QC, verifies the staged source hash and unchanged run, and creates an active revision. Original level observations remain in place; approved sight overlays have immutable source and audit provenance. Shared turning-point rows replace only the requested side.
+5. Download the approved ZIP for an accepted-level summary and review/source evidence. The registered deliverable is hash verified on subsequent downloads.
+
+If the starting or ending benchmark is missing, or a later edit changes the active solution, issue a fresh recheck. Closure limits are job-specific rather than silently imposed from an unrelated survey standard. The app does not adjust Ron's workbook result unless the operator explicitly chose an adjustment method for that run.

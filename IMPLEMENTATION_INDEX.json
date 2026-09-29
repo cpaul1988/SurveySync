@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.7",
+  "version": "9.4.8",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1070,6 +1070,24 @@
       "documentation": [
         "RELEASE_NOTES_v9_4_7.md",
         "docs/CONTROL_RESHOOT_WORKFLOW.md"
+      ]
+    },
+    "level_recheck_roundtrip": {
+      "introduced": "9.4.8",
+      "implementation": [
+        "surveysync/audit.py",
+        "surveysync/leveling.py",
+        "surveysync/level_rechecks.py",
+        "surveysync/level_recheck_routes.py",
+        "surveysync/static/level_rechecks.js",
+        "surveysync/static/index.html"
+      ],
+      "tests": [
+        "tests/test_level_rechecks.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_4_8.md",
+        "docs/LEVEL_RECHECK_WORKFLOW.md"
       ]
     }
   }
