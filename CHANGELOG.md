@@ -156,3 +156,9 @@ This is the canonical human-readable release history. Detailed per-build QA evid
 - Added QA finding to crew recheck PDF/CSV packages, retained returned observations, point-range reservations and collision checks.
 - Added hashed evidence attachments and selected evidence in review reports.
 - Added configurable readiness checks and an opt-in gate for existing deliverable packages.
+
+## 9.4.6-beta.1 — candidate
+
+- Keep partial field rechecks open; detect and finish partial 9.4.5 returns.
+- Add a project-bound, hash-verified review report download.
+- Block readiness for unresolved revision matches and invalidate earlier report/acknowledgment readiness when review workflow evidence changes.

@@ -128,3 +128,10 @@ def package(request: Request, identifier: str):
     from fastapi.responses import Response
     content = execute(request,service.crew_package,identifier)
     return Response(content,media_type='application/zip',headers={'Content-Disposition': 'attachment; filename="SurveySync_Field_Recheck.zip"'})
+
+
+@router.get('/reports/{identifier}/download')
+def download_report(request: Request, identifier: str):
+    from fastapi.responses import Response
+    content = execute(request, service.report_bytes, identifier)
+    return Response(content, media_type='application/zip', headers={'Content-Disposition': 'attachment; filename="SurveySync_Review.zip"'})

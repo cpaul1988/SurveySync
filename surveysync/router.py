@@ -166,14 +166,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.5-beta.1 adds a project-bound revision and delivery review in Home, QASync and ReportSync.",
-    "Revised CSV points show movement arrows, elevation differences, added and removed records; duplicate PointIDs require explicit UUID-to-row matches.",
-    "QA findings can become crew PDF/CSV rechecks with returned observations. Point number reservations detect overlapping assignments and used IDs.",
-    "Attach hashed photos, sketches or field-book PDFs to findings and select evidence for the PDF/CSV review report.",
-    "Configurable readiness checks can gate existing deliverable packages. Reviewer acknowledgments bind to the current project snapshot.",
-    "Original survey sources and canonical points are unchanged; no automatic CRS transformation or professional certification is implied.",
+    "9.4.6-beta.1 repairs the revision and delivery review workflow introduced in 9.4.5.",
+    "Partial crew returns keep the recheck open until every requested record has an observation. Old partial returns from 9.4.5 can be completed.",
+    "Review reports have a project-bound, SHA-256 verified download control; desktop sessions can reveal the saved report folder.",
+    "Unresolved duplicate revision matches block deliverable readiness. A later review workflow change invalidates the prior report and reviewer acknowledgment.",
+    "Existing survey sources and canonical coordinates remain unchanged; field-book AI work remains parked.",
     "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a project copy.",
-    "This is an unpublished candidate based on Stable 9.4.4. Field validation and unsigned-release limitations remain."
+    "This is an unpublished candidate based on Stable 9.4.5. Windows installer acceptance and field validation remain required."
 ]
 
 

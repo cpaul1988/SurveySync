@@ -1,23 +1,23 @@
 {
   "product": "SurveySync",
-  "version": "9.4.5",
-  "build_type": "revision-review-workflow-candidate",
-  "baseline": "9.4.4 Stable",
-  "candidate_branch": "feature/revision-review-workflow",
+  "version": "9.4.6",
+  "build_type": "review-workflow-repair-candidate",
+  "baseline": "9.4.5 Stable",
+  "candidate_branch": "fix/review-recheck-report-946",
   "feedback": {
     "checked_before_build": true,
     "checked_local_date": "2026-09-28",
     "latest_intake": "FBR-0016",
     "newer_intake_items": 0,
-    "note": "Connected feedback tracker re-read 2026-09-28: Intake remains 16 submissions, latest FBR-0016. No tracker writes or live test submissions."
+    "note": "Connected feedback tracker re-read 2026-09-28 after 9.4.5 publication: Intake remains at FBR-0016. No tracker writes or live test submissions."
   },
   "qa": {
-    "status": "Candidate gates required; see QA_REPORT_v9_4_5.md and PR evidence",
+    "status": "Candidate gates required; see QA_REPORT_v9_4_6.md and PR evidence",
     "coverage_floor_percent": 54
   },
   "release": {
     "published": false,
     "require_exact_tested_installer": true
   },
-  "release_id": "9.4.5-beta.1"
+  "release_id": "9.4.6-beta.1"
 }

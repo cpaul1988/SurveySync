@@ -29,7 +29,7 @@ def root(project):
 def state(project):
     path = root(project) / 'state.json'
     if not path.exists():
-        return {'revisions': [], 'rechecks': [], 'reservations': [], 'evidence': [], 'reports': [], 'policy': {}, 'acknowledgment': None}
+        return {'revisions': [], 'rechecks': [], 'reservations': [], 'evidence': [], 'reports': [], 'policy': {}, 'acknowledgment': None, 'workflow_revision': 0}
     return json.loads(path.read_text(encoding='utf-8'))
 
 
@@ -38,6 +38,15 @@ def save(project, value):
     temp = path.with_name(uuid4().hex + '.tmp')
     temp.write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False), encoding='utf-8')
     temp.replace(path)
+
+
+def changed(value):
+    value['workflow_revision'] = value.get('workflow_revision', 0) + 1
+    value['acknowledgment'] = None
+
+
+def returned_uuids(recheck):
+    return {row['point_uuid'] for item in recheck['returns'] for row in item['records']}
 
 
 def audit(project, action, item, details=None):
@@ -108,7 +117,7 @@ def revision(project, token, text, supplied, matches=None):
     active = [r for r in state(project)['reservations'] if r['status'] == 'active']
     reservation_conflicts = [{'point_id': p['point_id'], 'row': p['row'], 'reservation_id': r['id'], 'crew': r['crew']} for group in new.values() for p in group if p['point_id'].isdecimal() for r in active if r['start'] <= int(p['point_id']) <= r['end']]
     record = {'reservation_conflicts': reservation_conflicts, 'id': uuid4().hex, 'created_utc': now(), 'snapshot': token, 'source_sha256': hashlib.sha256(text.encode('utf-8')).hexdigest(), 'context': supplied, 'changes': changes, 'ambiguous': unresolved, 'incoming_count': len(incoming)}
-    s = state(project); s['revisions'].append(record); save(project, s)
+    s = state(project); s['revisions'].append(record); changed(s); save(project, s)
     audit(project, 'REVISION_COMPARED', record['id'], {'snapshot': token, 'source_sha256': record['source_sha256'], 'changes': len(changes), 'ambiguous': len(unresolved)})
     return record
 
@@ -126,7 +135,7 @@ def reserve(project, start, end, crew, note=''):
     if occupied:
         raise ValueError('Range contains existing PointIDs: ' + ', '.join(occupied[:10]))
     r = {'id': uuid4().hex, 'start': start, 'end': end, 'crew': crew.strip(), 'note': note.strip(), 'status': 'active', 'created_utc': now()}
-    s['reservations'].append(r); save(project, s); audit(project, 'POINT_RANGE_RESERVED', r['id'], r)
+    s['reservations'].append(r); changed(s); save(project, s); audit(project, 'POINT_RANGE_RESERVED', r['id'], r)
     return r
 
 
@@ -134,7 +143,7 @@ def release(project, identifier):
     s = state(project)
     r = next((x for x in s['reservations'] if x['id'] == identifier and x['status'] == 'active'), None)
     if not r: raise ValueError('Active reservation not found.')
-    r['status'] = 'released'; r['released_utc'] = now(); save(project, s)
+    r['status'] = 'released'; r['released_utc'] = now(); changed(s); save(project, s)
     audit(project, 'POINT_RANGE_RELEASED', identifier); return r
 
 
@@ -147,19 +156,22 @@ def recheck(project, token, issue_ids, crew, instructions):
     points = {p['point_uuid']: p for p in data['points']}
     records = [{k: points[u].get(k) for k in ('point_uuid','point_id','northing','easting','elevation','description')} for u in dict.fromkeys(u for i in issue_ids for u in ids[i]['point_uuids'])]
     r = {'id': uuid4().hex, 'created_utc': now(), 'snapshot': token, 'issue_ids': issue_ids, 'crew': crew.strip(), 'instructions': instructions.strip(), 'status': 'open', 'points': records, 'returns': []}
-    s = state(project); s['rechecks'].append(r); save(project, s); audit(project, 'FIELD_RECHECK_CREATED', r['id'], {'issues': issue_ids, 'crew': crew})
+    s = state(project); s['rechecks'].append(r); changed(s); save(project, s); audit(project, 'FIELD_RECHECK_CREATED', r['id'], {'issues': issue_ids, 'crew': crew})
     return r
 
 
 def return_observations(project, identifier, rows, note):
     s = state(project); r = next((x for x in s['rechecks'] if x['id'] == identifier), None)
-    if not r or r['status'] != 'open': raise ValueError('Open recheck not found.')
+    if not r: raise ValueError('Recheck not found.')
     points = {p['point_uuid']: p for p in r['points']}
+    previously_returned = returned_uuids(r)
+    if previously_returned == set(points): raise ValueError('Recheck is complete.')
     if not rows or len(rows) > len(points) or len({p.get('point_uuid') for p in rows}) != len(rows): raise ValueError('Return distinct requested records.')
     checked = []
     for row in rows:
         p = points.get(row.get('point_uuid'))
         if not p: raise ValueError('Returned UUID is not in this crew package.')
+        if p['point_uuid'] in previously_returned: raise ValueError('This record already has a returned observation.')
         values = {}
         for key in ('northing','easting','elevation'):
             v = row.get(key)
@@ -169,8 +181,11 @@ def return_observations(project, identifier, rows, note):
         if all(value is None for value in values.values()): raise ValueError('Each returned record needs at least one observation.')
         checked.append({'point_uuid': p['point_uuid'], 'point_id': p['point_id'], 'observed': values, 'delta': {key: values[key] - p[key] if values[key] is not None and p[key] is not None else None for key in values}})
     item = {'received_utc': now(), 'note': note.strip(), 'records': checked}
-    r['returns'].append(item); r['status'] = 'returned'; save(project, s)
-    audit(project, 'FIELD_RECHECK_RETURNED', identifier, {'count': len(checked), 'note': note})
+    r['returns'].append(item)
+    remaining = set(points) - returned_uuids(r)
+    r['status'] = 'open' if remaining else 'returned'
+    changed(s); save(project, s)
+    audit(project, 'FIELD_RECHECK_RETURNED', identifier, {'count': len(checked), 'remaining_count': len(remaining), 'note': note})
     return r
 
 
@@ -189,7 +204,7 @@ def attach(project, token, issue_id, filename, content, media_type):
     path = folder / (identifier + ext)
     with path.open('xb') as out: out.write(content)
     item = {'id': identifier, 'issue_id': issue_id, 'snapshot': token, 'filename': Path(filename).name[:160], 'stored_path': str(path.relative_to(project.paths.root)), 'sha256': hashlib.sha256(content).hexdigest(), 'size': len(content), 'media_type': media_type, 'created_utc': now()}
-    s = state(project); s['evidence'].append(item); save(project, s); audit(project, 'FINDING_EVIDENCE_ATTACHED', identifier, {k:v for k,v in item.items() if k != 'stored_path'})
+    s = state(project); s['evidence'].append(item); changed(s); save(project, s); audit(project, 'FINDING_EVIDENCE_ATTACHED', identifier, {k:v for k,v in item.items() if k != 'stored_path'})
     return item
 
 
@@ -200,22 +215,24 @@ def readiness(project, token):
         occupied = {r[0] for r in conn.execute('SELECT point_id FROM canonical_points') if r[0].isdecimal()}
     conflicts = [r['id'] for r in s['reservations'] if r['status'] == 'active' and any(r['start'] <= int(v) <= r['end'] for v in occupied)]
     conflicts += [c['reservation_id'] for c in (s['revisions'][-1].get('reservation_conflicts', []) if s['revisions'] and s['revisions'][-1]['snapshot'] == token else []) if any(r['id'] == c['reservation_id'] and r['status'] == 'active' for r in s['reservations'])]
-    checks = {'coordinate_context': bool(data['project']['crs'] and data['project']['horizontal_units'] and data['project']['vertical_units'] and not any(i['kind']=='coordinate_context' for i in data['issues'])), 'findings_reviewed': not unresolved, 'rechecks_returned': not any(r['status']=='open' for r in s['rechecks']), 'range_conflicts': not conflicts, 'report_present': any(r['snapshot'] == token and Path(r['path']).is_file() and hashlib.sha256(Path(r['path']).read_bytes()).hexdigest() == r['sha256'] for r in s['reports']), 'reviewer_acknowledged': bool(s['acknowledgment'] and s['acknowledgment']['snapshot'] == token)}
+    latest_revision = s['revisions'][-1] if s['revisions'] and s['revisions'][-1]['snapshot'] == token else None
+    ambiguous = [a for a in (latest_revision or {}).get('ambiguous', []) if a['old_uuids'] or a['new_rows']]
+    checks = {'revision_matches_resolved': not ambiguous, 'coordinate_context': bool(data['project']['crs'] and data['project']['horizontal_units'] and data['project']['vertical_units'] and not any(i['kind']=='coordinate_context' for i in data['issues'])), 'findings_reviewed': not unresolved, 'rechecks_returned': all(returned_uuids(r) == {p['point_uuid'] for p in r['points']} for r in s['rechecks']), 'range_conflicts': not conflicts, 'report_present': any(r['snapshot'] == token and r.get('workflow_revision', 0) == s.get('workflow_revision', 0) and Path(r['path']).is_file() and hashlib.sha256(Path(r['path']).read_bytes()).hexdigest() == r['sha256'] for r in s['reports']), 'reviewer_acknowledged': bool(s['acknowledgment'] and s['acknowledgment']['snapshot'] == token and s['acknowledgment'].get('workflow_revision', 0) == s.get('workflow_revision', 0))}
     required = {k: bool(policy.get(k, True)) for k in checks}
-    return {'snapshot': token, 'ready': all(checks[k] for k in checks if required[k]), 'checks': checks, 'required': required, 'unresolved_issue_ids': [i['issue_id'] for i in unresolved], 'range_conflicts': conflicts, 'acknowledgment': s['acknowledgment']}
+    return {'snapshot': token, 'ready': all(checks[k] for k in checks if required[k]), 'checks': checks, 'required': required, 'unresolved_issue_ids': [i['issue_id'] for i in unresolved], 'range_conflicts': conflicts, 'ambiguous_revision_ids': [a['point_id'] for a in ambiguous], 'acknowledgment': s['acknowledgment']}
 
 
 def policy(project, values):
-    allowed = {'coordinate_context','findings_reviewed','rechecks_returned','range_conflicts','report_present','reviewer_acknowledged','enforce_delivery'}
+    allowed = {'coordinate_context','findings_reviewed','rechecks_returned','range_conflicts','report_present','reviewer_acknowledged','revision_matches_resolved','enforce_delivery'}
     if set(values) - allowed or any(type(v) is not bool for v in values.values()): raise ValueError('Invalid readiness policy.')
-    s = state(project); s['policy'] = {**s['policy'], **values}; save(project, s)
+    s = state(project); s['policy'] = {**s['policy'], **values}; changed(s); save(project, s)
     audit(project, 'READINESS_POLICY_SAVED', project.manifest['project_id'], s['policy']); return s['policy']
 
 
 def acknowledge(project, token, reviewer, note):
     current(project, token)
     if not reviewer.strip() or len(note.strip()) < 3: raise ValueError('Reviewer and acknowledgment note are required.')
-    s = state(project); s['acknowledgment'] = {'snapshot': token, 'reviewer': reviewer.strip(), 'note': note.strip(), 'created_utc': now()}; save(project, s)
+    s = state(project); s['acknowledgment'] = {'snapshot': token, 'reviewer': reviewer.strip(), 'note': note.strip(), 'created_utc': now(), 'workflow_revision': s.get('workflow_revision', 0)}; save(project, s)
     audit(project, 'READINESS_ACKNOWLEDGED', token, s['acknowledgment']); return readiness(project, token)
 
 
@@ -250,7 +267,7 @@ def report(project, token, selected_ids):
         for e in chosen:
             path = (project.paths.root / e['stored_path']).resolve()
             z.write(path, 'Attachments/' + e['id'] + Path(e['filename']).suffix.lower())
-    item = {'id': uuid4().hex, 'snapshot': token, 'path': str(target), 'sha256': hashlib.sha256(target.read_bytes()).hexdigest(), 'created_utc': now()}
+    item = {'id': uuid4().hex, 'snapshot': token, 'path': str(target), 'sha256': hashlib.sha256(target.read_bytes()).hexdigest(), 'created_utc': now(), 'workflow_revision': s.get('workflow_revision', 0)}
     s['reports'].append(item); save(project,s); audit(project,'REVIEW_REPORT_GENERATED',item['id'],item)
     return item
 
@@ -269,3 +286,19 @@ def crew_package(project, identifier):
     with ZipFile(blob,'w',ZIP_DEFLATED) as z:
         z.writestr('Field_Recheck.pdf',doc.tobytes()); z.writestr('Field_Recheck.csv',output.getvalue()); z.writestr('Request.json',json.dumps(r,indent=2))
     doc.close(); return blob.getvalue()
+
+
+def report_bytes(project, identifier):
+    import re
+    if not re.fullmatch(r'[0-9a-f]{32}', identifier):
+        raise ValueError('Review report not found.')
+    item = next((r for r in state(project)['reports'] if r['id'] == identifier), None)
+    if item is None:
+        raise ValueError('Review report not found.')
+    path = Path(item['path']).resolve()
+    if not path.is_relative_to(project.paths.reports.resolve()) or not path.is_file():
+        raise ValueError('Review report is missing from this project.')
+    content = path.read_bytes()
+    if hashlib.sha256(content).hexdigest() != item['sha256']:
+        raise ValueError('Review report changed since it was generated.')
+    return content
