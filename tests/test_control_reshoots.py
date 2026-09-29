@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import sqlite3
 from zipfile import ZipFile
 
 import pytest
@@ -110,6 +111,28 @@ def test_failed_return_cannot_be_approved(tmp_path):
         review_return(project, request["id"], "APPROVE", "Ron", "Rejected by QC")
     with project.db.connect() as conn:
         assert conn.execute("SELECT COUNT(*) FROM control_observations").fetchone()[0] == 3
+
+
+def test_preview_closes_its_temporary_database_before_cleanup(tmp_path, monkeypatch):
+    from surveysync import control_reshoots
+
+    project, run = setup_failed_control(tmp_path)
+    request = create_request(project, run["run_id"], "8", "Ron", "Reobserve each shot")
+    original_connect = sqlite3.connect
+    preview_connections = []
+
+    def tracked_connect(database, *args, **kwargs):
+        connection = original_connect(database, *args, **kwargs)
+        if str(database).endswith("preview.db"):
+            preview_connections.append(connection)
+        return connection
+
+    monkeypatch.setattr(control_reshoots.sqlite3, "connect", tracked_connect)
+    stage_return(project, request["id"], returned_file(tmp_path, request["reserved_point_ids"]))
+    assert preview_connections
+    for connection in preview_connections:
+        with pytest.raises(sqlite3.ProgrammingError, match="closed database"):
+            connection.execute("SELECT 1")
 
 
 def test_approval_does_not_revise_an_unrelated_control(tmp_path):

@@ -7,6 +7,7 @@ import io
 import json
 import sqlite3
 import tempfile
+from contextlib import closing
 from pathlib import Path
 from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -126,7 +127,7 @@ def _preview(project, item, rows):
     run = get_control_qc_run(project.db, item["original_run_id"])
     with tempfile.TemporaryDirectory(prefix="control-reshoot-") as folder:
         temporary = Path(folder) / "preview.db"
-        with project.db.connect() as source, sqlite3.connect(temporary) as target:
+        with project.db.connect() as source, closing(sqlite3.connect(temporary)) as target:
             source.backup(target)
         scratch = AuditDB(temporary)
         if import_observations(scratch, rows) != len(rows):
