@@ -89,3 +89,64 @@ def test_delivery_can_pass_once_required_checks_are_satisfied(workspace,tmp_path
         conn.execute('UPDATE canonical_points SET elevation=11 WHERE point_id=?',('001A',))
     changed=client.get(BASE+'/state',headers=headers).json()['readiness']
     assert not changed['ready'] and not changed['checks']['reviewer_acknowledged']
+
+
+def test_partial_crew_return_does_not_clear_readiness(workspace,tmp_path):
+    client,project,headers,_=seed(workspace,tmp_path)
+    data=client.get(BASE+'/state',headers=headers).json()
+    issue=next(i for i in data['issues'] if len(i['point_uuids'])==2)
+    req=client.post(BASE+'/rechecks',headers=headers,json={'snapshot':data['snapshot'],'issue_ids':[issue['issue_id']],'crew':'Crew A','instructions':'Check both elevations'}).json()
+    first=client.post(BASE+'/rechecks/'+req['id']+'/return',headers=headers,json={'records':[{'point_uuid':req['points'][0]['point_uuid'],'elevation':10}],'note':'First shot'}).json()
+    assert first['status']=='open'
+    assert not client.get(BASE+'/state',headers=headers).json()['readiness']['checks']['rechecks_returned']
+    second=client.post(BASE+'/rechecks/'+req['id']+'/return',headers=headers,json={'records':[{'point_uuid':req['points'][1]['point_uuid'],'elevation':14}],'note':'Second shot'}).json()
+    assert second['status']=='returned'
+    assert client.get(BASE+'/state',headers=headers).json()['readiness']['checks']['rechecks_returned']
+
+
+def test_report_download_is_project_bound_and_hash_verified(workspace,tmp_path):
+    client,project,headers,_=seed(workspace,tmp_path)
+    data=client.get(BASE+'/state',headers=headers).json()
+    created=client.post(BASE+'/report',headers=headers,json={'snapshot':data['snapshot']}).json()
+    url=BASE+'/reports/'+created['id']+'/download'
+    downloaded=client.get(url,headers=headers)
+    assert downloaded.status_code==200
+    assert downloaded.content==Path(created['path']).read_bytes()
+    assert client.get(url).status_code==409
+    assert client.get(url,headers={'X-SurveySync-Project':'other'}).status_code==409
+    Path(created['path']).write_bytes(b'tampered')
+    assert client.get(url,headers=headers).status_code==400
+
+
+def test_revision_ambiguity_and_later_changes_invalidate_delivery_review(workspace,tmp_path):
+    client,project,headers,_=seed(workspace,tmp_path)
+    data=client.get(BASE+'/state',headers=headers).json(); token=data['snapshot']
+    for issue in data['issues']:
+        assert client.post('/api/v9/visual-qa/review',headers=headers,json={'snapshot':token,'jump':2,'distance':50,'reason':'Independent source check','issue_id':issue['issue_id'],'decision':'dismissed'}).status_code==200
+    assert client.post(BASE+'/report',headers=headers,json={'snapshot':token}).status_code==200
+    assert client.post(BASE+'/acknowledge',headers=headers,json={'snapshot':token,'reviewer':'CP','note':'Checked the report'}).status_code==200
+    assert client.get(BASE+'/state',headers=headers).json()['readiness']['ready']
+    context={k:data['project'][k] for k in ('crs','horizontal_units','vertical_units')}
+    body={'snapshot':token,'csv_text':'PointID,Northing,Easting,Elevation,Description\n001A,100,200,10,ROAD\n001A,101,201,11,ROAD\n002,101,200,14,ROAD\n003,102,200,,TREE\n',**context}
+    revision=client.post(BASE+'/revision',headers=headers,json=body).json()
+    assert revision['ambiguous'][0]['new_rows']==[2,3]
+    readiness=client.get(BASE+'/state',headers=headers).json()['readiness']
+    assert not readiness['checks']['revision_matches_resolved']
+    assert not readiness['checks']['report_present']
+    assert not readiness['checks']['reviewer_acknowledged']
+    assert not readiness['ready']
+    uid=next(p['point_uuid'] for p in client.get('/api/v9/visual-qa/snapshot',headers=headers).json()['points'] if p['point_id']=='001A')
+    assert client.post(BASE+'/revision',headers=headers,json={**body,'matches':[{'point_uuid':uid,'row':2}]}).status_code==200
+    assert not client.get(BASE+'/state',headers=headers).json()['readiness']['checks']['revision_matches_resolved']
+
+
+def test_legacy_partial_return_can_be_completed(workspace,tmp_path):
+    from surveysync.review_workflow import state, save
+    client,project,headers,_=seed(workspace,tmp_path)
+    data=client.get(BASE+'/state',headers=headers).json();issue=next(i for i in data['issues'] if len(i['point_uuids'])==2)
+    req=client.post(BASE+'/rechecks',headers=headers,json={'snapshot':data['snapshot'],'issue_ids':[issue['issue_id']],'crew':'Crew B','instructions':'Check both'}).json()
+    s=state(project);s['rechecks'][0]['returns']=[{'received_utc':'old','note':'old','records':[{'point_uuid':req['points'][0]['point_uuid'],'observed':{'elevation':10},'delta':{'elevation':0}}]}];s['rechecks'][0]['status']='returned';save(project,s)
+    assert not client.get(BASE+'/state',headers=headers).json()['readiness']['checks']['rechecks_returned']
+    response=client.post(BASE+'/rechecks/'+req['id']+'/return',headers=headers,json={'records':[{'point_uuid':req['points'][1]['point_uuid'],'elevation':14}],'note':'Finished'})
+    assert response.status_code==200,response.text
+    assert response.json()['status']=='returned'

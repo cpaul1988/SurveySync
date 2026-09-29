@@ -13,3 +13,7 @@ Open a SurveySync project and choose **Revision & Delivery Review** from Home, Q
 **Readiness.** Required checks cover project CRS/units and QA context, reviewed findings, returned rechecks, reservation conflicts, a report for the current snapshot, and a reviewer acknowledgment for that same snapshot. Each check may be optional. Enabling **Enforce these checks for deliverable packages** makes the existing package action refuse delivery when a required check fails; by default the gate is off for existing projects. A changed project snapshot invalidates the acknowledgment and prior report for readiness purposes. Rechecks and reservations remain visible in history.
 
 This is a survey screening and handoff workflow, not an automatic coordinate adjustment or professional certification. The visual overlay is local project coordinates without a basemap.
+
+## 9.4.6 repair
+
+A crew may return some requested points first. The request stays open until all record UUIDs have observations; the CSV upload may leave unobserved rows blank. The remaining records can be returned later, including for incomplete 9.4.5 requests. Each saved report has a verified ZIP download button. The latest revision's unresolved duplicate matches block readiness. Subsequent review workflow changes require a new report and acknowledgment before a gated delivery.

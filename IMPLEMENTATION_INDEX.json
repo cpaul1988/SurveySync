@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.5",
+  "version": "9.4.6",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1033,6 +1033,20 @@
         "surveysync/static/review_workflow.js",
         "surveysync/static/review_workflow.css",
         "surveysync/delivery.py"
+      ],
+      "tests": [
+        "tests/test_review_workflow.py"
+      ],
+      "documentation": [
+        "docs/REVISION_REVIEW_WORKFLOW.md"
+      ]
+    },
+    "review_workflow_repairs": {
+      "introduced": "9.4.6",
+      "implementation": [
+        "surveysync/review_workflow.py",
+        "surveysync/review_workflow_routes.py",
+        "surveysync/static/review_workflow.js"
       ],
       "tests": [
         "tests/test_review_workflow.py"
