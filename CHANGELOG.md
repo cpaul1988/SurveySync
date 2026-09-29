@@ -149,3 +149,10 @@ This is the canonical human-readable release history. Detailed per-build QA evid
 
 ## 9.1.4 - Reliability and diagnostics
 - Added updater consent, atomic Save As, shared diagnostics/Error Log support, and Review layout hardening.
+
+## 9.4.5-beta.1 — candidate
+
+- Added project-bound revision comparison with coordinate movement arrows, signed elevation deltas, additions/removals and explicit matching of duplicate PointIDs.
+- Added QA finding to crew recheck PDF/CSV packages, retained returned observations, point-range reservations and collision checks.
+- Added hashed evidence attachments and selected evidence in review reports.
+- Added configurable readiness checks and an opt-in gate for existing deliverable packages.

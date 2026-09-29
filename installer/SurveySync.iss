@@ -1,7 +1,7 @@
 #define MyAppName "SurveySync"
-#define MyAppVersion "9.4.4"
+#define MyAppVersion "9.4.5"
 #ifndef MyReleaseID
-  #define MyReleaseID "9.4.4-beta.1"
+  #define MyReleaseID "9.4.5-beta.1"
 #endif
 #define MyAppPublisher "Clever Bird Development"
 #define MyAppURL "https://github.com/cpaul1988/SurveySync"
@@ -62,7 +62,7 @@ Name: "{autoprograms}\SurveySync (Browser Fallback)"; Filename: "{app}\.venv\Scr
 Name: "{autodesktop}\SurveySync"; Filename: "{app}\SurveySync.exe"; WorkingDir: "{app}"; IconFilename: "{app}\branding\SurveySync.ico"; Tasks: desktopicon
 
 [InstallDelete]
-; v9.4.4 is an in-place SurveySync feature update and retains the FieldBook Sync migration cleanup.
+; v9.4.5 is an in-place SurveySync feature update and retains the FieldBook Sync migration cleanup.
 ; Only legacy application binaries/shortcuts are removed. User data under
 ; %LOCALAPPDATA%\FieldBookSync and user-created .fbs files are intentionally untouched.
 Type: files; Name: "{app}\FieldBookSync.exe"

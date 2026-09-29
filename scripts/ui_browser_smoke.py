@@ -65,7 +65,7 @@ def main():
                     errors = []
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.route('**/api/v9/update/check', lambda route: route.fulfill(
-                        json={'update_available': False, 'current_version': '9.4.4', 'channel': 'beta'}))
+                        json={'update_available': False, 'current_version': '9.4.5', 'channel': 'beta'}))
                     try:
                         for mode in ('dark', 'light'):
                             request('/api/v9/config/ui', {'appearance': mode, 'theme': 'edsi', 'accent': 'default'})
@@ -92,6 +92,12 @@ def main():
                                     expect(page.locator('#whatsNewVersion')).to_have_text('v' + RELEASE)
                                     expect(page.locator('#moduleNav .module-nav-btn').first).to_be_visible()
                                 image_check(page)
+                                if module == 'QASync':
+                                    page.locator('#moduleNav [data-view="reviewWorkflow"]').click()
+                                    expect(page.locator('#reviewWorkflow')).to_be_visible()
+                                    expect(page.locator('#rwMessage')).to_contain_text('Open a SurveySync project')
+                                    expect(page.locator('#rwControls')).to_have_attribute('disabled', '')
+                                    report['checks'].append('Review workspace opens and requires project context')
                                 actual = page.evaluate("""() => ({font:getComputedStyle(document.body).fontSize,
                                     panel:getComputedStyle(document.documentElement).getPropertyValue('--panel').trim()})""")
                                 assert actual['font'] == '14px', (module, actual)

@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.4",
+  "version": "9.4.5",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1023,6 +1023,22 @@
       ],
       "documentation": [
         "docs/QA_REVIEW_REPORTS.md"
+      ]
+    },
+    "revision_review_workflow": {
+      "introduced": "9.4.5",
+      "implementation": [
+        "surveysync/review_workflow.py",
+        "surveysync/review_workflow_routes.py",
+        "surveysync/static/review_workflow.js",
+        "surveysync/static/review_workflow.css",
+        "surveysync/delivery.py"
+      ],
+      "tests": [
+        "tests/test_review_workflow.py"
+      ],
+      "documentation": [
+        "docs/REVISION_REVIEW_WORKFLOW.md"
       ]
     }
   }

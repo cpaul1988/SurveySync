@@ -111,6 +111,13 @@ def export_points(project: SurveyProject, profile_id: str) -> dict:
 
 
 def build_deliverable_package(project: SurveyProject, *, profile_id: str = "client_deliverable", label: str = "") -> dict:
+    from .review_workflow import snapshot, readiness, state
+    review_state = state(project)
+    if review_state["policy"].get("enforce_delivery", False):
+        token = snapshot(project)["snapshot"]
+        result = readiness(project, token)
+        if not result["ready"]:
+            raise ValueError("Deliverable readiness is blocked: " + ", ".join(k for k,v in result["checks"].items() if result["required"][k] and not v))
     run = export_points(project, profile_id)
     profile = run["profile"]
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
