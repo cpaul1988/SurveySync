@@ -166,14 +166,14 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.4-beta.1 adds PDF and CSV review packages to Visual Survey QA in Home and QASync.",
-    "Export all current findings, saved review decisions and reasons, record UUIDs, coordinate context, and registered source references regardless of screen filters.",
-    "Previously approved elevation-copy exports are listed separately with before elevations, signed offsets, exported elevations, audit event IDs and timestamps. Unsaved previews are excluded; separate exports are not cumulative adjustments.",
-    "The ZIP includes QA_Review.pdf, findings.csv, corrections.csv, exact JSON evidence and file checksums. Desktop exports save under Exports/VisualQA/Reports; browser sessions download the package.",
-    "Project coordinates and original sources are unchanged. Source hashes are registered import hashes, not freshly verified source files. Prepared-by labels are not authenticated signatures or professional certification.",
-    "Stale project or evidence requests are refused. Reports exceeding 50,000 detail rows or 2,000 pages fail explicitly instead of truncating findings.",
+    "9.4.5-beta.1 adds a project-bound revision and delivery review in Home, QASync and ReportSync.",
+    "Revised CSV points show movement arrows, elevation differences, added and removed records; duplicate PointIDs require explicit UUID-to-row matches.",
+    "QA findings can become crew PDF/CSV rechecks with returned observations. Point number reservations detect overlapping assignments and used IDs.",
+    "Attach hashed photos, sketches or field-book PDFs to findings and select evidence for the PDF/CSV review report.",
+    "Configurable readiness checks can gate existing deliverable packages. Reviewer acknowledgments bind to the current project snapshot.",
+    "Original survey sources and canonical points are unchanged; no automatic CRS transformation or professional certification is implied.",
     "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a project copy.",
-    "This is an unpublished candidate based on Stable 9.4.3. Existing field-validation and unsigned-release limitations remain."
+    "This is an unpublished candidate based on Stable 9.4.4. Field validation and unsigned-release limitations remain."
 ]
 
 

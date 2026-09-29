@@ -22,3 +22,7 @@ router.include_router(gis_bridge_router)
 from .visual_qa_routes import router as visual_qa_router
 
 router.include_router(visual_qa_router)
+
+from .review_workflow_routes import router as review_workflow_router
+
+router.include_router(review_workflow_router)
