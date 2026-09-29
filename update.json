@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-09-28T22:02:48Z",
+  "generated_utc": "2026-09-29T01:32:18Z",
   "publisher_tool": "GitHub Actions",
   "product": "SurveySync",
   "channels": {
@@ -18,35 +18,35 @@
       "required": false
     },
     "beta": {
-      "version": "9.4.3",
-      "release_id": "9.4.3-beta.1",
+      "version": "9.4.4",
+      "release_id": "9.4.4-beta.1",
       "channel": "beta",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.3/SurveySync_Setup_9.4.3-beta.1.exe",
-      "size_bytes": 9029810,
-      "sha256": "58d75c39e8c1369e297b6d398583e4f0a31cc54dc53ab2475f5160d8ed8808e0",
-      "artifact_identity": "sha256:58d75c39e8c1369e297b6d398583e4f0a31cc54dc53ab2475f5160d8ed8808e0",
-      "release_tag": "v9.4.3",
-      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.3-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.3-beta.1 — Visual Survey QA\n\nCandidate based on Stable 9.4.2. Home and QASync now provide a linked local survey plan, point table and issue list. Select records or findings to inspect source identity and supporting evidence. Filter duplicate IDs, missing coordinates/elevations, mixed coordinate contexts, configurable elevation jumps and exact-source saved rod-height candidates.\n\nReview decisions and independent reasons are saved to the project audit trail. Explicitly previewed, approved elevation offsets produce a separate corrected CSV/JSON evidence ZIP; original observations, canonical project points and historical reports stay unchanged. Desktop exports save a uniquely named ZIP under Exports/VisualQA and reveal its folder; browser use downloads the ZIP. Stale evidence/project requests are rejected.\n\nThe local plan does not transform coordinates. Jump screening compares consecutive same-description records within each source, not nearest neighbors or confirmed acquisition order. The workspace supports up to 20,000 points and checks up to 50 recent rod analyses. Heuristic findings require independent survey review.\n\nSee docs/VISUAL_SURVEY_QA.md for workflow, units, evidence rules, limits and API behavior. Field-book hardware/accuracy validation, official Trimble conversion, rod-score calibration and production signing limitations from 9.4.2 remain. This candidate is not a Stable promotion; completed CI results and exact installer acceptance must be recorded before distribution.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.4/SurveySync_Setup_9.4.4-beta.1.exe",
+      "size_bytes": 9034736,
+      "sha256": "71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
+      "artifact_identity": "sha256:71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
+      "release_tag": "v9.4.4",
+      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.4-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.4-beta.1 - QA review reports\n\nAdds a PDF and CSV review package to Visual Survey QA under Home and QASync. Reports include full-project findings, saved decisions and reasons, record UUIDs, coordinate context, registered source references, and before/after elevations from separately approved correction exports. Screen filters and unsaved previews are excluded.\n\nThe ZIP contains QA_Review.pdf, findings.csv, corrections.csv, exact JSON evidence, and SHA-256 checksums. Native desktop saves a unique package under Exports/VisualQA/Reports and reveals its folder; browser sessions download it.\n\nOriginal observations and canonical coordinates are unchanged. Source hashes are registered import hashes, not fresh verification. Prepared-by labels and checksums are not professional or cryptographic signatures. Stale project/evidence, invalid input, and oversized reports fail explicitly. See docs/QA_REVIEW_REPORTS.md for scope and limits.\n\nThis is a candidate; publication requires acceptance of its exact installer. Field-book hardware validation, official Trimble conversion and production signing remain outside this update.",
       "required": false,
-      "published_utc": "2026-09-28T22:02:47Z"
+      "published_utc": "2026-09-29T01:32:17Z"
     },
     "stable": {
-      "version": "9.4.3",
-      "release_id": "9.4.3-beta.1",
+      "version": "9.4.4",
+      "release_id": "9.4.4-beta.1",
       "channel": "stable",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.3/SurveySync_Setup_9.4.3-beta.1.exe",
-      "size_bytes": 9029810,
-      "sha256": "58d75c39e8c1369e297b6d398583e4f0a31cc54dc53ab2475f5160d8ed8808e0",
-      "artifact_identity": "sha256:58d75c39e8c1369e297b6d398583e4f0a31cc54dc53ab2475f5160d8ed8808e0",
-      "release_tag": "v9.4.3",
-      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.3-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.3-beta.1 — Visual Survey QA\n\nCandidate based on Stable 9.4.2. Home and QASync now provide a linked local survey plan, point table and issue list. Select records or findings to inspect source identity and supporting evidence. Filter duplicate IDs, missing coordinates/elevations, mixed coordinate contexts, configurable elevation jumps and exact-source saved rod-height candidates.\n\nReview decisions and independent reasons are saved to the project audit trail. Explicitly previewed, approved elevation offsets produce a separate corrected CSV/JSON evidence ZIP; original observations, canonical project points and historical reports stay unchanged. Desktop exports save a uniquely named ZIP under Exports/VisualQA and reveal its folder; browser use downloads the ZIP. Stale evidence/project requests are rejected.\n\nThe local plan does not transform coordinates. Jump screening compares consecutive same-description records within each source, not nearest neighbors or confirmed acquisition order. The workspace supports up to 20,000 points and checks up to 50 recent rod analyses. Heuristic findings require independent survey review.\n\nSee docs/VISUAL_SURVEY_QA.md for workflow, units, evidence rules, limits and API behavior. Field-book hardware/accuracy validation, official Trimble conversion, rod-score calibration and production signing limitations from 9.4.2 remain. This candidate is not a Stable promotion; completed CI results and exact installer acceptance must be recorded before distribution.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.4/SurveySync_Setup_9.4.4-beta.1.exe",
+      "size_bytes": 9034736,
+      "sha256": "71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
+      "artifact_identity": "sha256:71163fbd88e46bd977ef4e2b0950f042ce412d6862b06a6ced0d1c6fb82fee0f",
+      "release_tag": "v9.4.4",
+      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.4-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.4-beta.1 - QA review reports\n\nAdds a PDF and CSV review package to Visual Survey QA under Home and QASync. Reports include full-project findings, saved decisions and reasons, record UUIDs, coordinate context, registered source references, and before/after elevations from separately approved correction exports. Screen filters and unsaved previews are excluded.\n\nThe ZIP contains QA_Review.pdf, findings.csv, corrections.csv, exact JSON evidence, and SHA-256 checksums. Native desktop saves a unique package under Exports/VisualQA/Reports and reveals its folder; browser sessions download it.\n\nOriginal observations and canonical coordinates are unchanged. Source hashes are registered import hashes, not fresh verification. Prepared-by labels and checksums are not professional or cryptographic signatures. Stale project/evidence, invalid input, and oversized reports fail explicitly. See docs/QA_REVIEW_REPORTS.md for scope and limits.\n\nThis is a candidate; publication requires acceptance of its exact installer. Field-book hardware validation, official Trimble conversion and production signing remain outside this update.",
       "required": false,
-      "published_utc": "2026-09-28T22:02:47Z",
+      "published_utc": "2026-09-29T01:32:17Z",
       "promoted_from": "beta",
-      "promoted_utc": "2026-09-28T22:02:47Z",
-      "tested_channel_published_utc": "2026-09-28T22:02:47Z"
+      "promoted_utc": "2026-09-29T01:32:17Z",
+      "tested_channel_published_utc": "2026-09-29T01:32:17Z"
     }
   }
 }
