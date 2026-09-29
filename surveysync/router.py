@@ -166,13 +166,14 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.3-beta.1 adds Visual Survey QA in Home and QASync: linked local plan view, point table and issue list.",
-    "Review duplicate IDs, missing coordinates/elevations, mixed coordinate contexts, configurable elevation jumps and matching saved rod-height candidates. Point records remain individually identified even when PointIDs repeat.",
-    "Select a point or issue to inspect retained source identity, coordinates and supporting evidence. Save a reasoned review decision to the project audit trail.",
-    "Preview explicit signed elevation offsets by record and approve a separate ZIP containing a corrected CSV and exact JSON evidence. Original sources and project coordinates are never overwritten by this workspace.",
-    "The plan view is local and does not transform coordinates. Jump flags compare consecutive same-description records within a source, not nearest neighbors or proven acquisition chronology. Up to 20,000 points and 50 recent saved rod analyses are supported.",
+    "9.4.4-beta.1 adds PDF and CSV review packages to Visual Survey QA in Home and QASync.",
+    "Export all current findings, saved review decisions and reasons, record UUIDs, coordinate context, and registered source references regardless of screen filters.",
+    "Previously approved elevation-copy exports are listed separately with before elevations, signed offsets, exported elevations, audit event IDs and timestamps. Unsaved previews are excluded; separate exports are not cumulative adjustments.",
+    "The ZIP includes QA_Review.pdf, findings.csv, corrections.csv, exact JSON evidence and file checksums. Desktop exports save under Exports/VisualQA/Reports; browser sessions download the package.",
+    "Project coordinates and original sources are unchanged. Source hashes are registered import hashes, not freshly verified source files. Prepared-by labels are not authenticated signatures or professional certification.",
+    "Stale project or evidence requests are refused. Reports exceeding 50,000 detail rows or 2,000 pages fail explicitly instead of truncating findings.",
     "The approved globe and theme-only EDSI companion remain unchanged. Read these release notes before testing a project copy.",
-    "This is an unpublished candidate based on Stable 9.4.2. Existing field-validation and unsigned-release limitations remain."
+    "This is an unpublished candidate based on Stable 9.4.3. Existing field-validation and unsigned-release limitations remain."
 ]
 
 

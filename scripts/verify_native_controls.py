@@ -195,6 +195,20 @@ def main():
                 assert sample.read_bytes()==before
                 page.screenshot(path=str(OUT/'native-visual-qa-export.png'))
                 result['checks'].append('Installed WebView2 Visual QA approved and saved a real correction ZIP; exact values and source preservation verified')
+                expect(page.locator('#vqControls')).to_be_enabled()
+                page.locator('#vqReportTitle').fill('Native QA report acceptance')
+                with page.expect_response(lambda r: r.url.endswith('/api/v9/visual-qa/report') and r.request.method=='POST') as report_saved:
+                    page.locator('#vqReport').click()
+                assert report_saved.value.ok, report_saved.value.text()
+                report_path=Path(report_saved.value.json()['path'])
+                assert report_path.is_relative_to(state) and report_path.is_file()
+                with ZipFile(report_path) as archive:
+                    evidence=json.loads(archive.read('review_evidence.json'))
+                    assert evidence['correction_exports'][0]['changes'][0]['corrected_elevation']==12
+                    assert b'1005' in archive.read('corrections.csv')
+                    assert archive.read('QA_Review.pdf').startswith(b'%PDF')
+                expect(page.locator('#vqMessage')).to_contain_text('QA review report saved:')
+                result['checks'].append('Installed WebView2 saved the QA PDF/CSV report ZIP and verified actual correction history')
                 assert not result['errors'], result['errors']
                 page.locator('[data-menu="fileMenu"]').click()
                 start = time.monotonic()

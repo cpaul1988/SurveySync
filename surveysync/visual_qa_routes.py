@@ -155,3 +155,70 @@ def original_source(request: Request, point_uuid: str):
             return source_observations(project_for(request), point_uuid)
         except (ValueError, OSError) as exc:
             raise HTTPException(400, str(exc)) from exc
+
+
+class ReportIn(ContextIn):
+    reason: str = Field(default="QA review report", min_length=3, max_length=2000)
+    title: str = Field(default="Survey QA Review", min_length=1, max_length=160)
+    prepared_by: str = Field(default="", max_length=160)
+    save_locally: bool = False
+
+
+@router.post("/report")
+def report(request: Request, payload: ReportIn):
+    from uuid import uuid4
+    from . import router as context
+    from .visual_qa_report import report_archive, report_evidence
+
+    with context.project_lock:
+        project = project_for(request)
+        output = None
+        created = committed = False
+        try:
+            if not payload.title.strip():
+                raise ValueError("Enter a report title.")
+            with project.db.transaction():
+                data = current(project, payload)
+                evidence = report_evidence(
+                    project, data, payload.title.strip(), payload.prepared_by.strip()
+                )
+                content = report_archive(evidence)
+                if payload.save_locally:
+                    folder = (project.paths.exports / "VisualQA" / "Reports").resolve()
+                    if not folder.is_relative_to(project.paths.root.resolve()):
+                        raise ValueError("Report folder must remain inside the project.")
+                    folder.mkdir(parents=True, exist_ok=True)
+                    output = folder / ("SurveySync_QA_Review_" + uuid4().hex + ".zip")
+                    with output.open("xb") as stream:
+                        created = True
+                        stream.write(content)
+                project.db.audit(
+                    "QASync",
+                    "VISUAL_QA_REPORT_GENERATED",
+                    object_type="project",
+                    object_id=data["project"]["project_id"],
+                    details={
+                        "snapshot": data["snapshot"],
+                        "report_id": evidence["report_id"],
+                        "title": evidence["title"],
+                        "prepared_by": evidence["prepared_by"],
+                        "saved_path": str(output) if output else None,
+                    },
+                )
+            committed = True
+            if output:
+                return {
+                    "path": str(output),
+                    "folder": str(output.parent),
+                    "report_id": evidence["report_id"],
+                }
+            return Response(
+                content,
+                media_type="application/zip",
+                headers={"Content-Disposition": 'attachment; filename="SurveySync_QA_Review.zip"'},
+            )
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+        finally:
+            if created and not committed and output is not None:
+                output.unlink(missing_ok=True)

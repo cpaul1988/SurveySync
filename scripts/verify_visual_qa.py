@@ -83,6 +83,19 @@ def main():
                     evidence=json.loads(z.read('review_evidence.json'))
                     assert next(p for p in evidence['corrected_points'] if p['point_id']=='002')['elevation']==10
                     assert evidence['changes'][0]['original']['elevation']==14
+                expect(page.locator('#vqControls')).to_be_enabled()
+                page.locator('#vqReportTitle').fill('BRT QA Review Acceptance')
+                page.locator('#vqPreparedBy').fill('Independent reviewer')
+                with page.expect_download() as report_download:page.locator('#vqReport').click()
+                with ZipFile(Path(report_download.value.path())) as package:
+                    evidence=json.loads(package.read('review_evidence.json'))
+                    assert len(evidence['points'])==4  # Search still filters to 002; report is full scope.
+                    assert evidence['correction_exports'][0]['changes'][0]['corrected_elevation']==10
+                    assert any((i.get('review') or {}).get('decision')=='confirmed' for i in evidence['issues'])
+                    assert b'001A' in package.read('findings.csv')
+                    assert package.read('QA_Review.pdf').startswith(b'%PDF')
+                    (OUT/'qa-review-sample.pdf').write_bytes(package.read('QA_Review.pdf'))
+                report['checks'].append('Actual report button downloads PDF/CSV package with full-scope saved reviews and correction history')
                 assert source.read_bytes()==original
                 expect(page.locator('#vqControls')).to_be_enabled()
                 page.locator('#vqSearch').fill('')
