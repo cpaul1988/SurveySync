@@ -1,0 +1,40 @@
+{
+  "version": "9.4.7",
+  "publish_stable": true,
+  "source_sha": "24ace2f648b9f2f8cd28891cadd45fef5bc9c19a",
+  "base_sha": "718f118667639d185f44423eae6c95dcbc2804f1",
+  "runs": {
+    "acceptance": 36633044678,
+    "quality": 36633044691,
+    "ui": 36633044722,
+    "remaining": 36633044687
+  },
+  "artifact_id": 11063049594,
+  "archive_sha256": "6ed351560dee3df5f960024230c5b0dda8fb3eea48246e82f7a04cf7d639f051",
+  "files": {
+    "SurveySync_Setup_9.4.7-beta.1.exe": {
+      "size": 9051468,
+      "sha256": "edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612"
+    },
+    "SurveySync_Setup_9.4.7-beta.1.exe.sha256": {
+      "size": 101,
+      "sha256": "42abc6ff7d90dbdf1cf4a73217792f6eb5dd642fb447c14c1e6d1e4b3cceaa44"
+    },
+    "RELEASE_NOTES_v9_4_7.md": {
+      "size": 1022,
+      "sha256": "b65afd8ef50e92f370e88ba93367cae00efa1d4b87300d53c31f4cce5a828581"
+    },
+    "VERSION.txt": {
+      "size": 7,
+      "sha256": "6bcfa750abbc3e262899d1a95177fbd3716c4444b5a9ca7abad7b5bc6e39a4de"
+    },
+    "RELEASE_ID.txt": {
+      "size": 14,
+      "sha256": "48be076f3687423c784ecb255b0fdb31c7ef54937e7e87d55b81c756178c2da4"
+    },
+    "QA_REPORT_v9_4_7.md": {
+      "size": 936,
+      "sha256": "9f54ed68e0588b3fe6d4018b07bd4766d2da7bfd4eec8f7654d50075bbe412a6"
+    }
+  }
+}
