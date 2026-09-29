@@ -96,7 +96,7 @@ def main():
                                     page.locator('#moduleNav [data-view="reviewWorkflow"]').click()
                                     expect(page.locator('#reviewWorkflow')).to_be_visible()
                                     expect(page.locator('#rwMessage')).to_contain_text('Open a SurveySync project')
-                                    expect(page.locator('#rwControls')).to_be_disabled()
+                                    expect(page.locator('#rwControls')).to_have_attribute('disabled', '')
                                     report['checks'].append('Review workspace opens and requires project context')
                                 actual = page.evaluate("""() => ({font:getComputedStyle(document.body).fontSize,
                                     panel:getComputedStyle(document.documentElement).getPropertyValue('--panel').trim()})""")
