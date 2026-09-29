@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-09-29T03:40:11Z",
+  "generated_utc": "2026-09-29T21:45:12Z",
   "publisher_tool": "GitHub Actions",
   "product": "SurveySync",
   "channels": {
@@ -18,35 +18,35 @@
       "required": false
     },
     "beta": {
-      "version": "9.4.6",
-      "release_id": "9.4.6-beta.1",
+      "version": "9.4.7",
+      "release_id": "9.4.7-beta.1",
       "channel": "beta",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.6/SurveySync_Setup_9.4.6-beta.1.exe",
-      "size_bytes": 9046320,
-      "sha256": "33862846d304934e5c2f11a3b0eb1cf1896aa388467ffc439d5c6eecce0523f8",
-      "artifact_identity": "sha256:33862846d304934e5c2f11a3b0eb1cf1896aa388467ffc439d5c6eecce0523f8",
-      "release_tag": "v9.4.6",
-      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.6-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.6-beta.1 — review workflow repair\n\nA partial crew recheck remains open until every requested record is returned. Previously recorded partial returns from 9.4.5 are detected and may be completed without losing the earlier observation.\n\nThe Revision & Delivery Review workspace now offers a download button for each saved PDF/CSV review ZIP. Downloads are bound to the active project and verified against the saved SHA-256. Native desktop sessions can reveal the report folder after generation.\n\nUnresolved duplicate PointID pairings from the latest revision now block readiness. A new revision, recheck or returned observation, point range reservation, evidence attachment, or policy change invalidates earlier report readiness and reviewer acknowledgment. Create a current report and acknowledge the new review state before delivery.\n\nThis candidate preserves source observations and canonical coordinates. Windows installer acceptance remains required before publication.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.7/SurveySync_Setup_9.4.7-beta.1.exe",
+      "size_bytes": 9051468,
+      "sha256": "edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
+      "artifact_identity": "sha256:edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
+      "release_tag": "v9.4.7",
+      "release_notes": "Promoted to Stable by CP on 2026-09-29. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.7-beta.1. No rebuild.\n\nRepresentative ControlSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.7-beta.1 — ControlSync reshoot round trip\n\nFrom a failed three-shot Control QC result, issue a project-bound crew packet with the next available shot IDs and field instructions. Stage a returned CSV, TXT, TSV, JOB, JXL or JobXML file, then inspect the before/after residuals and field QC. Staging preserves the original source and leaves the active control solution unchanged.\n\nA reviewer can reject the return or approve it after the preview passes and includes a returned shot in the selected triplet. Approval checks that project observations, coordinate context and staged source have not changed, imports the three reserved shots, and reruns QC for the requested control alone. The downloadable approved ZIP carries the accepted coordinates, selected shots, source checksum and review record. The project audit and deliverables registry retain provenance.\n\nThis candidate is based on 9.4.6 Stable. Windows installer and representative field-data acceptance remain required before promotion.",
       "required": false,
-      "published_utc": "2026-09-29T03:40:10Z"
+      "published_utc": "2026-09-29T21:45:11Z"
     },
     "stable": {
-      "version": "9.4.6",
-      "release_id": "9.4.6-beta.1",
+      "version": "9.4.7",
+      "release_id": "9.4.7-beta.1",
       "channel": "stable",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.6/SurveySync_Setup_9.4.6-beta.1.exe",
-      "size_bytes": 9046320,
-      "sha256": "33862846d304934e5c2f11a3b0eb1cf1896aa388467ffc439d5c6eecce0523f8",
-      "artifact_identity": "sha256:33862846d304934e5c2f11a3b0eb1cf1896aa388467ffc439d5c6eecce0523f8",
-      "release_tag": "v9.4.6",
-      "release_notes": "Promoted to Stable by CP on 2026-09-28. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.6-beta.1. No rebuild.\n\nField validation remains pending for GTX1650/Paddle/Qwen accuracy, speed and blocked-read cancellation; official Trimble .job conversion; and rod confidence calibration. Production signing is not activated.\n\n# SurveySync 9.4.6-beta.1 — review workflow repair\n\nA partial crew recheck remains open until every requested record is returned. Previously recorded partial returns from 9.4.5 are detected and may be completed without losing the earlier observation.\n\nThe Revision & Delivery Review workspace now offers a download button for each saved PDF/CSV review ZIP. Downloads are bound to the active project and verified against the saved SHA-256. Native desktop sessions can reveal the report folder after generation.\n\nUnresolved duplicate PointID pairings from the latest revision now block readiness. A new revision, recheck or returned observation, point range reservation, evidence attachment, or policy change invalidates earlier report readiness and reviewer acknowledgment. Create a current report and acknowledge the new review state before delivery.\n\nThis candidate preserves source observations and canonical coordinates. Windows installer acceptance remains required before publication.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.7/SurveySync_Setup_9.4.7-beta.1.exe",
+      "size_bytes": 9051468,
+      "sha256": "edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
+      "artifact_identity": "sha256:edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
+      "release_tag": "v9.4.7",
+      "release_notes": "Promoted to Stable by CP on 2026-09-29. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.7-beta.1. No rebuild.\n\nRepresentative ControlSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.7-beta.1 — ControlSync reshoot round trip\n\nFrom a failed three-shot Control QC result, issue a project-bound crew packet with the next available shot IDs and field instructions. Stage a returned CSV, TXT, TSV, JOB, JXL or JobXML file, then inspect the before/after residuals and field QC. Staging preserves the original source and leaves the active control solution unchanged.\n\nA reviewer can reject the return or approve it after the preview passes and includes a returned shot in the selected triplet. Approval checks that project observations, coordinate context and staged source have not changed, imports the three reserved shots, and reruns QC for the requested control alone. The downloadable approved ZIP carries the accepted coordinates, selected shots, source checksum and review record. The project audit and deliverables registry retain provenance.\n\nThis candidate is based on 9.4.6 Stable. Windows installer and representative field-data acceptance remain required before promotion.",
       "required": false,
-      "published_utc": "2026-09-29T03:40:10Z",
+      "published_utc": "2026-09-29T21:45:11Z",
       "promoted_from": "beta",
-      "promoted_utc": "2026-09-29T03:40:10Z",
-      "tested_channel_published_utc": "2026-09-29T03:40:10Z"
+      "promoted_utc": "2026-09-29T21:45:11Z",
+      "tested_channel_published_utc": "2026-09-29T21:45:11Z"
     }
   }
 }
