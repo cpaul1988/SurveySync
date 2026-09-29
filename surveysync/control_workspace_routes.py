@@ -32,6 +32,7 @@ from .crs import browse_crs_library, inspect_crs, project_xy_to_target, search_c
 from .project import SurveyProject, safe_name
 from .control_import_mapping import preview_control_delimited, learn_control_mapping
 from .reporting import register_deliverable
+from . import control_reshoots
 
 router = APIRouter()
 
@@ -107,6 +108,67 @@ class ControlMappedImportIn(BaseModel):
 
 class ControlMetadataMergeIn(BaseModel):
     file_path: str
+
+
+class ReshootRequestIn(BaseModel):
+    run_id: str
+    control_id: str
+    crew: str = Field(min_length=1, max_length=160)
+    instructions: str = Field(min_length=3, max_length=2000)
+
+
+class ReshootReturnIn(BaseModel):
+    file_path: str
+    mapping: dict = Field(default_factory=dict)
+
+
+class ReshootReviewIn(BaseModel):
+    decision: Literal["APPROVE", "REJECT"]
+    reviewer: str = Field(min_length=1, max_length=160)
+    note: str = Field(min_length=3, max_length=2000)
+
+
+def _reshoot_call(method, *args):
+    from . import router as root_router
+    with root_router.project_lock:
+        try:
+            return method(_project(), *args)
+        except (ValueError, OSError, RuntimeError, sqlite3.Error) as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+
+@router.get("/api/v9/control/reshoots")
+def control_reshoot_requests():
+    return {"requests": _reshoot_call(control_reshoots.list_requests)}
+
+
+@router.post("/api/v9/control/reshoots")
+def control_reshoot_create(payload: ReshootRequestIn):
+    return _reshoot_call(control_reshoots.create_request, payload.run_id, payload.control_id, payload.crew, payload.instructions)
+
+
+@router.get("/api/v9/control/reshoots/{identifier}/crew-package")
+def control_reshoot_package(identifier: str):
+    from fastapi.responses import Response
+    content = _reshoot_call(control_reshoots.request_package, identifier)
+    return Response(content, media_type="application/zip", headers={"Content-Disposition": 'attachment; filename="Control_Reshoot_Request.zip"'})
+
+
+@router.post("/api/v9/control/reshoots/{identifier}/return")
+def control_reshoot_return(identifier: str, payload: ReshootReturnIn):
+    return _reshoot_call(control_reshoots.stage_return, identifier, payload.file_path, payload.mapping)
+
+
+@router.post("/api/v9/control/reshoots/{identifier}/review")
+def control_reshoot_review(identifier: str, payload: ReshootReviewIn):
+    return _reshoot_call(control_reshoots.review_return, identifier, payload.decision, payload.reviewer, payload.note)
+
+
+@router.get("/api/v9/control/reshoots/{identifier}/approved-package")
+def control_reshoot_approved_package(identifier: str):
+    from fastapi.responses import Response
+    content = _reshoot_call(control_reshoots.approved_package, identifier)
+    return Response(content, media_type="application/zip", headers={"Content-Disposition": 'attachment; filename="Control_Reshoot_Approved.zip"'})
 
 
 class ControlExportIn(BaseModel):

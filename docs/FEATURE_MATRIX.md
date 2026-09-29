@@ -119,3 +119,7 @@ Standalone point import, editable code classifications, feature-chain range dete
 ## Unreleased remaining-audit development
 
 See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards, beta build identity, signing preparation and the exact validation boundary. Published 9.4.1 is unchanged; pending or unavailable external tests are not marked passed.
+
+## 9.4.7 ControlSync reshoot round trip
+
+Failed three-shot controls can issue a crew packet with reserved IDs. Returned sources are staged for QC and reviewer approval before their shots enter the project; the approved control is available as an audited, hash-verified ZIP. See `docs/CONTROL_RESHOOT_WORKFLOW.md`.
