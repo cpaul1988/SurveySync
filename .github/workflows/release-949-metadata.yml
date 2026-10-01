@@ -1,0 +1,54 @@
+name: SurveySync 9.4.9 publication notes
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/release-949-metadata.yml']
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconcile public notes with completed acceptance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, json, subprocess
+          root = 'repos/cpaul1988/SurveySync'
+          def api(path, method='GET', body=None):
+              args = ['gh', 'api', root + path, '--method', method]
+              if body is not None: args += ['--input', '-']
+              result = subprocess.run(args, input=None if body is None else json.dumps(body), text=True, capture_output=True, check=True)
+              return json.loads(result.stdout)
+          release = api('/releases/tags/v9.4.9')
+          assert not release['draft'] and not release['prerelease']
+          expected = '01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4'
+          assets = {x['name']: x for x in release['assets']}
+          assert assets['SurveySync_Setup_9.4.9-beta.1.exe']['digest'] == 'sha256:' + expected
+          old = 'This is an unpublished beta candidate based on 9.4.8 Stable. The original three-wire observations remain unchanged. Representative field-book and installed Windows acceptance are still required before publication or promotion.'
+          new = 'Published and promoted to Stable on October 1, 2026. Windows installed acceptance passed: 694 tests passed, 1 skipped, all four workflows passed, and 24 lifecycle cycles passed. The original three-wire observations remain unchanged. Representative field-return validation remains pending. Attached QA/release files retain their pre-CI checkpoint text for artifact provenance; completed results are recorded in PR #20.'
+          entry = api('/contents/update.json?ref=main')
+          feed = json.loads(base64.b64decode(entry['content']))
+          previous = json.loads(json.dumps(feed))
+          for channel in ('stable', 'beta'):
+              value = feed['channels'][channel]
+              assert value['version'] == '9.4.9' and value['release_tag'] == 'v9.4.9' and value['sha256'] == expected
+              assert old in value['release_notes'] or new in value['release_notes']
+              value['release_notes'] = value['release_notes'].replace(old, new)
+          assert old in release['body'] or new in release['body']
+          body = release['body'].replace(old, new)
+          if body != release['body']:
+              api('/releases/' + str(release['id']), 'PATCH', {'body': body})
+          if feed != previous:
+              content = base64.b64encode((json.dumps(feed, indent=2, ensure_ascii=False) + '\n').encode()).decode()
+              api('/contents/update.json', 'PUT', {'branch': 'main', 'sha': entry['sha'], 'content': content, 'message': 'Record completed 9.4.9 acceptance in published update notes'})
+          live = api('/contents/update.json?ref=main')
+          assert json.loads(base64.b64decode(live['content'])) == feed
+          assert new in api('/releases/tags/v9.4.9')['body']
+          print('Published notes reconciled; installer identity and unrelated feed data preserved.')
+          PY
