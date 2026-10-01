@@ -94,3 +94,5 @@ Standalone point import, editable code classifications, feature-chain range dete
 ## 9.3.1 BetaCandidate - support, recovery, inspection, and reviewed TopoSync QC
 
 Adds the integrated Support Center, interrupted-session detection/recovery, SHA-256-cached Survey Data Inspector with downstream workflow handoff, and TopoSync QC profiles/run history/candidate decisions/advisory calibration. The release hardening pass also fixes normal-start update initialization, prevents file-association maintenance commands from creating false recovery notices, and refreshes project CRS/unit context on Inspector cache hits. See `RELEASE_NOTES_v9_3_1.md` and `QA_REPORT_v9_3_1.md`.
+
+9.5.1-beta.1: unpublished CAD Drawing & Geometry QA candidate; see RELEASE_NOTES_v9_5_1.md.

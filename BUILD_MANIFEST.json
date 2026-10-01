@@ -1,15 +1,16 @@
 {
   "product": "SurveySync",
-  "version": "9.5.0",
+  "version": "9.5.1",
   "build_type": "survey-workspace-candidate",
   "baseline": "9.4.9 Stable",
   "candidate_branch": "feat/survey-workspace-950",
   "feedback": {
     "checked_before_build": true,
-    "checked_local_date": "2026-10-01",
+    "checked_utc": "2026-10-01",
+    "intake_count": 16,
     "latest_intake": "FBR-0016",
-    "newer_intake_items": 0,
-    "note": "Read-only connected Intake, Requests and Form Responses checked. Intake still has 16 records, latest FBR-0016; form has headers only. No tracker writes."
+    "error_tracker_entries": 0,
+    "form_responses": 0
   },
   "qa": {
     "status": "Local full release gate passed: 692 tests, 6 skipped; final Windows acceptance tracked in PR #21.",
@@ -19,5 +20,5 @@
     "published": false,
     "require_exact_tested_installer": true
   },
-  "release_id": "9.5.0-beta.1"
+  "release_id": "9.5.1-beta.1"
 }

@@ -70,3 +70,5 @@ COGOSync keeps its existing small native inverse/forward/intersection functions 
 SurveySync 9.3.2 also introduces a reusable horizontal-alignment domain layer in `surveysync/horizontal_alignment.py`. Tangents and circular curves are represented as one continuous station chain; LandXML import/export normalizes through that same model rather than maintaining separate geometry math. Imported LandXML is first copied into the project's immutable Source tree and registered by SHA-256. Spiral/profile/surface LandXML geometry is not silently approximated; unsupported records are surfaced for review.
 
 Each project stores a persistent random chain identity in `audit_chain_meta`; that identity is included in every canonical audit hash so a valid audit/event chain copied from another project database will not verify in the destination project.
+
+9.5.1: CAD parsing/geometry checks execute in a disposable bounded worker. Immutable review packages carry original bytes/hash and project/point context; route layer revalidates identity before retention. See CAD_REVIEW.md.

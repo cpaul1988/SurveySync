@@ -11,7 +11,7 @@ def test_missing_packages_leave_builtin_usable():
     assert rows["dxf_builtin"]["status"] == "ready"
     assert rows["proj"]["status"] == "unavailable"
     assert rows["las"]["capabilities"] == []
-    assert rows["ezdxf"]["status"] == "planned"
+    assert rows["ezdxf"]["status"] == "unavailable"
 
 
 def test_installing_planned_package_does_not_enable_adapter():
@@ -19,8 +19,10 @@ def test_installing_planned_package_does_not_enable_adapter():
     assert rows["proj"]["version"] == "1.2.3"
     assert rows["proj"]["status"] == "ready"
     assert rows["shapely"]["version"] == "1.2.3"
-    assert rows["shapely"]["status"] == "planned"
-    assert rows["shapely"]["capabilities"] == []
+    assert rows["shapely"]["status"] == "ready"
+    assert rows["shapely"]["capabilities"]
+    assert rows["geocompy"]["status"] == "planned"
+    assert rows["geocompy"]["capabilities"] == []
 
 
 def test_metadata_error_is_reported_and_does_not_disable_builtin():

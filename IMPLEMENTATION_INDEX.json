@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.5.0",
+  "version": "9.5.1",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1127,6 +1127,23 @@
       "documentation": [
         "docs/SURVEY_WORKSPACE.md",
         "docs/OPEN_SOURCE_INTEGRATION_PLAN.md"
+      ]
+    },
+    "cad_drawing_geometry_qa": {
+      "implementation": [
+        "surveysync/cad_geometry.py",
+        "surveysync/cad_review.py",
+        "surveysync/cad_review_routes.py",
+        "surveysync/cad_worker.py",
+        "surveysync/static/cad_review.js"
+      ],
+      "tests": [
+        "tests/test_cad_review.py",
+        "scripts/verify_cad_review.py"
+      ],
+      "documentation": [
+        "docs/CAD_REVIEW.md",
+        "RELEASE_NOTES_v9_5_1.md"
       ]
     }
   }

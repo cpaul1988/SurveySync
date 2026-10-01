@@ -72,3 +72,5 @@ See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards
 ## 9.4.2-beta.2 local field-book follow-up
 
 See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privacy, dual OCR views, original-image context, regression scope, and remaining real-model/hardware/calibration acceptance.
+
+CAD Review 9.5.1: modelspace only, approximate curve display/self-intersections, no DWG or automatic fixes; excludes curved inter-entity intersections and partial overlaps. No engineering closure inference from already-closed entities. See CAD_REVIEW.md for limits.

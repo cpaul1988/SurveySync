@@ -136,6 +136,7 @@ from .network_routes import router as network_adjustment_router
 from .level_network_routes import router as level_network_adjustment_router
 from .alignment_routes import router as alignment_landxml_router
 from .integration_routes import router as integration_router
+from .cad_review_routes import router as cad_review_router
 from .diagnostics import (
     build_diagnostic_bundle,
     error_log_path,
@@ -157,6 +158,7 @@ for subrouter in (
     level_network_adjustment_router,
     alignment_landxml_router,
     integration_router,
+    cad_review_router,
 ):
     router.include_router(subrouter)
 config_store = ConfigStore()
@@ -168,13 +170,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.5.0-beta.1 adds a linked survey review workspace with resizable source, map, and evidence panes.",
-    "Select individual records or a rectangle without Ctrl; map, point table, and evidence remain linked by record UUID.",
-    "Control Review, Boundary Drafting, and Topo QA layout presets can be resized and saved on this device.",
-    "Filter the table to selected, flagged, or visible records and configure the displayed coordinate/source columns.",
-    "Read-only integration status distinguishes ready, unavailable, and planned adapters without starting optional tools.",
-    "Elevation-copy approval, original source preservation, and stale-project checks remain required.",
-    "Globe branding and version-keyed release notes are retained. This candidate is unpublished; Windows installer and update acceptance are required before promotion."
+    "9.5.1-beta.1 adds read-only CAD Drawing & Geometry QA in BoundarySync.",
+    "Import DXF lines, polylines, arcs, circles, text and supported blocks with explicit units and coordinate-alignment confirmation.",
+    "Review layers, drawing entities, survey points, source hashes and unsupported-content reports in one workspace.",
+    "Flag straight-segment duplicates, zero-length segments, nearby gaps, crossings and self-intersections without modifying geometry.",
+    "Check an explicitly ordered open boundary chain against 0.10 ft; never snap, force closure or adjust record coordinates.",
+    "Export findings and closure evidence as CSV/JSON. Curves are approximated for display and intersection screening.",
+    "Globe branding and version-keyed release notes are retained; this candidate requires installed Windows acceptance before promotion."
 ]
 
 
