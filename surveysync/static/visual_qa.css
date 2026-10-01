@@ -3,7 +3,7 @@
 #visualQa>.card,#visualQa fieldset>.card{padding:14px 20px}#visualQa button:not(.primary){font:inherit;color:inherit;background:rgba(128,128,128,.1);border:1px solid var(--border,#888);border-radius:7px;padding:7px 10px;cursor:pointer}#visualQa button:disabled{opacity:.5;cursor:default}#visualQa #vqProject{margin-top:0;font-weight:600}#visualQa details>summary{cursor:pointer}
 
 #visualQa .survey-workspace{--workspace-left:210px;--workspace-right:340px;--workspace-bottom:280px;min-width:0;container-type:inline-size}
-#visualQa .workspace-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 16px}
+#visualQa .survey-workspace-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 16px}
 #visualQa .workspace-main{display:grid;grid-template-columns:var(--workspace-left) 10px minmax(260px,1fr) 10px var(--workspace-right);gap:0;min-width:0}
 #visualQa .workspace-main .card{padding:14px;margin-bottom:0}
 #visualQa .workspace-main>*{min-width:0}
@@ -32,3 +32,9 @@
   #visualQa .workspace-bottom{grid-template-columns:1fr}
   #visualQa .workspace-bottom>.card{min-height:0}
 }
+
+#visualQa .vq-scroll table{width:100%;border-collapse:collapse}
+#visualQa .vq-scroll th,#visualQa .vq-scroll td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line2,#64748b)}
+#visualQa input[type=checkbox],#visualQa .row input[type=checkbox]{min-width:0;width:auto;flex:none}
+#visualQa .vq-inline-choice{display:flex;align-items:center;gap:6px;margin:0}
+#visualQa .vq-inline-choice input{margin-top:0}
