@@ -173,6 +173,7 @@ SURVEYSYNC_RELEASE_NOTES = [
     "Control and robust level network adjustments stop if they do not converge; network diagnostics use bounded memory.",
     "Level recheck approval and active sight revision now commit with their review state in one project database transaction.",
     "Existing 9.4.8 level recheck requests are imported from their legacy JSON ledger on first access.",
+    "The SurveySync globe and theme branding remain consistent across the desktop shell and FieldBookSync module.",
     "This is an unpublished candidate based on Stable 9.4.8. Windows installer and representative field acceptance remain required."
 ]
 
