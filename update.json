@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-10-01T13:20:24Z",
+  "generated_utc": "2026-10-01T15:16:54Z",
   "publisher_tool": "GitHub Actions",
   "product": "SurveySync",
   "channels": {
@@ -18,35 +18,35 @@
       "required": false
     },
     "beta": {
-      "version": "9.4.9",
-      "release_id": "9.4.9-beta.1",
+      "version": "9.5.0",
+      "release_id": "9.5.0-beta.1",
       "channel": "beta",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.9/SurveySync_Setup_9.4.9-beta.1.exe",
-      "size_bytes": 9059381,
-      "sha256": "01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
-      "artifact_identity": "sha256:01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
-      "release_tag": "v9.4.9",
-      "release_notes": "Promoted to Stable by CP on 2026-10-01. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.9-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.9-beta.1 — survey calculation and review safeguards\n\nPopulated ControlSync and level-loop rows without a PointID now stop import with a source row number. Level files are parsed before source registration, so a rejected file does not create an orphan source record.\n\nControl network adjustment refuses to return coordinates when its iteration limit is reached without convergence. Robust level-network adjustment also refuses a nonconverged result and solves the final reported weights. Both network tools cap runs at 100 points and 1,000 observations. Their redundancy diagnostics use observation-wise calculations instead of square observation matrices to reduce memory use. These limits protect interactive work; larger networks need a dedicated sparse/batch solver.\n\nReviewed level recheck state is now held in project SQLite metadata. Existing 9.4.8 JSON requests are imported once, preserving the original file. Approval, active sight overlays, revision creation and review status commit in one database transaction. Ordinary level solve/activate routes share the recheck project lock. Truncated crew returns now receive a row-specific validation error.\n\nPublished and promoted to Stable on October 1, 2026. Windows installed acceptance passed: 694 tests passed, 1 skipped, all four workflows passed, and 24 lifecycle cycles passed. The original three-wire observations remain unchanged. Representative field-return validation remains pending. Attached QA/release files retain their pre-CI checkpoint text for artifact provenance; completed results are recorded in PR #20.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.0/SurveySync_Setup_9.5.0-beta.1.exe",
+      "size_bytes": 9067811,
+      "sha256": "bc5cef679e041aa9ac6473fd4feb1536bf5bb2810b64581d078654e43822ea19",
+      "artifact_identity": "sha256:bc5cef679e041aa9ac6473fd4feb1536bf5bb2810b64581d078654e43822ea19",
+      "release_tag": "v9.5.0",
+      "release_notes": "Promoted to Stable by CP on 2026-10-01. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.0-beta.1. No rebuild.\n\nAcceptance completed: all four workflows passed, including 24 lifecycle cycles and three update replacement paths. Bundled QA/release files preserve their pre-build checkpoint wording; PR #21 records final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.0-beta.1 — shared survey workspace\n\nPublished and promoted to Stable on October 1, 2026.\n\nVisual Survey QA now provides source visibility, a central project-coordinate map,\nlinked record selection and an evidence pane. Identify, Pan and Box select are\nexplicit tools. Multi-selection works without Ctrl and keeps duplicate PointIDs\nseparate by record UUID. Point-table scopes show all matching, flagged, selected or\nvisible records; coordinate/source columns can be configured for the session.\n\nResizable panes support keyboard arrow controls and three presets: Control Review,\nBoundary Drafting and Topo QA. Save layout remembers pane sizes on this device.\nNarrow windows stack the panels. Layout names do not introduce drafting tools.\n\nA read-only integration inventory reports exact installed package versions and\nseparates ready, unavailable and planned adapters. No new runtime package is added.\nOriginal evidence, reviewed correction-copy approval, full-scope reports and\nstale-project checks remain required. Multi-selection does not bulk-correct elevations.\n\nCAD geometry, drawing/snapping, geographic overview, GNSS and live instruments\nremain later phases. See docs/SURVEY_WORKSPACE.md for behavior and limits.",
       "required": false,
-      "published_utc": "2026-10-01T13:20:24Z"
+      "published_utc": "2026-10-01T15:16:53Z"
     },
     "stable": {
-      "version": "9.4.9",
-      "release_id": "9.4.9-beta.1",
+      "version": "9.5.0",
+      "release_id": "9.5.0-beta.1",
       "channel": "stable",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.9/SurveySync_Setup_9.4.9-beta.1.exe",
-      "size_bytes": 9059381,
-      "sha256": "01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
-      "artifact_identity": "sha256:01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
-      "release_tag": "v9.4.9",
-      "release_notes": "Promoted to Stable by CP on 2026-10-01. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.9-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.9-beta.1 — survey calculation and review safeguards\n\nPopulated ControlSync and level-loop rows without a PointID now stop import with a source row number. Level files are parsed before source registration, so a rejected file does not create an orphan source record.\n\nControl network adjustment refuses to return coordinates when its iteration limit is reached without convergence. Robust level-network adjustment also refuses a nonconverged result and solves the final reported weights. Both network tools cap runs at 100 points and 1,000 observations. Their redundancy diagnostics use observation-wise calculations instead of square observation matrices to reduce memory use. These limits protect interactive work; larger networks need a dedicated sparse/batch solver.\n\nReviewed level recheck state is now held in project SQLite metadata. Existing 9.4.8 JSON requests are imported once, preserving the original file. Approval, active sight overlays, revision creation and review status commit in one database transaction. Ordinary level solve/activate routes share the recheck project lock. Truncated crew returns now receive a row-specific validation error.\n\nPublished and promoted to Stable on October 1, 2026. Windows installed acceptance passed: 694 tests passed, 1 skipped, all four workflows passed, and 24 lifecycle cycles passed. The original three-wire observations remain unchanged. Representative field-return validation remains pending. Attached QA/release files retain their pre-CI checkpoint text for artifact provenance; completed results are recorded in PR #20.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.0/SurveySync_Setup_9.5.0-beta.1.exe",
+      "size_bytes": 9067811,
+      "sha256": "bc5cef679e041aa9ac6473fd4feb1536bf5bb2810b64581d078654e43822ea19",
+      "artifact_identity": "sha256:bc5cef679e041aa9ac6473fd4feb1536bf5bb2810b64581d078654e43822ea19",
+      "release_tag": "v9.5.0",
+      "release_notes": "Promoted to Stable by CP on 2026-10-01. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.0-beta.1. No rebuild.\n\nAcceptance completed: all four workflows passed, including 24 lifecycle cycles and three update replacement paths. Bundled QA/release files preserve their pre-build checkpoint wording; PR #21 records final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.0-beta.1 — shared survey workspace\n\nPublished and promoted to Stable on October 1, 2026.\n\nVisual Survey QA now provides source visibility, a central project-coordinate map,\nlinked record selection and an evidence pane. Identify, Pan and Box select are\nexplicit tools. Multi-selection works without Ctrl and keeps duplicate PointIDs\nseparate by record UUID. Point-table scopes show all matching, flagged, selected or\nvisible records; coordinate/source columns can be configured for the session.\n\nResizable panes support keyboard arrow controls and three presets: Control Review,\nBoundary Drafting and Topo QA. Save layout remembers pane sizes on this device.\nNarrow windows stack the panels. Layout names do not introduce drafting tools.\n\nA read-only integration inventory reports exact installed package versions and\nseparates ready, unavailable and planned adapters. No new runtime package is added.\nOriginal evidence, reviewed correction-copy approval, full-scope reports and\nstale-project checks remain required. Multi-selection does not bulk-correct elevations.\n\nCAD geometry, drawing/snapping, geographic overview, GNSS and live instruments\nremain later phases. See docs/SURVEY_WORKSPACE.md for behavior and limits.",
       "required": false,
-      "published_utc": "2026-10-01T13:20:24Z",
+      "published_utc": "2026-10-01T15:16:53Z",
       "promoted_from": "beta",
-      "promoted_utc": "2026-10-01T13:20:24Z",
-      "tested_channel_published_utc": "2026-10-01T13:20:24Z"
+      "promoted_utc": "2026-10-01T15:16:53Z",
+      "tested_channel_published_utc": "2026-10-01T15:16:53Z"
     }
   }
 }
