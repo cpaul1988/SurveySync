@@ -1,5 +1,9 @@
 # SurveySync Test Coverage
 
+## 9.4.9 reliability regressions
+
+`tests/test_import_row_integrity.py` rejects populated control and level rows missing IDs. `tests/test_v932_network_adjustment.py` and `tests/test_v932_level_network.py` reject nonconverged fits and oversized networks. `tests/test_level_rechecks.py` verifies legacy JSON request import, truncated return validation, and approval rollback when review-state persistence fails. Real field-book and installed Windows acceptance remain required.
+
 ## Automated suites
 
 The maintained Windows/source gate runs `tests/` plus selected FieldBookSync legacy regression suites. Major covered areas include project lifecycle, updater/version logic, Point Range, Trimble JobXML/JOB adapter contract, Ron control outputs, BRT topology/QC, Field Note Profile CRUD/training/bundles, the v9.1.3 book-profile workflow, v9.1.4 reliability/diagnostics behavior, and v9.2.0 active-revision management.

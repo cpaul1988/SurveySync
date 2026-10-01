@@ -1,5 +1,9 @@
 # SurveySync Release History
 
+## 9.4.9 BetaCandidate — survey calculation safeguards
+
+Rejects populated survey rows without PointIDs, fails closed on nonconverged network fits, bounds network inputs and diagnostic memory, and commits level recheck approval state with its solution in SQLite. Existing 9.4.8 recheck JSON requests migrate on first access. See `RELEASE_NOTES_v9_4_9.md` and `QA_REPORT_v9_4_9.md`.
+
 ## 9.4.8 BetaCandidate — level-loop rechecks
 
 Adds setup-level crew returns and reviewed three-wire closure revisions with original-observation preservation. See `RELEASE_NOTES_v9_4_8.md` and `docs/LEVEL_RECHECK_WORKFLOW.md`.
@@ -90,4 +94,3 @@ Standalone point import, editable code classifications, feature-chain range dete
 ## 9.3.1 BetaCandidate - support, recovery, inspection, and reviewed TopoSync QC
 
 Adds the integrated Support Center, interrupted-session detection/recovery, SHA-256-cached Survey Data Inspector with downstream workflow handoff, and TopoSync QC profiles/run history/candidate decisions/advisory calibration. The release hardening pass also fixes normal-start update initialization, prevents file-association maintenance commands from creating false recovery notices, and refreshes project CRS/unit context on Inspector cache hits. See `RELEASE_NOTES_v9_3_1.md` and `QA_REPORT_v9_3_1.md`.
-

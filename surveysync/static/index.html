@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#082b52">
-  <title>SurveySync v9.4.8-beta.1</title>
+  <title>SurveySync v9.4.9-beta.1</title>
   <link rel="icon" type="image/svg+xml" href="/surveysync-static/surveysync_globe.svg">
   <script>
     try {
@@ -18,11 +18,11 @@
       document.documentElement.dataset.accent=accent;
     } catch(_) {}
   </script>
-  <link rel="stylesheet" href="/surveysync-static/styles.css?v=9.4.8-beta.1">
-  <link rel="stylesheet" href="/surveysync-static/fieldbook-standard.css?v=9.4.8-beta.1">
-  <link rel="stylesheet" href="/surveysync-static/visual_qa.css?v=9.4.8-beta.1">
-  <link rel="stylesheet" href="/surveysync-static/review_workflow.css?v=9.4.8-beta.1">
-  <link rel="stylesheet" href="/surveysync-static/theme-branding.css?v=9.4.8-beta.1">
+  <link rel="stylesheet" href="/surveysync-static/styles.css?v=9.4.9-beta.1">
+  <link rel="stylesheet" href="/surveysync-static/fieldbook-standard.css?v=9.4.9-beta.1">
+  <link rel="stylesheet" href="/surveysync-static/visual_qa.css?v=9.4.9-beta.1">
+  <link rel="stylesheet" href="/surveysync-static/review_workflow.css?v=9.4.9-beta.1">
+  <link rel="stylesheet" href="/surveysync-static/theme-branding.css?v=9.4.9-beta.1">
 </head>
 <body class="surveysync-workspace" data-active-view="dashboard">
   <div id="productSplash" class="product-splash" aria-label="SurveySync starting">
@@ -137,7 +137,7 @@
       <nav id="moduleNav" class="module-nav" aria-label="Current module tools"></nav>
       <div class="sidebar-bottom">
         <div class="shared-foundation"><b>Shared foundation</b><span>One project · one point database · one CRS · one audit trail</span></div>
-        <span>SurveySync v9.4.8-beta.1</span>
+        <span>SurveySync v9.4.9-beta.1</span>
       </div>
     </aside>
 
@@ -171,7 +171,7 @@
             <article class="workflow-step card"><div class="workflow-step-top"><span>03</span><img src="/surveysync-static/workflow-icons/07-point-database.svg" alt=""></div><h3>Map &amp; coordinates</h3><p>Manage spatial data, coordinate systems, and connections to GIS workflows.</p><button class="secondary" data-jump-module="GISSync">Open GISSync</button></article>
             <article class="workflow-step card"><div class="workflow-step-top"><span>04</span><img src="/surveysync-static/workflow-icons/12-reports-export.svg" alt=""></div><h3>Reports &amp; delivery</h3><p>Prepare point ranges, survey reports, and reviewable project deliverables.</p><button class="secondary" data-jump-module="ReportSync">Open ReportSync</button></article>
           </div>
-          <div id="whatsNewCard" class="card whats-new-card"><div class="card-title"><div><span class="eyebrow">LATEST UPDATE</span><h3 id="whatsNewTitle">What's new in SurveySync</h3></div><span id="whatsNewVersion" class="brand-badge">v9.4.8-beta.1</span></div><ul id="whatsNewList" class="release-list"><li>Loading release notes...</li></ul><div class="row"><button id="openReleaseNotes" class="secondary">View Release Notes</button><button id="openFeedbackWizardHome" class="secondary">Send Feedback</button></div></div>
+          <div id="whatsNewCard" class="card whats-new-card"><div class="card-title"><div><span class="eyebrow">LATEST UPDATE</span><h3 id="whatsNewTitle">What's new in SurveySync</h3></div><span id="whatsNewVersion" class="brand-badge">v9.4.9-beta.1</span></div><ul id="whatsNewList" class="release-list"><li>Loading release notes...</li></ul><div class="row"><button id="openReleaseNotes" class="secondary">View Release Notes</button><button id="openFeedbackWizardHome" class="secondary">Send Feedback</button></div></div>
           <div class="card"><div class="card-title"><div><span class="eyebrow">SUPPORT & UPDATES</span><h3>Support &amp; updates</h3></div><span id="startupUpdateBadge" class="brand-badge">Checking…</span></div><p class="muted">SurveySync checks for updates quietly and keeps feedback available even when no project is open.</p><div class="row"><button id="homeCheckUpdate" class="primary">Check & Update</button><button id="homeFeedback" class="secondary">Send Feedback / Report Problem</button></div><div id="startupUpdateMsg" class="muted"></div></div>
           <div class="grid2"><div class="card"><div class="card-title"><h3>Current project</h3><button class="link-btn" data-command="project-info">Details</button></div><div id="projectSummary" class="muted">Create or open a SurveySync project.</div></div><div class="card"><h3>v9 shared foundation</h3><div class="checks"><div>✓ User-selected project folders</div><div>✓ Immutable source registry</div><div>✓ Shared point/control database</div><div>✓ CRS + horizontal/vertical units</div><div>✓ Project-wide audit + QA</div><div>✓ Developer / Beta / Production</div><div>✓ FieldBookSync migration</div><div>✓ SurveySync-owned updater</div></div></div></div>
         </section>
@@ -247,7 +247,7 @@
 
             <div class="card-sub"><div class="card-title"><div><h4>Misnumber Review</h4><p class="muted">SurveySync preserves the original shot label and shows spatially suspected misnumbers for human confirmation, rejection, or reassignment.</p></div><span id="controlMisnumberBadge" class="brand-badge">0 REVIEW</span></div><div id="controlMisnumberReview"></div></div>
 
-            <details class="card-sub"><summary><b>Network Least-Squares Adjustment (9.4.8-beta.1 Beta)</b></summary>
+            <details class="card-sub"><summary><b>Network Least-Squares Adjustment (9.4.9-beta.1 Beta)</b></summary>
               <p class="muted">Separate conventional-network workflow. Ronald's best-three control method is unchanged. Enter approximate/fixed coordinates and weighted distance/angle observations; SurveySync reports adjusted coordinates, residuals, redundancy, and 95% error ellipses.</p>
               <div class="notice"><b>Observation sigma units:</b> distance = project linear units; azimuth/direction/angle = degrees. Residuals marked REVIEW are advisory and are never deleted automatically.</div>
               <div class="grid2">
@@ -290,14 +290,14 @@ distance,C,P,80.622577483,0.01</textarea></label>
               <div class="card-sub"><h4>Alignment Station / Offset</h4><p class="muted">Positive offset is LEFT looking ahead along the selected alignment segment.</p><label>Alignment vertices (N,E per line)<textarea id="alignmentPoints" rows="6" placeholder="1000,1000&#10;1100,1000&#10;1200,1050"></textarea></label><div class="formgrid"><label>Target N<input id="offsetN" type="number" step="any"></label><label>Target E<input id="offsetE" type="number" step="any"></label><label>Start Station<input id="alignmentStartStation" type="number" step="any" value="0"></label></div><button id="runStationOffset" class="secondary">Compute Station / Offset</button><pre id="stationOffsetResult"></pre></div>
             </div>
             <div class="card-sub"><h4>Simple Curve Staking</h4><p class="muted">Generate PC, full-station interval points, and PT coordinates from a simple circular curve. Azimuths are clockwise from north.</p><div class="formgrid"><label>PC Northing<input id="stakePcN" type="number" step="any" value="1000"></label><label>PC Easting<input id="stakePcE" type="number" step="any" value="1000"></label><label>Tangent Azimuth °<input id="stakeAz" type="number" step="any" value="0"></label><label>Radius<input id="stakeR" type="number" step="any" value="500"></label><label>Delta °<input id="stakeDelta" type="number" step="any" value="30"></label><label>Direction<select id="stakeDirection"><option value="LEFT">Left</option><option value="RIGHT">Right</option></select></label><label>Stake Interval<input id="stakeInterval" type="number" step="any" value="50"></label><label>PC Station<input id="stakeStartStation" type="number" step="any" value="1000"></label></div><button id="runCurveStake" class="primary">Generate Curve Stakes</button><pre id="curveStakeResult"></pre></div>
-            <div class="card-sub"><h4>Vertical Parabolic Curve <span class="brand-badge">9.4.8-beta.1 Beta</span></h4><p class="muted">Equal-tangent vertical curve using percent grades. Returns BVC/EVC, K-value, high/low point, and optional station/elevation samples.</p><div class="formgrid"><label>PVI Station<input id="verticalCurvePviStation" type="number" step="any" value="1000"></label><label>PVI Elevation<input id="verticalCurvePviElevation" type="number" step="any" value="100"></label><label>Grade In %<input id="verticalCurveG1" type="number" step="any" value="2"></label><label>Grade Out %<input id="verticalCurveG2" type="number" step="any" value="-2"></label><label>Curve Length<input id="verticalCurveLength" type="number" step="any" value="200"></label><label>Sample Interval<input id="verticalCurveInterval" type="number" step="any" value="50"></label></div><button id="runVerticalCurve" class="primary">Solve Vertical Curve</button><pre id="verticalCurveResult"></pre></div>
-            <details class="card-sub"><summary><b>Cross Sections / Earthwork / Slope Catch <span class="brand-badge">9.4.8-beta.1 Beta</span></b></summary><p class="muted">Ground uses Offset,Elevation. Design uses Offset,RelativeElevation from design centerline. Areas are square project units and volumes are cubic project units.</p><div class="grid2"><label>Ground profile<textarea id="crossSectionGround" rows="6">-10,102
+            <div class="card-sub"><h4>Vertical Parabolic Curve <span class="brand-badge">9.4.9-beta.1 Beta</span></h4><p class="muted">Equal-tangent vertical curve using percent grades. Returns BVC/EVC, K-value, high/low point, and optional station/elevation samples.</p><div class="formgrid"><label>PVI Station<input id="verticalCurvePviStation" type="number" step="any" value="1000"></label><label>PVI Elevation<input id="verticalCurvePviElevation" type="number" step="any" value="100"></label><label>Grade In %<input id="verticalCurveG1" type="number" step="any" value="2"></label><label>Grade Out %<input id="verticalCurveG2" type="number" step="any" value="-2"></label><label>Curve Length<input id="verticalCurveLength" type="number" step="any" value="200"></label><label>Sample Interval<input id="verticalCurveInterval" type="number" step="any" value="50"></label></div><button id="runVerticalCurve" class="primary">Solve Vertical Curve</button><pre id="verticalCurveResult"></pre></div>
+            <details class="card-sub"><summary><b>Cross Sections / Earthwork / Slope Catch <span class="brand-badge">9.4.9-beta.1 Beta</span></b></summary><p class="muted">Ground uses Offset,Elevation. Design uses Offset,RelativeElevation from design centerline. Areas are square project units and volumes are cubic project units.</p><div class="grid2"><label>Ground profile<textarea id="crossSectionGround" rows="6">-10,102
 0,102
 10,102</textarea></label><label>Design template<textarea id="crossSectionDesign" rows="6">-10,0
 0,0
 10,0</textarea></label></div><div class="formgrid"><label>Design CL Elevation<input id="crossSectionCl" type="number" step="any" value="100"></label><label>Slope Catch Side<select id="slopeCatchSide"><option value="RIGHT">Right</option><option value="LEFT">Left</option></select></label></div><div class="row"><button id="runCrossSection" class="secondary">Compute Cut / Fill Area</button><button id="runSlopeCatch" class="secondary">Find Slope Catch</button></div><pre id="crossSectionResult"></pre><hr><label>Earthwork sections (Station,CutArea,FillArea)<textarea id="earthworkSections" rows="5">1000,40,0
 1100,20,10</textarea></label><button id="runEarthwork" class="primary">Compute Average-End-Area Volumes</button><pre id="earthworkResult"></pre></details>
-            <details class="card-sub" open><summary><b>Horizontal Alignment / LandXML <span class="brand-badge">9.4.8-beta.1 Beta</span></b></summary><p class="muted">Continuous tangent/circular-curve geometry. Azimuths are clockwise from north; station offsets are LEFT-positive.</p><div class="formgrid"><label>Alignment name<input id="horizontalAlignmentName" value="CL-1"></label><label>Start N<input id="horizontalAlignmentStartN" type="number" step="any" value="0"></label><label>Start E<input id="horizontalAlignmentStartE" type="number" step="any" value="0"></label><label>Start Azimuth °<input id="horizontalAlignmentStartAz" type="number" step="any" value="0"></label><label>Start Station<input id="horizontalAlignmentStartSta" type="number" step="any" value="1000"></label></div><label>Elements<textarea id="horizontalAlignmentElements" rows="7">tangent,100
+            <details class="card-sub" open><summary><b>Horizontal Alignment / LandXML <span class="brand-badge">9.4.9-beta.1 Beta</span></b></summary><p class="muted">Continuous tangent/circular-curve geometry. Azimuths are clockwise from north; station offsets are LEFT-positive.</p><div class="formgrid"><label>Alignment name<input id="horizontalAlignmentName" value="CL-1"></label><label>Start N<input id="horizontalAlignmentStartN" type="number" step="any" value="0"></label><label>Start E<input id="horizontalAlignmentStartE" type="number" step="any" value="0"></label><label>Start Azimuth °<input id="horizontalAlignmentStartAz" type="number" step="any" value="0"></label><label>Start Station<input id="horizontalAlignmentStartSta" type="number" step="any" value="1000"></label></div><label>Elements<textarea id="horizontalAlignmentElements" rows="7">tangent,100
 curve,50,90,RIGHT
 tangent,25</textarea></label><p class="muted">Syntax: <b>tangent,length</b> or <b>curve,radius,deltaDegrees,LEFT|RIGHT</b>.</p><div class="row"><button id="runAlignmentBuild" class="primary">Build Alignment</button></div><div class="grid2 compact"><div><h4>Point at Station</h4><label>Station<input id="alignmentEvalStation" type="number" step="any" value="1139.269908"></label><button id="runAlignmentPoint" class="secondary">Evaluate</button></div><div><h4>Coordinate → Station / Offset</h4><div class="formgrid"><label>Target N<input id="alignmentInverseN" type="number" step="any" value="135.355339"></label><label>Target E<input id="alignmentInverseE" type="number" step="any" value="14.644661"></label></div><button id="runAlignmentInverse" class="secondary">Inverse to Alignment</button></div></div><div class="grid2 compact"><div><h4>Stake Station / Offset</h4><div class="formgrid"><label>Station<input id="alignmentStakeStation" type="number" step="any" value="1050"></label><label>LEFT + Offset<input id="alignmentStakeOffset" type="number" step="any" value="10"></label></div><button id="runAlignmentStake" class="secondary">Compute Stake Point</button></div><div><h4>LandXML 1.2</h4><label>Import file<div class="row"><input id="landxmlPath" class="grow" placeholder="C:\...\alignment.xml"><button id="landxmlBrowse" class="secondary" type="button">Browse…</button></div></label><div class="row"><button id="landxmlImport" class="secondary">Import + Preserve Source</button></div><label>Export path (blank = project Exports/LandXML)<input id="landxmlExportPath" placeholder="C:\...\SurveySync_LandXML.xml"></label><button id="landxmlExport" class="secondary">Export Current Alignment</button></div></div><pre id="horizontalAlignmentResult"></pre></details>
           </div>
@@ -349,7 +349,7 @@ tangent,25</textarea></label><p class="muted">Syntax: <b>tangent,length</b> or <
             </div>
             <div class="card"><span class="eyebrow">CONTROLSYNC · TRAVERSE</span><h3>Open / Closed Traverse QC</h3><p class="muted">Bowditch and Transit adjustments preserve original observations and store every solution as a new revision.</p><label>Traverse CSV/TXT path<input id="traversePath" data-browse="file" placeholder="C:\...\traverse.csv"></label><div class="formgrid"><label>Run name<input id="traverseName" value="Traverse"></label><label>Start N<input id="travStartN" type="number" step="0.001"></label><label>Start E<input id="travStartE" type="number" step="0.001"></label><label>Known end N<input id="travEndN" type="number" step="0.001"></label><label>Known end E<input id="travEndE" type="number" step="0.001"></label><label>Adjustment<select id="traverseMethod"><option value="bowditch">Bowditch</option><option value="transit">Transit</option><option value="none">No adjustment</option></select></label></div><div class="row"><button id="traverseImport" class="secondary">Import Traverse</button><button id="traverseSolve" class="primary">Solve Selected Run</button></div><label>Run ID<input id="traverseRunId"></label><pre id="traverseResult"></pre></div>
           </div>
-          <div class="card"><span class="eyebrow">CONTROLSYNC · LEVEL NETWORK</span><h3>Weighted Benchmark Network Adjustment <span class="brand-badge">9.4.8-beta.1 Beta</span></h3><p class="muted">Separate least-squares workflow for interconnected benchmarks. It does not replace or alter the Ron three-wire workbook profile.</p><div class="grid2"><label>Benchmarks (PointID,Elevation,Fixed)<textarea id="levelNetworkPoints" rows="7">BM-A,100.000,true
+          <div class="card"><span class="eyebrow">CONTROLSYNC · LEVEL NETWORK</span><h3>Weighted Benchmark Network Adjustment <span class="brand-badge">9.4.9-beta.1 Beta</span></h3><p class="muted">Separate least-squares workflow for interconnected benchmarks. It does not replace or alter the Ron three-wire workbook profile.</p><div class="grid2"><label>Benchmarks (PointID,Elevation,Fixed)<textarea id="levelNetworkPoints" rows="7">BM-A,100.000,true
 BM-B,101.100,false
 BM-C,101.900,false</textarea></label><label>ΔElevation observations (From,To,Delta,Sigma)<textarea id="levelNetworkObservations" rows="7">BM-A,BM-B,1.000,0.01
 BM-B,BM-C,1.020,0.01
@@ -398,21 +398,21 @@ BM-A,BM-C,2.010,0.01</textarea></label></div><div class="formgrid"><label><input
           <div class="card"><div class="card-title"><div><span class="eyebrow">SUPPORT</span><h3>SurveySync Feedback Wizard</h3></div><span class="brand-badge">No project required</span></div><p class="muted">Report a bug, request a feature, suggest an improvement, or ask a question at any time. A SurveySync project does not need to be open. Reports are saved locally first before shared Intake sync is attempted.</p><div class="row"><button id="openFeedbackWizard" class="primary">Open Feedback Wizard</button><button id="openFeedbackLog" class="secondary">Feedback Log</button></div><div id="fbResult" class="muted"></div></div>
         </section>
       </div>
-      <footer class="desktop-statusbar"><span id="workspaceStatusProject">Project: No project open</span><span class="status-spacer"></span><span id="workspaceStatusTheme">Theme: FieldBook Classic</span><span id="workspaceBuild">SurveySync v9.4.8-beta.1</span></footer>
+      <footer class="desktop-statusbar"><span id="workspaceStatusProject">Project: No project open</span><span class="status-spacer"></span><span id="workspaceStatusTheme">Theme: FieldBook Classic</span><span id="workspaceBuild">SurveySync v9.4.9-beta.1</span></footer>
     </main>
   </div>
 </div>
 
 <div id="modal" class="modal hidden"><div class="dialog"><button id="modalClose" class="x">×</button><div id="modalBody"></div></div></div>
 <div id="toast" class="toast hidden"></div>
-<script src="/surveysync-static/visual_qa.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/review_workflow.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/app.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/control_reshoots.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/level_rechecks.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/support_center.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/data_inspector.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/topo_qc.js?v=9.4.8-beta.1"></script>
-<script src="/surveysync-static/desktop_workflows.js?v=9.4.8-beta.1"></script>
+<script src="/surveysync-static/visual_qa.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/review_workflow.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/app.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/control_reshoots.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/level_rechecks.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/support_center.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/data_inspector.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/topo_qc.js?v=9.4.9-beta.1"></script>
+<script src="/surveysync-static/desktop_workflows.js?v=9.4.9-beta.1"></script>
 </body>
 </html>

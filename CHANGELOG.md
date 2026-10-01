@@ -172,3 +172,9 @@ This is the canonical human-readable release history. Detailed per-build QA evid
 
 - Added a crew recheck and reviewer approval loop for Ron’s three-wire level setups, with whole-loop closure preview, sight-level provenance and an approved evidence ZIP.
 - Added schema 7 for immutable original readings and approved BS/FS overlays, including shared turning-point rows.
+## 9.4.9-beta.1 — survey calculation safeguards
+
+- Reject measured control and level rows missing PointIDs, with source row numbers.
+- Require convergence for control and robust level network results; bound input size and compute redundancy without observation-square matrices.
+- Persist level recheck review state in SQLite with the approved revision, importing 9.4.8 JSON requests once.
+- Serialize level solve/activation with rechecks and validate truncated crew returns.

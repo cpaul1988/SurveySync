@@ -69,6 +69,8 @@ def parse_level_csv(path: Path) -> list[dict]:
     for line_no, row in enumerate(reader, start=2):
         point_id = str(row.get(fm["point_id"], "") or "").strip()
         if not point_id:
+            if any(str(value or "").strip() for value in row.values() if isinstance(value, str)):
+                raise ValueError(f"Level row {line_no} has data but no PointID.")
             continue
         try:
             item = {"point_id": point_id, "source_row": line_no}

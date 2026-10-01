@@ -168,13 +168,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.8-beta.1 adds a reviewed level-loop recheck for Ron's three-wire workflow.",
-    "Inspect setup sights, wire checks, distance balance and closure before issuing a crew packet.",
-    "Stage returned three-wire readings and preview the entire loop with a job-specific closure tolerance.",
-    "Approve a passing return to activate a new level revision while preserving original readings and shared turning-point sights.",
-    "Download an audited, hash-verified level review package with the before/after closure and source evidence.",
-    "The SurveySync globe and existing theme branding remain part of the desktop shell; read these release notes before field testing.",
-    "This is an unpublished candidate based on Stable 9.4.7. Windows installer and representative field acceptance remain required."
+    "9.4.9-beta.1 repairs survey-row validation, network adjustment limits, and reviewed level rechecks.",
+    "Populated level and control rows without PointIDs now stop import with the source row number.",
+    "Control and robust level network adjustments stop if they do not converge; network diagnostics use bounded memory.",
+    "Level recheck approval and active sight revision now commit with their review state in one project database transaction.",
+    "Existing 9.4.8 level recheck requests are imported from their legacy JSON ledger on first access.",
+    "The SurveySync globe and theme branding remain consistent across the desktop shell and FieldBookSync module; read these release notes before field testing.",
+    "This is an unpublished candidate based on Stable 9.4.8. Windows installer and representative field acceptance remain required."
 ]
 
 

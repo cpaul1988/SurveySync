@@ -14,6 +14,9 @@ import sys
 import time
 import urllib.request
 
+import psutil
+from pywinauto import Desktop
+
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'repair-evidence'
 BASE = 'http://127.0.0.1:8765'
@@ -30,6 +33,16 @@ def port_open():
     with socket.socket() as sock:
         sock.settimeout(.2)
         return sock.connect_ex(('127.0.0.1',8765)) == 0
+
+
+def native_window_ready(process):
+    try:
+        owned = psutil.Process(process.pid)
+        pids = {owned.pid, *(child.pid for child in owned.children(recursive=True))}
+        return any(window.process_id() in pids for window in Desktop(backend='win32').windows(
+            title_re=r'SurveySync.*', visible_only=True))
+    except psutil.Error:
+        return False
 
 
 def main():
@@ -56,7 +69,8 @@ def main():
             "    faulthandler.dump_traceback_later(10, repeat=True, file=_ss_trace)\n")
     compile(code, 'sitecustomize.py', 'exec')
     (hook/'sitecustomize.py').write_text(code, encoding='utf-8')
-    env = dict(os.environ, PYTHONPATH=str(hook), SURVEYSYNC_CONFIG_ROOT=str(state/'config'), SURVEYSYNC_FIELD_ROOT=str(state/'field'))
+    env = dict(os.environ, PYTHONPATH=str(hook), SURVEYSYNC_CONFIG_ROOT=str(state/'config'),
+               SURVEYSYNC_FIELD_ROOT=str(state/'field'), WEBVIEW2_USER_DATA_FOLDER=str(state/'webview'))
     results = {'status':'FAIL','cycles':[], 'installer_scope':'unreleased repair candidate'}
     project_folder = None
     process = None
@@ -77,6 +91,16 @@ def main():
                     assert process.poll() is None, 'Native launcher exited before startup'
                     time.sleep(.3)
             else: raise TimeoutError('Installed application did not become ready')
+            # The HTTP service starts before WebView2 has a usable native window.
+            # This acceptance exercises an established desktop session; the
+            # separate lifecycle gate covers exit during early startup.
+            deadline=time.monotonic()+60
+            while time.monotonic()<deadline and not native_window_ready(process):
+                assert process.poll() is None, 'Native launcher exited before its window appeared'
+                time.sleep(.1)
+            else:
+                if not native_window_ready(process):
+                    raise TimeoutError('Installed native window did not appear')
             if cycle==1:
                 request('/api/v9/project/create', {'parent_folder':str(state/'projects'), 'name':'NativeRepairQA', 'crs':'EPSG:2278'})
                 project_folder=next((state/'projects').rglob('survey_sync_project.json')).parent

@@ -138,6 +138,21 @@ def test_network_adjustment_rejects_rank_deficient_geometry():
         adjust_control_network(points=points, observations=observations)
 
 
+def test_nonconverged_network_cannot_return_coordinates():
+    points = [{"point_id": "A", "northing": 0, "easting": 0, "fixed": True},
+              {"point_id": "B", "northing": 10000, "easting": 10000, "fixed": False}]
+    observations = [{"kind": "distance", "from_id": "A", "to_id": "B", "value": 100, "sigma": .01},
+                    {"kind": "azimuth", "from_id": "A", "to_id": "B", "value": 90, "sigma": .01}]
+    with pytest.raises(ValueError, match="did not converge"):
+        adjust_control_network(points=points, observations=observations, max_iterations=1)
+
+
+def test_network_size_limit_before_dense_jacobian():
+    points, observations = _distance_reference_case()
+    with pytest.raises(ValueError, match="1,000 observations"):
+        adjust_control_network(points=points, observations=observations * 334)
+
+
 def test_network_adjustment_api_is_audited(tmp_path, monkeypatch):
     monkeypatch.setenv("SURVEYSYNC_CONFIG_ROOT", str(tmp_path / "cfg"))
     from fieldbook_sync import app as field_app

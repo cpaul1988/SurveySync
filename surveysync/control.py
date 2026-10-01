@@ -93,6 +93,8 @@ def parse_control_csv(path: Path, mapping: dict | None = None) -> list[dict]:
         # named control_id. Normalize either representation to the base control.
         cid=canonical_control_id(explicit_control or source_point, source_point)
         if not cid:
+            if any(str(value or "").strip() for value in row.values() if isinstance(value, str)):
+                raise ValueError(f"Control row {idx} has data but no control or PointID.")
             continue
         # If the full shot label arrived in control_id (100A/100B/100C), keep
         # that original label as the observation PointID while grouping under 100.
