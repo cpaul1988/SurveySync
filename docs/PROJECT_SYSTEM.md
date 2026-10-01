@@ -40,3 +40,6 @@ The chain is bound to a persistent per-project `chain_id`, preventing a valid ch
 ## Schema 7: level recheck provenance
 
 Approved level recheck sights are append-only records in `level_recheck_sights`; one sight per run/sequence/side is active. The original `level_observations` rows remain unchanged. Opening a schema-6 project creates a migration backup before adding the new table. A new level solution records the active sight IDs in its settings for revision provenance.
+# 9.4.9 level recheck persistence
+
+Level recheck requests created under 9.4.8 in `Modules/ControlSync/level_rechecks.json` are imported on first access into the project database's `project_metadata` row named `level_rechecks`. The original JSON remains as legacy evidence. Subsequent changes use the database row, allowing approval state, approved sight overlays and the active level solution to commit or roll back together.

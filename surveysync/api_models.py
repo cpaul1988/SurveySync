@@ -243,8 +243,8 @@ class NetworkObservationIn(BaseModel):
 
 
 class ControlNetworkAdjustmentIn(BaseModel):
-    points: list[NetworkPointIn] = Field(min_length=2)
-    observations: list[NetworkObservationIn] = Field(min_length=1)
+    points: list[NetworkPointIn] = Field(min_length=2, max_length=100)
+    observations: list[NetworkObservationIn] = Field(min_length=1, max_length=1000)
     max_iterations: int = Field(default=20, ge=1, le=100)
     tolerance: float = Field(default=1e-7, gt=0)
     robust: bool = False
@@ -266,8 +266,8 @@ class LevelNetworkObservationIn(BaseModel):
 
 
 class LevelNetworkAdjustmentIn(BaseModel):
-    points: list[LevelNetworkPointIn] = Field(min_length=2)
-    observations: list[LevelNetworkObservationIn] = Field(min_length=1)
+    points: list[LevelNetworkPointIn] = Field(min_length=2, max_length=100)
+    observations: list[LevelNetworkObservationIn] = Field(min_length=1, max_length=1000)
     robust: bool = False
     huber_k: float = Field(default=1.5, gt=0)
     review_threshold: float = Field(default=3.0, gt=0)

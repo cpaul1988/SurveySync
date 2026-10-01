@@ -53,6 +53,8 @@ def adjust_level_network(
         raise ValueError("At least one level-network point is required.")
     if not observations:
         raise ValueError("At least one level observation is required.")
+    if len(points) > 100 or len(observations) > 1000:
+        raise ValueError("Level network adjustment is limited to 100 points and 1,000 observations per run.")
     huber_k = _positive("Huber k", huber_k)
     review_threshold = _positive("Review threshold", review_threshold)
     max_iterations = int(max_iterations)
@@ -128,7 +130,10 @@ def adjust_level_network(
     robust_weights = np.ones(len(normalized), dtype=float)
     solution = np.zeros(len(unknown), dtype=float)
     iterations = 0
+    converged = not robust
+    solved_weights = robust_weights.copy()
     for iterations in range(1, max_iterations + 1):
+        solved_weights = robust_weights.copy()
         weights = base_weights * robust_weights
         sqrt_w = np.sqrt(weights)
         aw = a * sqrt_w[:, None]
@@ -144,9 +149,17 @@ def adjust_level_network(
         next_weights = _huber_weights(normalized_residuals, huber_k)
         if float(np.max(np.abs(next_weights - robust_weights))) <= 1e-8:
             robust_weights = next_weights
+            converged = True
             break
         robust_weights = next_weights
 
+    if not converged:
+        raise ValueError("Robust level network did not converge; review observations or increase iterations.")
+    if robust and not np.array_equal(solved_weights, robust_weights):
+        # The final weights must describe the solution that is returned, even
+        # when an iteration limit is reached before the robust fit converges.
+        sqrt_w = np.sqrt(base_weights * robust_weights)
+        solution, *_ = np.linalg.lstsq(a * sqrt_w[:, None], l * sqrt_w, rcond=None)
     weights = base_weights * robust_weights
     normal = a.T @ (weights[:, None] * a)
     if int(np.linalg.matrix_rank(normal)) < len(unknown):
@@ -159,8 +172,8 @@ def adjust_level_network(
     variance_factor = weighted_ss / dof if dof > 0 else 1.0
     covariance = qxx * variance_factor
 
-    h = a @ qxx @ (a.T * weights)
-    redundancy = np.clip(1.0 - np.diag(h), 0.0, 1.0)
+    leverage = np.einsum("ij,jk,ik->i", a, qxx, a) * weights
+    redundancy = np.clip(1.0 - leverage, 0.0, 1.0)
 
     adjusted_points: list[dict[str, Any]] = []
     for point_id in order:
@@ -206,6 +219,7 @@ def adjust_level_network(
     return {
         "method": "weighted_level_network",
         "iterations": iterations,
+        "converged": converged,
         "robust": bool(robust),
         "huber_k": huber_k,
         "point_count": len(order),

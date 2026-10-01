@@ -8,6 +8,7 @@ from contextlib import closing
 from zipfile import ZipFile
 
 import pytest
+import surveysync.level_rechecks as level_rechecks
 
 from surveysync.leveling import import_run, solve_saved_run, solution_history, _load_observations
 from surveysync.level_rechecks import create_request, request_package, stage_return, review_return, approved_package, list_requests
@@ -157,3 +158,38 @@ def test_existing_level_project_migrates_with_backup(tmp_path):
     assert solution_history(reopened.db, run_id)[0]["revision"] == 1
     with reopened.db.connect() as conn:
         assert conn.execute("SELECT COUNT(*) FROM level_recheck_sights").fetchone()[0] == 0
+
+
+def test_approval_state_failure_rolls_back_solution_and_sights(tmp_path, monkeypatch):
+    project, run_id, original = setup(tmp_path)
+    request = create_request(project, run_id, 2, .02, "Ron", "Reobserve the second setup")
+    stage_return(project, request["id"], return_file(tmp_path, request))
+    def failed_save(*_args):
+        raise OSError("state write failed")
+    with monkeypatch.context() as patch:
+        patch.setattr(level_rechecks, "_save", failed_save)
+        with pytest.raises(OSError, match="state write failed"):
+            review_return(project, request["id"], "APPROVE", "Ron", "Readings verified")
+    assert list_requests(project)[0]["status"] == "STAGED"
+    assert solution_history(project.db, run_id)[0]["solution_id"] == original["solution_id"]
+    with project.db.connect() as conn:
+        assert conn.execute("SELECT COUNT(*) FROM level_recheck_sights").fetchone()[0] == 0
+
+
+def test_legacy_json_rechecks_are_imported_once_into_transactional_state(tmp_path):
+    project, run_id, _ = setup(tmp_path)
+    path = project.paths.module_root / "ControlSync" / "level_rechecks.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"requests": [{"id": "legacy", "status": "REJECTED"}]}))
+    assert list_requests(project)[0]["id"] == "legacy"
+    path.write_text(json.dumps({"requests": []}))
+    assert list_requests(project)[0]["id"] == "legacy"
+
+
+def test_truncated_return_reports_invalid_row(tmp_path):
+    project, run_id, _ = setup(tmp_path)
+    request = create_request(project, run_id, 2, .02, "Ron", "Reobserve the second setup")
+    path = tmp_path / "short.csv"
+    path.write_text("SequenceNo,PointID,Side,Upper,Middle,Lower\n2,BM,BS,1\n")
+    with pytest.raises(ValueError, match="row 2 is missing"):
+        stage_return(project, request["id"], path)

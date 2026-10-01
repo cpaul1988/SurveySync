@@ -118,22 +118,23 @@ def level_extract_fieldbook():
 def level_import(payload: LevelImportIn):
     from . import router as context
 
-    p = context.require_project()
-    path = Path(payload.file_path).expanduser().resolve()
     try:
-        src = p.import_source(path, "ControlSync", "Level book/level loop observations")
-        obs = parse_level_csv(path)
-        run_id = import_level_run(
-            p.db,
-            payload.name,
-            obs,
-            source_id=src["source_id"],
-            start_elevation=payload.start_elevation,
-            known_end_elevation=payload.known_end_elevation,
-            start_point=payload.start_point,
-            end_point=payload.end_point,
-            adjustment_method=payload.adjustment_method,
-        )
+        with context.project_lock:
+            p = context.require_project()
+            path = Path(payload.file_path).expanduser().resolve()
+            obs = parse_level_csv(path)
+            src = p.import_source(path, "ControlSync", "Level book/level loop observations")
+            run_id = import_level_run(
+                p.db,
+                payload.name,
+                obs,
+                source_id=src["source_id"],
+                start_elevation=payload.start_elevation,
+                known_end_elevation=payload.known_end_elevation,
+                start_point=payload.start_point,
+                end_point=payload.end_point,
+                adjustment_method=payload.adjustment_method,
+            )
         return {"run_id": run_id, "observation_count": len(obs), "source_id": src["source_id"]}
     except Exception as exc:
         raise HTTPException(400, str(exc))
@@ -151,19 +152,20 @@ def level_solve(payload: LevelSolveIn):
     from . import router as context
 
     try:
-        return solve_level_saved(
-            context.require_project().db,
-            payload.run_id,
-            start_elevation=payload.start_elevation,
-            known_end_elevation=payload.known_end_elevation,
-            adjustment_method=payload.adjustment_method,
-            middle_wire_tolerance=payload.middle_wire_tolerance,
-            max_distance_imbalance=payload.max_distance_imbalance,
-            closure_tolerance=payload.closure_tolerance,
-            stadia_multiplier=payload.stadia_multiplier,
-            calculation_profile=payload.calculation_profile,
-            row_layout=payload.row_layout,
-        )
+        with context.project_lock:
+            return solve_level_saved(
+                context.require_project().db,
+                payload.run_id,
+                start_elevation=payload.start_elevation,
+                known_end_elevation=payload.known_end_elevation,
+                adjustment_method=payload.adjustment_method,
+                middle_wire_tolerance=payload.middle_wire_tolerance,
+                max_distance_imbalance=payload.max_distance_imbalance,
+                closure_tolerance=payload.closure_tolerance,
+                stadia_multiplier=payload.stadia_multiplier,
+                calculation_profile=payload.calculation_profile,
+                row_layout=payload.row_layout,
+            )
     except Exception as exc:
         raise HTTPException(400, str(exc))
 
@@ -182,16 +184,17 @@ def level_history(run_id: str):
 def level_activate_revision(payload: LevelRevisionSelectIn):
     from . import router as context
 
-    p = context.require_project()
     try:
-        return set_active_solution(
-            p.db,
-            "level",
-            payload.run_id,
-            payload.solution_id,
-            note=payload.note,
-            audit_action="LEVEL_SOLUTION_RESTORED",
-        )
+        with context.project_lock:
+            p = context.require_project()
+            return set_active_solution(
+                p.db,
+                "level",
+                payload.run_id,
+                payload.solution_id,
+                note=payload.note,
+                audit_action="LEVEL_SOLUTION_RESTORED",
+            )
     except ValueError as exc:
         raise HTTPException(400, str(exc))
 

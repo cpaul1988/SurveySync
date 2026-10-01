@@ -20,16 +20,23 @@ def _path(project):
 
 
 def _state(project):
-    path = _path(project)
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"requests": []}
+    # The SQLite row is authoritative so approval and its active solution commit
+    # together. Import the 9.4.8 JSON ledger once for existing projects.
+    with project.db.connect() as conn:
+        row = conn.execute("SELECT value FROM project_metadata WHERE key='level_rechecks'").fetchone()
+        if row is not None:
+            return json.loads(row["value"])
+        path = _path(project)
+        state = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"requests": []}
+        conn.execute("INSERT INTO project_metadata(key,value,updated_utc) VALUES(?,?,?)",
+                     ("level_rechecks", json.dumps(state, sort_keys=True), utc_now()))
+        return state
 
 
 def _save(project, state):
-    path = _path(project)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
-    tmp.replace(path)
+    with project.db.connect() as conn:
+        conn.execute("UPDATE project_metadata SET value=?,updated_utc=? WHERE key='level_rechecks'",
+                     (json.dumps(state, sort_keys=True), utc_now()))
 
 
 def _find(state, identifier):
@@ -131,8 +138,13 @@ def _parse_return(path, item):
         expected = {(x["sequence_no"], x["side"]): x["point_id"] for x in item["sights"]}
         rows = []
         seen = set()
-        for raw in reader:
-            key = (int(raw["SequenceNo"]), (raw["Side"] or "").strip().upper())
+        for line_no, raw in enumerate(reader, start=2):
+            if None in raw or any(raw.get(field) is None for field in required):
+                raise ValueError(f"Returned level row {line_no} is missing template fields.")
+            try:
+                key = (int(raw["SequenceNo"]), raw["Side"].strip().upper())
+            except ValueError as exc:
+                raise ValueError(f"Returned level row {line_no} has an invalid sequence number.") from exc
             if key not in expected or key in seen or (raw["PointID"] or "").strip() != expected[key]:
                 raise ValueError("Returned sights must match each requested sequence, side and PointID exactly once.")
             seen.add(key)
@@ -228,12 +240,12 @@ def review_return(project, identifier, decision, reviewer, note):
                                  row_layout=item["row_layout"])
         if solved["closure_pass"] is not True or solved["qc_flags"]:
             raise ValueError("Final level solution no longer matches the passing preview.")
-    item["status"] = "APPROVED"
-    item["review"] = {"decision": decision, "reviewer": reviewer.strip(), "note": note.strip(), "reviewed_utc": utc_now(),
-                      "solution_id": solved["solution_id"], "revision": solved["revision"], "after": preview}
-    _save(project, state)
-    project.db.audit("ControlSync", "LEVEL_RECHECK_APPROVED", object_type="level_recheck", object_id=identifier,
-                     details={"run_id": item["run_id"], "solution_id": solved["solution_id"], "source_id": returned["source_id"]})
+        item["status"] = "APPROVED"
+        item["review"] = {"decision": decision, "reviewer": reviewer.strip(), "note": note.strip(), "reviewed_utc": utc_now(),
+                          "solution_id": solved["solution_id"], "revision": solved["revision"], "after": preview}
+        _save(project, state)
+        project.db.audit("ControlSync", "LEVEL_RECHECK_APPROVED", object_type="level_recheck", object_id=identifier,
+                         details={"run_id": item["run_id"], "solution_id": solved["solution_id"], "source_id": returned["source_id"]})
     return item
 
 

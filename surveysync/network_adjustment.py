@@ -71,6 +71,8 @@ def adjust_control_network(
         raise ValueError("At least one network point is required.")
     if not observations:
         raise ValueError("At least one network observation is required.")
+    if len(points) > 100 or len(observations) > 1000:
+        raise ValueError("Network adjustment is limited to 100 points and 1,000 observations per run.")
     if int(max_iterations) < 1 or int(max_iterations) > 100:
         raise ValueError("max_iterations must be between 1 and 100.")
     tolerance_value = _finite("Tolerance", tolerance)
@@ -246,6 +248,8 @@ def adjust_control_network(
             converged = True
             break
 
+    if not converged:
+        raise ValueError("Network adjustment did not converge; check starting coordinates and observations before using results.")
     residuals = residual_vector(current)
     jacobian = numerical_jacobian(current)
     final_weights = _huber_weights(residuals, huber_value) if robust else np.ones_like(residuals)
@@ -263,14 +267,13 @@ def adjust_control_network(
     weighted_ss = float(np.sum(final_weights * residuals**2))
     sigma0 = math.sqrt(weighted_ss / dof) if dof > 0 else None
 
-    weight_matrix = np.diag(final_weights)
-    normal = jacobian.T @ weight_matrix @ jacobian
+    normal = jacobian.T @ (final_weights[:, None] * jacobian)
     qxx = np.linalg.pinv(normal)
     covariance = qxx if sigma0 is None else qxx * sigma0**2
-    qll = np.linalg.pinv(weight_matrix)
-    qvv = qll - jacobian @ qxx @ jacobian.T
-    qvv = (qvv + qvv.T) / 2.0
-    redundancy = np.clip(np.diag(qvv @ weight_matrix), 0.0, 1.0)
+    # Only the diagonal of the residual covariance is needed. Avoid an
+    # observation-by-observation matrix that grows quadratically with field data.
+    leverage = np.einsum("ij,jk,ik->i", jacobian, qxx, jacobian) * final_weights
+    redundancy = np.clip(1.0 - leverage, 0.0, 1.0)
 
     calculated = calculated_values(current)
     observation_rows: list[dict[str, Any]] = []

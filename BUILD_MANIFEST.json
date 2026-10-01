@@ -1,23 +1,23 @@
 {
   "product": "SurveySync",
-  "version": "9.4.8",
-  "build_type": "level-recheck-roundtrip-candidate",
-  "baseline": "9.4.7 Stable",
-  "candidate_branch": "feature/level-recheck-roundtrip",
+  "version": "9.4.9",
+  "build_type": "survey-calculation-reliability-candidate",
+  "baseline": "9.4.8 Stable",
+  "candidate_branch": "fix/survey-calculation-reliability-949",
   "feedback": {
     "checked_before_build": true,
-    "checked_local_date": "2026-09-29",
+    "checked_local_date": "2026-09-30",
     "latest_intake": "FBR-0016",
     "newer_intake_items": 0,
-    "note": "Connected Intake checked before build; FBR-0016 remains latest. No tracker writes."
+    "note": "Connected Intake and Form Responses checked before build; latest FBR-0016. No tracker writes."
   },
   "qa": {
-    "status": "Candidate gates required; see QA_REPORT_v9_4_8.md and PR evidence",
+    "status": "Local syntax and targeted numeric checks passed; full Windows gates required; see QA_REPORT_v9_4_9.md",
     "coverage_floor_percent": 54
   },
   "release": {
     "published": false,
     "require_exact_tested_installer": true
   },
-  "release_id": "9.4.8-beta.1"
+  "release_id": "9.4.9-beta.1"
 }

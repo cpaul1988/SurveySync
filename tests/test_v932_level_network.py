@@ -47,6 +47,15 @@ def test_level_network_rejects_unconnected_unknown():
         adjust_level_network(points=points, observations=observations)
 
 
+def test_robust_iteration_limit_rejects_inconsistent_weighted_solution():
+    points = [{"point_id": "A", "elevation": 0, "fixed": True},
+              {"point_id": "B", "elevation": 0, "fixed": False}]
+    observations = [{"from_id": "A", "to_id": "B", "delta_elevation": v, "sigma": 1}
+                    for v in (10, 10, 50)]
+    with pytest.raises(ValueError, match="did not converge"):
+        adjust_level_network(points=points, observations=observations, robust=True, max_iterations=1)
+
+
 def test_level_network_api_is_audited(tmp_path, monkeypatch):
     monkeypatch.setenv("SURVEYSYNC_CONFIG_ROOT", str(tmp_path / "cfg"))
     from fieldbook_sync import app as field_app
