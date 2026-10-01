@@ -23,6 +23,7 @@
         const saved = JSON.parse(localStorage.getItem(key));
         for (const axis of Object.keys(limits)) if (Number.isFinite(saved?.[axis])) {this.set(axis, saved[axis]);this.restored = true;}
       } catch (error) { this.storageError = error.message; }
+      this.savedState = this.restored ? {...this.state} : null;
       this.apply();
       for (const handle of root.querySelectorAll('[data-workspace-size]')) this.bind(handle);
     }
@@ -38,9 +39,9 @@
         }
       }
     }
-    preset(name) { this.state = {...presets[name] || presets.control}; this.apply(); }
+    preset(name) { this.state = {...(name === 'saved' ? this.savedState : presets[name]) || presets.control}; this.apply(); }
     save() {
-      try { localStorage.setItem(this.key, JSON.stringify(this.state)); return true; }
+      try { localStorage.setItem(this.key, JSON.stringify(this.state)); this.savedState = {...this.state}; return true; }
       catch (error) { this.storageError = error.message; return false; }
     }
     bind(handle) {

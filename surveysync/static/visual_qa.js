@@ -53,7 +53,11 @@
   q('vqColumns').onchange = columnsView;
   q('vqSources').onchange = e => {const input=e.target.closest('[data-source]');if(!input)return;if(input.checked)hiddenSources.delete(input.dataset.source);else hiddenSources.add(input.dataset.source);page=0;render();};
   q('vqScope').onchange = () => {page=0;render();};
-  q('vqSaveLayout').onclick = () => message(layout.save()?'Workspace layout saved for this device.':'Layout could not be saved: '+layout.storageError);
+  q('vqSaveLayout').onclick = () => {
+    if (!layout.save()) {message('Layout could not be saved: '+layout.storageError);return;}
+    if (!q('vqLayout').querySelector('[value="saved"]')) q('vqLayout').insertAdjacentHTML('beforeend','<option value="saved">Saved layout</option>');
+    q('vqLayout').value='saved';message('Workspace layout saved for this device.');
+  };
   q('vqLayout').onchange = () => layout.preset(q('vqLayout').value);
   q('vqResetLayout').onclick = () => {q('vqLayout').value='control';layout.preset('control');if(!layout.save())message('Layout reset for this session; storage unavailable.');};
   q('vqClearSelection').onclick = () => {selection.clear();selected=null;issue=null;q('vqConfirm').checked=false;render();};
