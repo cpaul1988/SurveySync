@@ -54,7 +54,9 @@ def adjust_level_network(
     if not observations:
         raise ValueError("At least one level observation is required.")
     if len(points) > 100 or len(observations) > 1000:
-        raise ValueError("Level network adjustment is limited to 100 points and 1,000 observations per run.")
+        raise ValueError(
+            "Level network adjustment is limited to 100 points and 1,000 observations per run."
+        )
     huber_k = _positive("Huber k", huber_k)
     review_threshold = _positive("Review threshold", review_threshold)
     max_iterations = int(max_iterations)
@@ -154,7 +156,9 @@ def adjust_level_network(
         robust_weights = next_weights
 
     if not converged:
-        raise ValueError("Robust level network did not converge; review observations or increase iterations.")
+        raise ValueError(
+            "Robust level network did not converge; review observations or increase iterations."
+        )
     if robust and not np.array_equal(solved_weights, robust_weights):
         # The final weights must describe the solution that is returned, even
         # when an iteration limit is reached before the robust fit converges.

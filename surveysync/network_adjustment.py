@@ -72,7 +72,9 @@ def adjust_control_network(
     if not observations:
         raise ValueError("At least one network observation is required.")
     if len(points) > 100 or len(observations) > 1000:
-        raise ValueError("Network adjustment is limited to 100 points and 1,000 observations per run.")
+        raise ValueError(
+            "Network adjustment is limited to 100 points and 1,000 observations per run."
+        )
     if int(max_iterations) < 1 or int(max_iterations) > 100:
         raise ValueError("max_iterations must be between 1 and 100.")
     tolerance_value = _finite("Tolerance", tolerance)
@@ -249,7 +251,9 @@ def adjust_control_network(
             break
 
     if not converged:
-        raise ValueError("Network adjustment did not converge; check starting coordinates and observations before using results.")
+        raise ValueError(
+            "Network adjustment did not converge; check starting coordinates and observations before using results."
+        )
     residuals = residual_vector(current)
     jacobian = numerical_jacobian(current)
     final_weights = _huber_weights(residuals, huber_value) if robust else np.ones_like(residuals)
