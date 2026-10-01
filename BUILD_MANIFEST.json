@@ -1,23 +1,23 @@
 {
   "product": "SurveySync",
-  "version": "9.4.9",
-  "build_type": "survey-calculation-reliability-candidate",
-  "baseline": "9.4.8 Stable",
-  "candidate_branch": "fix/survey-calculation-reliability-949",
+  "version": "9.5.0",
+  "build_type": "survey-workspace-candidate",
+  "baseline": "9.4.9 Stable",
+  "candidate_branch": "feat/survey-workspace-950",
   "feedback": {
     "checked_before_build": true,
-    "checked_local_date": "2026-09-30",
+    "checked_local_date": "2026-10-01",
     "latest_intake": "FBR-0016",
     "newer_intake_items": 0,
-    "note": "Connected Intake and Form Responses checked before build; latest FBR-0016. No tracker writes."
+    "note": "Read-only connected Intake, Requests and Form Responses checked. Intake still has 16 records, latest FBR-0016; form has headers only. No tracker writes."
   },
   "qa": {
-    "status": "Local syntax and targeted numeric checks passed; full Windows gates required; see QA_REPORT_v9_4_9.md",
+    "status": "Candidate validation pending; see QA_REPORT_v9_5_0.md",
     "coverage_floor_percent": 54
   },
   "release": {
     "published": false,
     "require_exact_tested_installer": true
   },
-  "release_id": "9.4.9-beta.1"
+  "release_id": "9.5.0-beta.1"
 }

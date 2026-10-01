@@ -168,13 +168,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.4.9-beta.1 repairs survey-row validation, network adjustment limits, and reviewed level rechecks.",
-    "Populated level and control rows without PointIDs now stop import with the source row number.",
-    "Control and robust level network adjustments stop if they do not converge; network diagnostics use bounded memory.",
-    "Level recheck approval and active sight revision now commit with their review state in one project database transaction.",
-    "Existing 9.4.8 level recheck requests are imported from their legacy JSON ledger on first access.",
-    "The SurveySync globe and theme branding remain consistent across the desktop shell and FieldBookSync module; read these release notes before field testing.",
-    "This is an unpublished candidate based on Stable 9.4.8. Windows installer and representative field acceptance remain required."
+    "9.5.0-beta.1 adds a linked survey review workspace with resizable source, map, and evidence panes.",
+    "Select individual records or a rectangle without Ctrl; map, point table, and evidence remain linked by record UUID.",
+    "Control Review, Boundary Drafting, and Topo QA layout presets can be resized and saved on this device.",
+    "Filter the table to selected, flagged, or visible records and configure the displayed coordinate/source columns.",
+    "Read-only integration status distinguishes ready, unavailable, and planned adapters without starting optional tools.",
+    "Elevation-copy approval, original source preservation, and stale-project checks remain required.",
+    "Globe branding and version-keyed release notes are retained. This candidate is unpublished; Windows installer and update acceptance are required before promotion."
 ]
 
 

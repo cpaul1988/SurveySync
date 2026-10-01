@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#0B2447" />
-  <title>FieldBookSync · SurveySync v9.4.9-beta.1</title>
+  <title>FieldBookSync · SurveySync v9.5.0-beta.1</title>
   <link rel="icon" href="/surveysync-static/surveysync_globe.svg" />
   <script>
     try {
@@ -17,9 +17,9 @@
       document.documentElement.dataset.theme=theme; document.documentElement.dataset.themeMode=mode; document.documentElement.dataset.productTheme=product; document.documentElement.dataset.accent=accent;
     } catch(_) {}
   </script>
-  <link rel="stylesheet" href="/static/styles.css?v=9.4.9-beta.1" />
-  <link rel="stylesheet" href="/surveysync-static/fieldbook-standard.css?v=9.4.9-beta.1">
-  <link rel="stylesheet" href="/surveysync-static/theme-branding.css?v=9.4.9-beta.1">
+  <link rel="stylesheet" href="/static/styles.css?v=9.5.0-beta.1" />
+  <link rel="stylesheet" href="/surveysync-static/fieldbook-standard.css?v=9.5.0-beta.1">
+  <link rel="stylesheet" href="/surveysync-static/theme-branding.css?v=9.5.0-beta.1">
 </head>
 <body class="fieldbook-workspace">
 <div id="startupSplash" class="startup-splash hide" aria-hidden="true" style="display:none"><span class="ss-brand-marks ss-brand-splash" data-ss-brand="splash"><img class="ss-brand-globe" id="startupBrandLogo" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span></div>
@@ -59,7 +59,7 @@
   <aside class="sidebar">
     <div class="brand-row">
       <span class="ss-brand-marks ss-brand-sidebar" data-ss-brand="sidebar"><img class="ss-brand-globe" id="sideBrandIcon" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span>
-      <div><div class="brand-name" id="sideBrandName">FieldBookSync</div><div class="brand-sub">SurveySync v9.4.9-beta.1 · FieldBook module</div><div class="brand-tagline" id="sideBrandTagline">Field data. Connected.</div></div>
+      <div><div class="brand-name" id="sideBrandName">FieldBookSync</div><div class="brand-sub">SurveySync v9.5.0-beta.1 · FieldBook module</div><div class="brand-tagline" id="sideBrandTagline">Field data. Connected.</div></div>
     </div>
 
     <div class="project-tile">
@@ -84,7 +84,7 @@
 
     <div class="sidebar-bottom">
       <div class="privacy-badge"><span>◆</span><div><strong>Local-first</strong><small id="privacyText">Hybrid local mode keeps field books on this PC.</small></div></div>
-      <div class="version-line"><span id="engineMini">Hybrid Local</span><span>SurveySync 9.4.9-beta.1</span></div>
+      <div class="version-line"><span id="engineMini">Hybrid Local</span><span>SurveySync 9.5.0-beta.1</span></div>
     </div>
   </aside>
 
@@ -295,14 +295,14 @@
       </section>
 
       <section id="tab-help" class="view">
-        <div class="view-head"><div><div class="eyebrow">HELP & SUPPORT</div><h1>FieldBookSync Help Center</h1><p>Quick-start guidance, shortcuts, diagnostics and version information.</p></div><span class="chip">SurveySync v9.4.9-beta.1</span></div>
+        <div class="view-head"><div><div class="eyebrow">HELP & SUPPORT</div><h1>FieldBookSync Help Center</h1><p>Quick-start guidance, shortcuts, diagnostics and version information.</p></div><span class="chip">SurveySync v9.5.0-beta.1</span></div>
         <div class="help-grid">
           <article class="card help-card"><div class="help-icon">▶</div><h2>Quick start</h2><ol><li>Select a client code profile.</li><li>Drag in survey data.</li><li>Drag in the field book.</li><li>Analyze locally.</li><li>Review exceptions.</li><li>Export or add to ArcGIS.</li></ol></article>
           <article class="card help-card"><div class="help-icon">⌨</div><h2>Keyboard shortcuts</h2><div class="shortcut-list"><span><kbd>Ctrl+N</kbd> New project</span><span><kbd>Ctrl+O</kbd> Open project</span><span><kbd>Ctrl+S</kbd> Save project</span><span><kbd>Ctrl+K</kbd> Search</span><span><kbd>Ctrl+Enter</kbd> Analyze</span><span><kbd>Ctrl+,</kbd> Options</span><span><kbd>F1</kbd> Help</span><span><kbd>F11</kbd> Full screen</span></div></article>
           <article class="card help-card"><div class="help-icon">◇</div><h2>Diagnostics</h2><p>Logs are stored under <code>%LOCALAPPDATA%\FieldBookSync\logs</code>. Slow requests and background exceptions are recorded with tracebacks.</p><div class="row"><button id="helpEngineBtn" class="btn secondary">Analysis Engine</button><button id="helpHistoryBtn" class="btn secondary">History</button><button id="helpDiagnosticBundleBtn" class="btn secondary">Diagnostic ZIP</button></div></article>
           <article class="card help-card"><div class="help-icon">✎</div><h2>Feedback Log</h2><p>Use the in-app wizard to report bugs, request features, suggest improvements, or ask questions. Every submission is logged locally first and can sync to the shared tracker.</p><p id="feedbackStatus" class="hint">Checking feedback log…</p><div class="row"><button id="helpBugBtn" class="btn primary">Report Bug</button><button id="helpFeatureBtn" class="btn secondary">Request Feature</button><button id="helpFeedbackLogBtn" class="btn secondary">Feedback Log</button><button id="helpFeedbackSettingsBtn" class="btn secondary">Log & Sync</button><button id="helpCopySupportBtn" class="btn secondary">Copy Support Info</button></div></article>
           <article class="card help-card"><div class="help-icon">⇄</div><h2>Global Mapper bridge</h2><p>When Global Mapper is installed, FieldBookSync can use its scripting engine as a broad format-conversion adapter while keeping native formats available without it.</p><p id="globalMapperStatus" class="hint">Checking installation…</p><div class="row"><button id="helpGlobalMapperBtn" class="btn secondary">Open Converter</button></div></article>
-          <article class="card help-card"><span class="ss-brand-marks ss-brand-regular" data-ss-brand="regular"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span><h2>About</h2><p><b>FieldBookSync · SurveySync v9.4.9-beta.1</b><br/>Desktop Edition<br/><span id="aboutTheme">FieldBook Classic theme</span></p><p class="hint">Local-first survey field-book synchronization and QA/QC with ArcGIS Pro / ArcMap integration.</p><div class="row" style="margin-top:12px"><button class="btn secondary" data-command="check-updates">Check & Update</button></div></article>
+          <article class="card help-card"><span class="ss-brand-marks ss-brand-regular" data-ss-brand="regular"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span><h2>About</h2><p><b>FieldBookSync · SurveySync v9.5.0-beta.1</b><br/>Desktop Edition<br/><span id="aboutTheme">FieldBook Classic theme</span></p><p class="hint">Local-first survey field-book synchronization and QA/QC with ArcGIS Pro / ArcMap integration.</p><div class="row" style="margin-top:12px"><button class="btn secondary" data-command="check-updates">Check & Update</button></div></article>
         </div>
       </section>
 
@@ -325,7 +325,7 @@
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-backdrop"></div><div class="modal-panel"><div class="modal-head"><div><div id="modalEyebrow" class="eyebrow">FIELD BOOK</div><h2 id="modalTitle">Review</h2></div><button id="modalClose" class="icon-btn">×</button></div><div id="modalBody" class="modal-body"></div></div></div>
 <div id="commandPalette" class="command hidden"><div class="command-backdrop"></div><div class="command-box"><div class="command-search"><span>⌕</span><input id="commandInput" placeholder="Search PointID, code, field-book page…" autocomplete="off"/><kbd>Esc</kbd></div><div id="commandResults" class="command-results"><div class="empty-state">Start typing to search this project.</div></div></div></div>
 <div id="toastStack" class="toast-stack"></div>
-<script src="/static/menu_bootstrap.js?v=9.4.9-beta.1"></script>
-<script src="/static/app.js?v=9.4.9-beta.1"></script>
+<script src="/static/menu_bootstrap.js?v=9.5.0-beta.1"></script>
+<script src="/static/app.js?v=9.5.0-beta.1"></script>
 </body>
 </html>

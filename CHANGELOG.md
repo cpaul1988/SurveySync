@@ -1,5 +1,13 @@
 # 9.4.4-beta.1
 
+## 9.5.0-beta.1 — shared workspace candidate
+
+- Linked UUID selection, explicit map tools, source visibility and table scopes in Visual QA.
+- Resizable keyboard-accessible panes, saved device layouts and configurable table columns.
+- Read-only integration status; planned packages remain disabled. No new dependency.
+- Existing review/export safeguards retained; Windows acceptance required before release.
+
+
 - Added snapshot-bound Visual QA PDF/CSV review packages with saved decisions, separate correction histories, source references, exact evidence, and safe native/browser export.
 
 # 9.4.3-beta.1 — Visual Survey QA candidate

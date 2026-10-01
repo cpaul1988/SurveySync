@@ -332,3 +332,16 @@ project has tests. Before a SurveySync Stable release it must have:
 - human-review behavior for ambiguous or professional-judgment cases
 
 - Audit hashes are bound to a persistent project chain identity, following Buzz's tenant-binding principle without importing Buzz's relay/database stack.
+
+## 9.5.0 upgrade sequence
+
+1. Integration inventory and core shared workspace: this candidate.
+2. Expand workspace adoption across modules after acceptance.
+3. ezdxf entity support and Shapely geometry QA with independent fixtures.
+4. Drawing/modification/snapping, geographic overview, conversions and Civil 3D companion.
+5. Local RTKLIB GNSS processing with raw-solution evidence.
+6. GeoComPy instruments and total-station levelling, requiring physical-device validation.
+
+See [SURVEY_WORKSPACE.md](SURVEY_WORKSPACE.md) for the implemented subset and
+future adapter contract. GPL/AGPL interfaces are workflow inspiration only; none
+of their UI source is copied into this independently implemented workspace.

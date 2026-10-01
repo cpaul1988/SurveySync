@@ -18,7 +18,7 @@ import (
 	"unsafe"
 )
 
-var appVersion = "9.4.9"
+var appVersion = "9.5.0"
 
 const productName = "SurveySync"
 
