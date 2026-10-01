@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-09-29T21:45:12Z",
+  "generated_utc": "2026-10-01T03:52:54Z",
   "publisher_tool": "GitHub Actions",
   "product": "SurveySync",
   "channels": {
@@ -18,35 +18,35 @@
       "required": false
     },
     "beta": {
-      "version": "9.4.7",
-      "release_id": "9.4.7-beta.1",
+      "version": "9.4.8",
+      "release_id": "9.4.8-beta.1",
       "channel": "beta",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.7/SurveySync_Setup_9.4.7-beta.1.exe",
-      "size_bytes": 9051468,
-      "sha256": "edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
-      "artifact_identity": "sha256:edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
-      "release_tag": "v9.4.7",
-      "release_notes": "Promoted to Stable by CP on 2026-09-29. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.7-beta.1. No rebuild.\n\nRepresentative ControlSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.7-beta.1 — ControlSync reshoot round trip\n\nFrom a failed three-shot Control QC result, issue a project-bound crew packet with the next available shot IDs and field instructions. Stage a returned CSV, TXT, TSV, JOB, JXL or JobXML file, then inspect the before/after residuals and field QC. Staging preserves the original source and leaves the active control solution unchanged.\n\nA reviewer can reject the return or approve it after the preview passes and includes a returned shot in the selected triplet. Approval checks that project observations, coordinate context and staged source have not changed, imports the three reserved shots, and reruns QC for the requested control alone. The downloadable approved ZIP carries the accepted coordinates, selected shots, source checksum and review record. The project audit and deliverables registry retain provenance.\n\nThis candidate is based on 9.4.6 Stable. Windows installer and representative field-data acceptance remain required before promotion.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.8/SurveySync_Setup_9.4.8-beta.1.exe",
+      "size_bytes": 9057062,
+      "sha256": "3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
+      "artifact_identity": "sha256:3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
+      "release_tag": "v9.4.8",
+      "release_notes": "Promoted to Stable by CP on 2026-09-30. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.8-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.8-beta.1 — reviewed level-loop rechecks\n\nControlSync now shows each setup's backsight/foresight points, middle-wire checks, distance balance, elevation and overall closure for the active level revision. Choose a suspect setup, specify the job's closure tolerance and crew instructions, then download a two-sight recheck template. The return is staged as immutable source evidence and the entire loop is previewed with Ron's original three-wire math and the saved calculation policy.\n\nApproval requires the returned loop to pass the closure tolerance and all sight QC flags. A reviewed approval saves only the requested BS/FS sight overlays, preserves all original level observations, and activates a new solution revision with source provenance. This also handles station-row turning points where a single row carries the previous setup's FS and the next setup's BS. A rejected return leaves the active solution untouched. The accepted ZIP contains before/after closure and review evidence. Ron's workbook profile continues to default to no closure adjustment.\n\nOpening an existing project upgrades its database schema to version 7 after a migration backup. The candidate is based on 9.4.7 Stable. Windows installer and representative field-book acceptance remain required before promotion.",
       "required": false,
-      "published_utc": "2026-09-29T21:45:11Z"
+      "published_utc": "2026-10-01T03:52:53Z"
     },
     "stable": {
-      "version": "9.4.7",
-      "release_id": "9.4.7-beta.1",
+      "version": "9.4.8",
+      "release_id": "9.4.8-beta.1",
       "channel": "stable",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.7/SurveySync_Setup_9.4.7-beta.1.exe",
-      "size_bytes": 9051468,
-      "sha256": "edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
-      "artifact_identity": "sha256:edae9bc05d19dd3e0c69260794ed88faca2be65af8100f319390525b6ce25612",
-      "release_tag": "v9.4.7",
-      "release_notes": "Promoted to Stable by CP on 2026-09-29. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.7-beta.1. No rebuild.\n\nRepresentative ControlSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.7-beta.1 — ControlSync reshoot round trip\n\nFrom a failed three-shot Control QC result, issue a project-bound crew packet with the next available shot IDs and field instructions. Stage a returned CSV, TXT, TSV, JOB, JXL or JobXML file, then inspect the before/after residuals and field QC. Staging preserves the original source and leaves the active control solution unchanged.\n\nA reviewer can reject the return or approve it after the preview passes and includes a returned shot in the selected triplet. Approval checks that project observations, coordinate context and staged source have not changed, imports the three reserved shots, and reruns QC for the requested control alone. The downloadable approved ZIP carries the accepted coordinates, selected shots, source checksum and review record. The project audit and deliverables registry retain provenance.\n\nThis candidate is based on 9.4.6 Stable. Windows installer and representative field-data acceptance remain required before promotion.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.8/SurveySync_Setup_9.4.8-beta.1.exe",
+      "size_bytes": 9057062,
+      "sha256": "3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
+      "artifact_identity": "sha256:3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
+      "release_tag": "v9.4.8",
+      "release_notes": "Promoted to Stable by CP on 2026-09-30. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.8-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.8-beta.1 — reviewed level-loop rechecks\n\nControlSync now shows each setup's backsight/foresight points, middle-wire checks, distance balance, elevation and overall closure for the active level revision. Choose a suspect setup, specify the job's closure tolerance and crew instructions, then download a two-sight recheck template. The return is staged as immutable source evidence and the entire loop is previewed with Ron's original three-wire math and the saved calculation policy.\n\nApproval requires the returned loop to pass the closure tolerance and all sight QC flags. A reviewed approval saves only the requested BS/FS sight overlays, preserves all original level observations, and activates a new solution revision with source provenance. This also handles station-row turning points where a single row carries the previous setup's FS and the next setup's BS. A rejected return leaves the active solution untouched. The accepted ZIP contains before/after closure and review evidence. Ron's workbook profile continues to default to no closure adjustment.\n\nOpening an existing project upgrades its database schema to version 7 after a migration backup. The candidate is based on 9.4.7 Stable. Windows installer and representative field-book acceptance remain required before promotion.",
       "required": false,
-      "published_utc": "2026-09-29T21:45:11Z",
+      "published_utc": "2026-10-01T03:52:53Z",
       "promoted_from": "beta",
-      "promoted_utc": "2026-09-29T21:45:11Z",
-      "tested_channel_published_utc": "2026-09-29T21:45:11Z"
+      "promoted_utc": "2026-10-01T03:52:53Z",
+      "tested_channel_published_utc": "2026-10-01T03:52:53Z"
     }
   }
 }
