@@ -121,6 +121,12 @@ def main():
                 boxes=page.locator('#vqPoints [data-select-record]')
                 assert len(set(boxes.evaluate_all('(els)=>els.map(e=>e.dataset.selectRecord)')))==2
                 boxes.nth(0).check();boxes.nth(1).check()
+                expect(boxes.nth(1)).to_be_focused()
+                boxes.nth(1).press('Space')
+                expect(page.locator('#vqSelectedCount')).to_contain_text('1 selected')
+                expect(boxes.nth(1)).to_be_focused()
+                boxes.nth(1).press('Space')
+                expect(boxes.nth(1)).to_be_focused()
                 expect(page.locator('#vqSelectedCount')).to_contain_text('2 selected')
                 expect(page.locator('#vqPoints .vq-selected')).to_have_count(2)
                 page.locator('#vqScope').select_option('selected')
