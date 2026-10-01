@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-10-01T03:52:54Z",
+  "generated_utc": "2026-10-01T13:20:24Z",
   "publisher_tool": "GitHub Actions",
   "product": "SurveySync",
   "channels": {
@@ -18,35 +18,35 @@
       "required": false
     },
     "beta": {
-      "version": "9.4.8",
-      "release_id": "9.4.8-beta.1",
+      "version": "9.4.9",
+      "release_id": "9.4.9-beta.1",
       "channel": "beta",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.8/SurveySync_Setup_9.4.8-beta.1.exe",
-      "size_bytes": 9057062,
-      "sha256": "3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
-      "artifact_identity": "sha256:3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
-      "release_tag": "v9.4.8",
-      "release_notes": "Promoted to Stable by CP on 2026-09-30. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.8-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.8-beta.1 — reviewed level-loop rechecks\n\nControlSync now shows each setup's backsight/foresight points, middle-wire checks, distance balance, elevation and overall closure for the active level revision. Choose a suspect setup, specify the job's closure tolerance and crew instructions, then download a two-sight recheck template. The return is staged as immutable source evidence and the entire loop is previewed with Ron's original three-wire math and the saved calculation policy.\n\nApproval requires the returned loop to pass the closure tolerance and all sight QC flags. A reviewed approval saves only the requested BS/FS sight overlays, preserves all original level observations, and activates a new solution revision with source provenance. This also handles station-row turning points where a single row carries the previous setup's FS and the next setup's BS. A rejected return leaves the active solution untouched. The accepted ZIP contains before/after closure and review evidence. Ron's workbook profile continues to default to no closure adjustment.\n\nOpening an existing project upgrades its database schema to version 7 after a migration backup. The candidate is based on 9.4.7 Stable. Windows installer and representative field-book acceptance remain required before promotion.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.9/SurveySync_Setup_9.4.9-beta.1.exe",
+      "size_bytes": 9059381,
+      "sha256": "01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
+      "artifact_identity": "sha256:01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
+      "release_tag": "v9.4.9",
+      "release_notes": "Promoted to Stable by CP on 2026-10-01. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.9-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.9-beta.1 — survey calculation and review safeguards\n\nPopulated ControlSync and level-loop rows without a PointID now stop import with a source row number. Level files are parsed before source registration, so a rejected file does not create an orphan source record.\n\nControl network adjustment refuses to return coordinates when its iteration limit is reached without convergence. Robust level-network adjustment also refuses a nonconverged result and solves the final reported weights. Both network tools cap runs at 100 points and 1,000 observations. Their redundancy diagnostics use observation-wise calculations instead of square observation matrices to reduce memory use. These limits protect interactive work; larger networks need a dedicated sparse/batch solver.\n\nReviewed level recheck state is now held in project SQLite metadata. Existing 9.4.8 JSON requests are imported once, preserving the original file. Approval, active sight overlays, revision creation and review status commit in one database transaction. Ordinary level solve/activate routes share the recheck project lock. Truncated crew returns now receive a row-specific validation error.\n\nThis is an unpublished beta candidate based on 9.4.8 Stable. The original three-wire observations remain unchanged. Representative field-book and installed Windows acceptance are still required before publication or promotion.",
       "required": false,
-      "published_utc": "2026-10-01T03:52:53Z"
+      "published_utc": "2026-10-01T13:20:24Z"
     },
     "stable": {
-      "version": "9.4.8",
-      "release_id": "9.4.8-beta.1",
+      "version": "9.4.9",
+      "release_id": "9.4.9-beta.1",
       "channel": "stable",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.8/SurveySync_Setup_9.4.8-beta.1.exe",
-      "size_bytes": 9057062,
-      "sha256": "3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
-      "artifact_identity": "sha256:3b05d6d05aeb9c2073bf610e475180fd73b7c0b986a2e99d3d7a67a1ffbcafb4",
-      "release_tag": "v9.4.8",
-      "release_notes": "Promoted to Stable by CP on 2026-09-30. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.8-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.8-beta.1 — reviewed level-loop rechecks\n\nControlSync now shows each setup's backsight/foresight points, middle-wire checks, distance balance, elevation and overall closure for the active level revision. Choose a suspect setup, specify the job's closure tolerance and crew instructions, then download a two-sight recheck template. The return is staged as immutable source evidence and the entire loop is previewed with Ron's original three-wire math and the saved calculation policy.\n\nApproval requires the returned loop to pass the closure tolerance and all sight QC flags. A reviewed approval saves only the requested BS/FS sight overlays, preserves all original level observations, and activates a new solution revision with source provenance. This also handles station-row turning points where a single row carries the previous setup's FS and the next setup's BS. A rejected return leaves the active solution untouched. The accepted ZIP contains before/after closure and review evidence. Ron's workbook profile continues to default to no closure adjustment.\n\nOpening an existing project upgrades its database schema to version 7 after a migration backup. The candidate is based on 9.4.7 Stable. Windows installer and representative field-book acceptance remain required before promotion.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.4.9/SurveySync_Setup_9.4.9-beta.1.exe",
+      "size_bytes": 9059381,
+      "sha256": "01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
+      "artifact_identity": "sha256:01df0541d93bd4d1f35cc44e2e4c9b91c4e40d66192962b5a3e07c6113f7d1d4",
+      "release_tag": "v9.4.9",
+      "release_notes": "Promoted to Stable by CP on 2026-10-01. Exact accepted beta.1 installer bytes; physical release identity remains 9.4.9-beta.1. No rebuild.\n\nRepresentative LevelSync field-return validation remains pending. Production signing is not activated.\n\n# SurveySync 9.4.9-beta.1 — survey calculation and review safeguards\n\nPopulated ControlSync and level-loop rows without a PointID now stop import with a source row number. Level files are parsed before source registration, so a rejected file does not create an orphan source record.\n\nControl network adjustment refuses to return coordinates when its iteration limit is reached without convergence. Robust level-network adjustment also refuses a nonconverged result and solves the final reported weights. Both network tools cap runs at 100 points and 1,000 observations. Their redundancy diagnostics use observation-wise calculations instead of square observation matrices to reduce memory use. These limits protect interactive work; larger networks need a dedicated sparse/batch solver.\n\nReviewed level recheck state is now held in project SQLite metadata. Existing 9.4.8 JSON requests are imported once, preserving the original file. Approval, active sight overlays, revision creation and review status commit in one database transaction. Ordinary level solve/activate routes share the recheck project lock. Truncated crew returns now receive a row-specific validation error.\n\nThis is an unpublished beta candidate based on 9.4.8 Stable. The original three-wire observations remain unchanged. Representative field-book and installed Windows acceptance are still required before publication or promotion.",
       "required": false,
-      "published_utc": "2026-10-01T03:52:53Z",
+      "published_utc": "2026-10-01T13:20:24Z",
       "promoted_from": "beta",
-      "promoted_utc": "2026-10-01T03:52:53Z",
-      "tested_channel_published_utc": "2026-10-01T03:52:53Z"
+      "promoted_utc": "2026-10-01T13:20:24Z",
+      "tested_channel_published_utc": "2026-10-01T13:20:24Z"
     }
   }
 }
