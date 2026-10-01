@@ -21,7 +21,7 @@
       this.root = root; this.key = key; this.state = {...presets.control};
       try {
         const saved = JSON.parse(localStorage.getItem(key));
-        for (const axis of Object.keys(limits)) if (Number.isFinite(saved?.[axis])) this.set(axis, saved[axis]);
+        for (const axis of Object.keys(limits)) if (Number.isFinite(saved?.[axis])) {this.set(axis, saved[axis]);this.restored = true;}
       } catch (error) { this.storageError = error.message; }
       this.apply();
       for (const handle of root.querySelectorAll('[data-workspace-size]')) this.bind(handle);

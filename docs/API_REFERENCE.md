@@ -226,3 +226,11 @@ The QGIS/GRASS bridge does not embed those GPL applications and does not use she
 - `POST /api/v9/level/rechecks/{id}/return` accepts `file_path` to stage and preview exactly the requested BS/FS readings.
 - `POST /api/v9/level/rechecks/{id}/review` accepts `decision` (`APPROVE`/`REJECT`), `reviewer`, `note`. Approval requires closure and sight QC to pass and activates a new revision.
 - `GET /api/v9/level/rechecks/{id}/approved-package` returns a verified, registered ZIP with accepted closure and source/review evidence.
+
+## 9.5.0-beta.1 integration inventory
+
+`GET /api/v9/integrations/status` returns schema 1 and adapter descriptors with
+key, label, package, installed version, declared license, status, enabled capability
+list, note and optional metadata error. It is read-only and does not require an
+active project. A planned adapter stays planned even when its package is installed.
+No optional imports, external processes, device probing or network calls are made.

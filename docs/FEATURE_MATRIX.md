@@ -127,3 +127,12 @@ Failed three-shot controls can issue a crew packet with reserved IDs. Returned s
 ## 9.4.8 Level-loop recheck
 
 A suspect level setup can issue a crew template, stage complete three-wire returns, preview full-loop closure against a job-specific tolerance, and create an audited active revision only after a passing reviewer approval. See `docs/LEVEL_RECHECK_WORKFLOW.md`.
+
+## 9.5.0-beta.1 workspace candidate
+
+| Capability | Status | Validation |
+| --- | --- | --- |
+| UUID-linked map/table/evidence, source visibility, explicit map tools | Implemented in Visual QA candidate | `scripts/verify_visual_qa.py` |
+| Resizable panes, three presets, device layout persistence, column visibility | Implemented candidate | Real browser pointer/keyboard controls |
+| Read-only integration inventory, unavailable/planned distinction | Implemented candidate | `tests/test_integration_registry.py` |
+| Adoption in other modules, expanded CAD/geometry and GNSS/instruments | Planned | Not included in this candidate |

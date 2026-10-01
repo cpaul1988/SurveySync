@@ -40,12 +40,21 @@ ADAPTERS = (
         "Limited entity support; expanded ezdxf adapter is planned.",
     ),
     Adapter(
+        "las_builtin",
+        "Native LAS metadata",
+        None,
+        "SurveySync project license",
+        True,
+        ("LAS header inspection",),
+        "Available without optional decoders.",
+    ),
+    Adapter(
         "las",
-        "LAS / LAZ",
+        "laspy sampling",
         "laspy",
         "BSD-2-Clause",
         True,
-        ("optional LAS inspection",),
+        ("optional LAS sampling",),
         "LAZ decoding additionally requires a supported compression backend.",
     ),
     Adapter(
