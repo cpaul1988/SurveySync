@@ -136,3 +136,5 @@ A suspect level setup can issue a crew template, stage complete three-wire retur
 | Resizable panes, three presets, device layout persistence, column visibility | Implemented candidate | Real browser pointer/keyboard controls |
 | Read-only integration inventory, unavailable/planned distinction | Implemented candidate | `tests/test_integration_registry.py` |
 | Adoption in other modules, expanded CAD/geometry and GNSS/instruments | Planned | Not included in this candidate |
+
+9.5.1 candidate: BoundarySync CAD Drawing & Geometry QA — read-only DXF and ordered closure; see CAD_REVIEW.md.

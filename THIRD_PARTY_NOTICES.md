@@ -245,3 +245,7 @@ Existing PyMuPDF is licensed under AGPL-3.0 or a commercial license. Its presenc
 means this application cannot be described as an entirely permissively licensed
 commercial distribution without resolving that dependency license. This inventory
 is not a license clearance for a particular distribution.
+
+## CAD review runtime (9.5.1)
+
+ezdxf is distributed as ezdxf 1.4.4 under MIT (https://github.com/mozman/ezdxf); Shapely 2.1.2 under BSD-3-Clause (https://github.com/shapely/shapely), using GEOS under LGPL-2.1 (https://libgeos.org). Original license files are included by the installed distributions. Hash-locked transitive dependencies retain their own licenses. No GPL CAD application code was copied.

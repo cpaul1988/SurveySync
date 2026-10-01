@@ -1,3 +1,7 @@
+## 9.5.1-beta.1
+
+Read-only CAD Drawing & Geometry QA, explicit units, linked review, ordered 0.10-foot closure and immutable report evidence. See docs/CAD_REVIEW.md.
+
 # 9.4.4-beta.1
 
 ## 9.5.0-beta.1 — shared workspace candidate

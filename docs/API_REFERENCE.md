@@ -234,3 +234,5 @@ key, label, package, installed version, declared license, status, enabled capabi
 list, note and optional metadata error. It is read-only and does not require an
 active project. A planned adapter stays planned even when its package is installed.
 No optional imports, external processes, device probing or network calls are made.
+
+9.5.1 CAD: POST /api/v9/cad/import (multipart DXF/units/alignment); GET /api/v9/cad/reviews; GET /api/v9/cad/reviews/{id}; POST /api/v9/cad/closure and /report (review ID, snapshot, ordered selections). All require X-SurveySync-Project.
