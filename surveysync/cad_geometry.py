@@ -246,6 +246,21 @@ def read_drawing(path, drawing_units, project_units):
     }
 
 
+def foot_definition(project_units):
+    """A foot-based project uses its actual foot; metric projects use international ft."""
+    return (
+        project_units
+        if project_units in ("us_survey_feet", "international_feet")
+        else "international_feet"
+    )
+
+
+def over_tolerance(distance, threshold, coordinates):
+    # Classification-only roundoff allowance; no geometry or reported distance is changed.
+    epsilon = 8 * max((math.ulp(v) for p in coordinates for v in p[:2]), default=0.0)
+    return distance > threshold + epsilon
+
+
 def analyze(drawing, search_ft=1.0):
     """Plan-view screening; proximity is not proof of intended connectivity."""
     from shapely.geometry import LineString, Point
@@ -253,10 +268,12 @@ def analyze(drawing, search_ft=1.0):
     from shapely.errors import GEOSException
 
     if not math.isfinite(search_ft) or not 0.1 <= search_ft <= 10:
-        raise ValueError("Gap search must be between 0.10 and 10 international feet.")
+        raise ValueError("Gap search must be between 0.10 and 10 feet (project foot definition).")
     unit = METERS[drawing["project_units"]]
-    threshold = 0.1 * 0.3048 / unit
-    radius = search_ft * 0.3048 / unit
+    foot_unit = foot_definition(drawing["project_units"])
+    foot = METERS[foot_unit]
+    threshold = 0.1 * foot / unit
+    radius = search_ft * foot / unit
     issues: list[dict[str, Any]] = []
     segments, owners, endpoints, endpoint_owners = [], [], [], []
     duplicate: dict[tuple, str] = {}
@@ -330,16 +347,17 @@ def analyze(drawing, search_ft=1.0):
                     raise ValueError("Endpoint density exceeds QA budget; split the drawing.")
                 gap = p.distance(endpoints[j])
                 if gap > 0:
+                    over = over_tolerance(gap, threshold, [p.coords[0], endpoints[j].coords[0]])
                     add(
                         "endpoint_gap",
                         [endpoint_owners[i], endpoint_owners[j]],
                         "Nearby endpoints; confirm intended connectivity. "
-                        + ("Exceeds" if gap > threshold else "Within")
+                        + ("Exceeds" if over else "Within")
                         + " 0.10-foot tolerance; not adjusted.",
                         {
                             "gap_project_units": gap,
-                            "gap_ft": gap * unit / 0.3048,
-                            "over_tolerance": gap > threshold,
+                            "gap_ft": gap * unit / foot,
+                            "over_tolerance": over,
                         },
                     )
     if segments:
@@ -363,6 +381,7 @@ def analyze(drawing, search_ft=1.0):
     return {
         "issues": issues,
         "threshold_ft": 0.1,
+        "foot_unit": foot_unit,
         "gap_search_ft": search_ft,
         "engine": "Shapely " + shapely_version,
         "scope": "XY screening; crossings may be intentional or grade-separated. Exact duplicates check XYZ. Curve intersections are approximate; curved inter-entity intersections and overlapping partial segments are not tested. Gaps outside the search radius are not enumerated.",
@@ -391,6 +410,8 @@ def closure(drawing, selections):
         a, b = e["endpoints"]
         ordered.append((b, a) if item.get("reverse") else (a, b))
     unit = METERS[drawing["project_units"]]
+    foot_unit = foot_definition(drawing["project_units"])
+    foot = METERS[foot_unit]
     gaps = []
     for i in range(len(ordered)):
         end = ordered[i][1]
@@ -405,8 +426,8 @@ def closure(drawing, selections):
                 "delta_easting": de,
                 "delta_northing": dn,
                 "gap_project_units": distance,
-                "gap_ft": distance * unit / 0.3048,
-                "over_tolerance": distance * unit / 0.3048 > 0.1,
+                "gap_ft": distance * unit / foot,
+                "over_tolerance": over_tolerance(distance, 0.1 * foot / unit, [start, end]),
             }
         )
     return {
@@ -414,8 +435,9 @@ def closure(drawing, selections):
         "gaps": gaps,
         "closing_gap": gaps[-1],
         "threshold_ft": 0.1,
+        "foot_unit": foot_unit,
         "status": "INVESTIGATE"
         if any(g["over_tolerance"] for g in gaps)
         else "WITHIN_TOLERANCE_REVIEW_REQUIRED",
-        "notice": "End-to-start distances in explicit order, not an adjusted traverse. All joins must be reviewed. 0.10 ft means international feet (0.03048 m). No snapping, forced closure or coordinate adjustment is performed.",
+        "notice": "End-to-start distances in explicit order, not an adjusted traverse. All joins must be reviewed. Foot-based projects use their project foot definition; metric projects use international feet (0.03048 m tolerance). No snapping, forced closure or coordinate adjustment is performed.",
     }

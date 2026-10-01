@@ -243,6 +243,6 @@ def report(data, selections):
             + data["notice"]
             + "\n"
             + data["qa"]["scope"]
-            + "\nClosure tolerance: 0.10 international ft (0.03048 m). No source geometry modified.\n",
+            + "\nClosure tolerance: 0.10 project ft; metric projects use 0.03048 m. No source geometry modified.\n",
         )
     return out.getvalue()

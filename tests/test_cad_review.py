@@ -151,3 +151,13 @@ def test_route_upload_closure_stale_project_and_export(project,tmp_path,monkeypa
     assert client.post('/api/v9/cad/closure',headers={'X-SurveySync-Project':'other'},json=payload).status_code==409
     args['data']['alignment_confirmed']='false'
     assert client.post('/api/v9/cad/import',headers=h,**args).status_code==400
+
+
+@pytest.mark.parametrize("units",["international_feet","us_survey_feet"])
+def test_exact_tolerance_uses_project_foot_and_roundoff(units):
+    a=[2000000.0,1000000.0,0];b=[2000000.1,1000000.0,0]
+    d={"project_units":units,"entities":[{"entity_id":"A","points":[a,b],"endpoints":[a,b],"planar":True,"closed":False}]}
+    c=closure(d,[{"entity_id":"A"}])
+    assert c["status"]=="WITHIN_TOLERANCE_REVIEW_REQUIRED"
+    assert c["foot_unit"]==units
+    assert c["closing_gap"]["gap_ft"]==pytest.approx(.1,abs=1e-8)

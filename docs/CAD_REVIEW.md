@@ -15,7 +15,7 @@ Entity table, findings and plan selection share entity identities. Survey points
 - Shapely screens self-intersections and crossings in XY. Inter-entity crossing checks cover straight segments. Grade-separated or intentional crossings are possible; findings are advisory.
 - Curves use ezdxf path approximations for display and self-intersection screening. Display chord target is 0.001 international ft; this is not a certification of engineering curve accuracy. Closure uses original entity endpoints, not a forced closing chord.
 - Endpoint proximity uses a configurable 0.10–10 ft search radius. Nearby endpoints may be unrelated. Gaps beyond that search radius are not listed.
-- Append open entities to an explicit ordered boundary chain, reverse directions or move entries as required, then Check closure. The report shows every internal join and the last-to-first gap. Any gap over 0.10 international ft (0.03048 m) requires investigation. A within-tolerance result still requires review. Closed DXF entities are refused for survey misclosure because their closing edge is already encoded. No traversal order is inferred.
+- Append open entities to an explicit ordered boundary chain, reverse directions or move entries as required, then Check closure. The report shows every internal join and the last-to-first gap. Any gap over 0.10 ft in the project’s US survey/international foot definition (metric projects: 0.03048 m) requires investigation. A within-tolerance result still requires review. Closed DXF entities are refused for survey misclosure because their closing edge is already encoded. No traversal order is inferred.
 - No tool in this candidate edits, snaps, closes, repairs or adjusts source geometry or canonical project points.
 
 ## Evidence, performance and limits
@@ -27,3 +27,5 @@ Limits are 32 MiB DXF, 10,000 expanded entities, 150,000 display vertices, 5,000
 ## Validation and dependencies
 
 Pinned runtime: ezdxf 1.4.4 (MIT), Shapely 2.1.2 (BSD-3-Clause; bundled GEOS LGPL). Dependencies and transitives are included in hash-locked runtime/dev requirements. `tests/test_cad_review.py` checks transformations, OCS, bulges, unsupported content, known geometry failures, closure order/direction, units, limits, retained-source tampering, route guards and report export. `scripts/verify_cad_review.py` exercises actual browser controls and source preservation. Windows installer/runtime/update acceptance is required before publication.
+
+Threshold classification permits a floating-point roundoff margin based on coordinate precision; reported gaps and original coordinates are not adjusted.
