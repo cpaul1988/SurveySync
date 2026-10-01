@@ -65,7 +65,8 @@ jobs:
         run: |
           $install = Join-Path $env:RUNNER_TEMP 'SurveySync_Repair_Test'
           if (Test-Path $install) { throw 'Disposable installation already exists.' }
-          $setup = (Resolve-Path 'installer/output/SurveySync_Setup_9.4.8-beta.1.exe').Path
+          $releaseId = (Get-Content RELEASE_ID.txt -Raw).Trim()
+          $setup = (Resolve-Path "installer/output/SurveySync_Setup_$releaseId.exe").Path
           $log = Join-Path $env:GITHUB_WORKSPACE 'repair-evidence/setup.log'
           $process = Start-Process -FilePath $setup -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',('/DIR="'+$install+'"'),('/LOG="'+$log+'"')) -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "Setup failed with code $($process.ExitCode)." }
@@ -91,12 +92,12 @@ jobs:
       - name: Preserve successfully tested installer only as an unpublished artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SurveySync_9.4.8_beta1_Verified_Installer
+          name: SurveySync_9.4.9_beta1_Verified_Installer
           path: |
-            installer/output/SurveySync_Setup_9.4.8-beta.1.exe
-            installer/output/SurveySync_Setup_9.4.8-beta.1.exe.sha256
-            RELEASE_NOTES_v9_4_8.md
-            QA_REPORT_v9_4_8.md
+            installer/output/SurveySync_Setup_9.4.9-beta.1.exe
+            installer/output/SurveySync_Setup_9.4.9-beta.1.exe.sha256
+            RELEASE_NOTES_v9_4_9.md
+            QA_REPORT_v9_4_9.md
             VERSION.txt
             RELEASE_ID.txt
           if-no-files-found: error
