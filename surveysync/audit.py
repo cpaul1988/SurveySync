@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-CURRENT_SCHEMA_VERSION = 6
+CURRENT_SCHEMA_VERSION = 7
 
 
 def utc_now() -> str:
@@ -227,6 +227,20 @@ CREATE TABLE IF NOT EXISTS level_observations (
     FOREIGN KEY(run_id) REFERENCES level_runs(run_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_level_obs_run ON level_observations(run_id, sequence_no);
+CREATE TABLE IF NOT EXISTS level_recheck_sights (
+    sight_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    sequence_no INTEGER NOT NULL,
+    side TEXT NOT NULL CHECK(side IN ('BS','FS')),
+    request_id TEXT NOT NULL,
+    source_id TEXT NOT NULL,
+    readings_json TEXT NOT NULL,
+    approved_utc TEXT NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY(run_id) REFERENCES level_runs(run_id) ON DELETE CASCADE,
+    FOREIGN KEY(source_id) REFERENCES source_registry(source_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_level_recheck_active ON level_recheck_sights(run_id,sequence_no,side) WHERE active=1;
 CREATE TABLE IF NOT EXISTS level_solutions (
     solution_id TEXT PRIMARY KEY,
     run_id TEXT NOT NULL,
@@ -608,6 +622,22 @@ CREATE TABLE IF NOT EXISTS audit_chain_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+""",
+    7: """
+CREATE TABLE IF NOT EXISTS level_recheck_sights (
+    sight_id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL,
+    sequence_no INTEGER NOT NULL,
+    side TEXT NOT NULL CHECK(side IN ('BS','FS')),
+    request_id TEXT NOT NULL,
+    source_id TEXT NOT NULL,
+    readings_json TEXT NOT NULL,
+    approved_utc TEXT NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY(run_id) REFERENCES level_runs(run_id) ON DELETE CASCADE,
+    FOREIGN KEY(source_id) REFERENCES source_registry(source_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_level_recheck_active ON level_recheck_sights(run_id,sequence_no,side) WHERE active=1;
 """,
 }
 

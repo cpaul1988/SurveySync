@@ -185,3 +185,7 @@ See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards
 ## 9.4.2-beta.2 local field-book follow-up
 
 See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privacy, dual OCR views, original-image context, regression scope, and remaining real-model/hardware/calibration acceptance.
+
+## 9.4.8 level recheck regressions
+
+`tests/test_level_rechecks.py` covers paired, separate and station-row setup mapping, shared turning-point sight isolation, staged preview without mutation, approval/rejection, failed and stale returns, source checksum, deliverable registration, API behavior and schema-6 project migration backup. The local release gate passed 686 tests (1 skipped) with 63.66% coverage; Windows acceptance remains pending.

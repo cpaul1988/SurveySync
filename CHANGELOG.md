@@ -167,3 +167,8 @@ This is the canonical human-readable release history. Detailed per-build QA evid
 
 - Added project-bound ControlSync reshoot crew packets, staged returned shots, before/after QC, reviewer approval and hashed approved control export.
 - Limited approved reshoot QC revision to the requested control and made same-second latest-run ordering deterministic.
+
+## 9.4.8-beta.1 — candidate
+
+- Added a crew recheck and reviewer approval loop for Ron’s three-wire level setups, with whole-loop closure preview, sight-level provenance and an approved evidence ZIP.
+- Added schema 7 for immutable original readings and approved BS/FS overlays, including shared turning-point rows.

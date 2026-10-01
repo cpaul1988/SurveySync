@@ -123,3 +123,7 @@ See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards
 ## 9.4.7 ControlSync reshoot round trip
 
 Failed three-shot controls can issue a crew packet with reserved IDs. Returned sources are staged for QC and reviewer approval before their shots enter the project; the approved control is available as an audited, hash-verified ZIP. See `docs/CONTROL_RESHOOT_WORKFLOW.md`.
+
+## 9.4.8 Level-loop recheck
+
+A suspect level setup can issue a crew template, stage complete three-wire returns, preview full-loop closure against a job-specific tolerance, and create an audited active revision only after a passing reviewer approval. See `docs/LEVEL_RECHECK_WORKFLOW.md`.

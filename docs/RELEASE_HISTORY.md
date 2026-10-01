@@ -1,5 +1,9 @@
 # SurveySync Release History
 
+## 9.4.8 BetaCandidate — level-loop rechecks
+
+Adds setup-level crew returns and reviewed three-wire closure revisions with original-observation preservation. See `RELEASE_NOTES_v9_4_8.md` and `docs/LEVEL_RECHECK_WORKFLOW.md`.
+
 ## 9.4.7 BetaCandidate — ControlSync reshoots
 
 Adds a crew request, staged returned observations, review and approved control export to Ron’s three-shot QC. See `RELEASE_NOTES_v9_4_7.md` and `docs/CONTROL_RESHOOT_WORKFLOW.md`.

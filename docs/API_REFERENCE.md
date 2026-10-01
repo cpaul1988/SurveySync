@@ -217,3 +217,12 @@ High-impact workflow actions remain approval-gated regardless of YAML input.
 
 The QGIS/GRASS bridge does not embed those GPL applications and does not use shell command execution.
 
+
+## 9.4.8 level-loop rechecks
+
+- `GET /api/v9/level/rechecks` lists project-bound crew requests and their review state.
+- `POST /api/v9/level/rechecks` accepts `run_id`, `setup_no`, positive `closure_tolerance`, `crew`, `instructions` for an active solved level run with a known ending elevation.
+- `GET /api/v9/level/rechecks/{id}/crew-package` returns a ZIP with `Request.json` and a two-sight three-wire CSV template.
+- `POST /api/v9/level/rechecks/{id}/return` accepts `file_path` to stage and preview exactly the requested BS/FS readings.
+- `POST /api/v9/level/rechecks/{id}/review` accepts `decision` (`APPROVE`/`REJECT`), `reviewer`, `note`. Approval requires closure and sight QC to pass and activates a new revision.
+- `GET /api/v9/level/rechecks/{id}/approved-package` returns a verified, registered ZIP with accepted closure and source/review evidence.
