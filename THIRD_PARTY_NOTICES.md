@@ -228,8 +228,20 @@ See the upstream GRASS COPYING file for the complete GPL terms.
 
 SurveySync also relies on established third-party packages through its locked
 Python dependency files. Their licenses remain governed by their respective
-upstream projects. Important examples include pyproj/PROJ, Shapely/GEOS,
+upstream projects. Important examples include pyproj/PROJ,
 PyMuPDF, OpenPyXL, FastAPI, Uvicorn, and pywebview.
 
 Before each public release, dependency locks and this notice file should be
 reviewed together.
+
+## 9.5.0 workspace and planned adapters
+
+The shared workspace is independently implemented in SurveySync JavaScript/CSS.
+No UI source from QGIS, RTKLIB, RilievoPY, OpenLayers or MapLibre is copied or
+bundled by this candidate. ezdxf, Shapely/GEOS, GeoComPy and RTKLIB adapters are
+planned and are not enabled by installing their packages. No new dependency is added.
+
+Existing PyMuPDF is licensed under AGPL-3.0 or a commercial license. Its presence
+means this application cannot be described as an entirely permissively licensed
+commercial distribution without resolving that dependency license. This inventory
+is not a license clearance for a particular distribution.

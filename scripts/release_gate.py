@@ -43,6 +43,8 @@ FORMATTED = [
     "surveysync/pointcloud_routes.py",
     "surveysync/workflow_engine.py",
     "surveysync/workflow_routes.py",
+    "surveysync/integration_registry.py",
+    "surveysync/integration_registry_routes.py",
     "surveysync/integration_routes.py",
     "surveysync/crs_diagnostics.py",
     "surveysync/crs_diagnostic_routes.py",

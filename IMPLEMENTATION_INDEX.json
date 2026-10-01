@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.4.9",
+  "version": "9.5.0",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1110,6 +1110,23 @@
         "RELEASE_NOTES_v9_4_9.md",
         "QA_REPORT_v9_4_9.md",
         "docs/RELEASE_HISTORY.md"
+      ]
+    },
+    "shared_survey_workspace": {
+      "implementation": [
+        "surveysync/static/survey_workspace.js",
+        "surveysync/static/visual_qa.js",
+        "surveysync/static/visual_qa.css",
+        "surveysync/integration_registry.py",
+        "surveysync/integration_registry_routes.py"
+      ],
+      "tests": [
+        "tests/test_integration_registry.py",
+        "scripts/verify_visual_qa.py"
+      ],
+      "documentation": [
+        "docs/SURVEY_WORKSPACE.md",
+        "docs/OPEN_SOURCE_INTEGRATION_PLAN.md"
       ]
     }
   }

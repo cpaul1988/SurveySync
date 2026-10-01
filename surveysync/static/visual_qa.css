@@ -1,3 +1,40 @@
 #visualQa fieldset{border:0;padding:0;margin:0;min-width:0}#visualQa .vq-layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr);gap:16px}#visualQa .card{min-width:0;margin-bottom:16px}#vqCanvas{width:100%;height:360px;display:block;border:1px solid var(--border,#888);border-radius:10px;touch-action:none;background:rgba(128,128,128,.04)}#visualQa .vq-scroll{max-height:390px;overflow:auto}#visualQa .vq-issue{display:block;width:100%;text-align:left;white-space:normal;margin:0 0 8px;padding:12px;line-height:1.5}#visualQa .vq-selected{outline:2px solid #db36ad;outline-offset:-2px;background:rgba(219,54,173,.1)}#visualQa pre{max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}#visualQa p{overflow-wrap:anywhere}#visualQa th{position:sticky;top:0;background:var(--panel,#fff)}#visualQa button:focus-visible{outline:3px solid #2585cf}#visualQa .row{flex-wrap:wrap;gap:10px}#visualQa label{display:block}#visualQa input[type=number]{max-width:180px}@media(max-width:1000px){#visualQa .vq-layout{grid-template-columns:1fr}}
 
 #visualQa>.card,#visualQa fieldset>.card{padding:14px 20px}#visualQa button:not(.primary){font:inherit;color:inherit;background:rgba(128,128,128,.1);border:1px solid var(--border,#888);border-radius:7px;padding:7px 10px;cursor:pointer}#visualQa button:disabled{opacity:.5;cursor:default}#visualQa #vqProject{margin-top:0;font-weight:600}#visualQa details>summary{cursor:pointer}
+
+#visualQa .survey-workspace{--workspace-left:210px;--workspace-right:340px;--workspace-bottom:280px;min-width:0;container-type:inline-size}
+#visualQa .survey-workspace-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 16px}
+#visualQa .workspace-main{display:grid;grid-template-columns:var(--workspace-left) 10px minmax(260px,1fr) 10px var(--workspace-right);gap:0;min-width:0}
+#visualQa .workspace-main .card{padding:14px;margin-bottom:0}
+#visualQa .workspace-main>*{min-width:0}
+#visualQa .workspace-sources{overflow-wrap:anywhere;max-height:590px;overflow:auto}
+#visualQa .workspace-sources label{margin:12px 0}
+#visualQa .workspace-sources input[type=checkbox]{width:auto}
+#visualQa .workspace-evidence{max-height:590px;overflow:auto}
+#visualQa .workspace-bottom{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:14px}
+#visualQa .workspace-bottom>.card{padding:14px;min-height:var(--workspace-bottom)}
+#visualQa .workspace-bottom .vq-scroll{height:calc(var(--workspace-bottom) - 140px);min-height:100px;max-height:none}
+#visualQa .workspace-bottom th{white-space:nowrap}
+#visualQa .workspace-bottom td input[type=checkbox]{width:auto;margin-right:8px}
+#visualQa [data-workspace-size]{background:rgba(128,128,128,.12);touch-action:none;cursor:col-resize;border-radius:4px;align-self:stretch}
+#visualQa [data-workspace-size=bottom]{height:10px;cursor:row-resize;margin:10px 0}
+#visualQa [data-workspace-size]:hover,#visualQa [data-workspace-size]:focus-visible{background:#2585cf;outline:2px solid #2585cf;outline-offset:2px}
+#visualQa .vq-correction-layout{grid-template-columns:1fr}
+#visualQa #vqCanvas{cursor:crosshair}
+#visualQa #vqColumns{margin-bottom:12px}
+#visualQa #vqColumns input[type=checkbox]{width:auto}
+#visualQa [hidden]{display:none!important}
+@container(max-width:1100px){
+  #visualQa .workspace-main{grid-template-columns:1fr}
+  #visualQa [data-workspace-size]{display:none}
+  #visualQa .workspace-main .card{margin-bottom:14px}
+  #visualQa .workspace-sources,#visualQa .workspace-evidence{max-height:none}
+  #visualQa .workspace-bottom{grid-template-columns:1fr}
+  #visualQa .workspace-bottom>.card{min-height:0}
+}
+
+#visualQa .vq-scroll table{width:100%;border-collapse:collapse}
+#visualQa .vq-scroll th,#visualQa .vq-scroll td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line2,#64748b)}
+#visualQa input[type=checkbox],#visualQa .row input[type=checkbox]{min-width:0;width:auto;flex:none}
+#visualQa .vq-inline-choice{display:flex;align-items:center;gap:6px;margin:0}
+#visualQa .vq-inline-choice input{margin-top:0}

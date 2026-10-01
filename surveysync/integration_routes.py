@@ -11,6 +11,7 @@ from .workflow_routes import router as workflow_router
 from .crs_diagnostic_routes import router as crs_diagnostic_router
 from .report_template_routes import router as report_template_router
 from .gis_bridge_routes import router as gis_bridge_router
+from .integration_registry_routes import router as integration_registry_router
 
 router = APIRouter()
 router.include_router(pointcloud_router)
@@ -18,6 +19,7 @@ router.include_router(workflow_router)
 router.include_router(crs_diagnostic_router)
 router.include_router(report_template_router)
 router.include_router(gis_bridge_router)
+router.include_router(integration_registry_router)
 
 from .visual_qa_routes import router as visual_qa_router
 
