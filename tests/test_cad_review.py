@@ -119,6 +119,8 @@ def test_retained_integrity_and_reports(project,tmp_path):
     assert cad.list_reviews(project)[0]['review_id']==data['review_id']
     z=ZipFile(io.BytesIO(cad.report(data,[{'entity_id':data['entities'][0]['entity_id']}])) )
     assert json.loads(z.read('CAD_Review.json'))['closure']['status']=='INVESTIGATE'
+    assert b'INVESTIGATE' in z.read('CAD_Review.html')
+    assert b'Foot definition' in z.read('CAD_Closure.csv')
     assert hashlib.sha256(p.read_bytes()).hexdigest()==data['source_sha256']
     (cad.folder(project)/data['review_id']/'original.dxf').write_bytes(b'changed')
     with pytest.raises(ValueError,match='DXF changed'):cad.read(project,data['review_id'])

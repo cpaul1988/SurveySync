@@ -6,7 +6,7 @@ BoundarySync now includes CAD Drawing & Geometry QA: upload a DXF, choose units,
 
 Checks flag exact duplicate straight segments, zero-length segments, self-intersections, straight crossings and nearby endpoint gaps. Curved screening is approximate and labelled. An explicitly ordered open chain reports every join and closing gap against 0.10 ft using the project foot definition. Nothing is automatically snapped, closed or adjusted, even within tolerance.
 
-Original DXF bytes are retained with SHA-256 and context. CSV/JSON review reports include findings, limitations and ordered closure. Imports run in a time-limited worker; stale project/point context is rejected.
+Original DXF bytes are retained with SHA-256 and context. Printable HTML and CSV/JSON review reports include findings, limitations and ordered closure. Imports run in a time-limited worker; stale project/point context is rejected.
 
 Limits and workflow: docs/CAD_REVIEW.md. DWG, paperspace, full CAD typography, automatic corrections, snapping, curved inter-entity intersections and partial overlap detection remain outside this release. Windows acceptance must pass before publication or promotion.
 

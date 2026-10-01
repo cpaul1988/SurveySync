@@ -3,6 +3,7 @@
 from __future__ import annotations
 import csv
 import hashlib
+from html import escape
 import io
 import json
 import math
@@ -230,6 +231,121 @@ def report(data, selections):
                 for x in row
             ]
         )
+
+    def safe_cell(value):
+        return "'" + value if value.startswith(("=", "+", "-", "@", "\t", "\r")) else value
+
+    closure_csv = io.StringIO(newline="")
+    writer = csv.writer(closure_csv)
+    writer.writerow(
+        [
+            "After entity",
+            "To entity",
+            "Closing gap",
+            "Delta E (project units)",
+            "Delta N (project units)",
+            "Gap (project units)",
+            "Gap (ft)",
+            "Foot definition",
+            "Over tolerance",
+        ]
+    )
+    if check:
+        for g in check["gaps"]:
+            writer.writerow(
+                [
+                    safe_cell(g["after_entity"]),
+                    safe_cell(g["to_entity"]),
+                    g["closing_gap"],
+                    g["delta_easting"],
+                    g["delta_northing"],
+                    g["gap_project_units"],
+                    g["gap_ft"],
+                    check["foot_unit"],
+                    g["over_tolerance"],
+                ]
+            )
+
+    def table(headers, rows):
+        return (
+            "<table><thead><tr>"
+            + "".join("<th>" + escape(str(h)) + "</th>" for h in headers)
+            + "</tr></thead><tbody>"
+            + "".join(
+                "<tr>" + "".join("<td>" + escape(str(v)) + "</td>" for v in row) + "</tr>"
+                for row in rows
+            )
+            + "</tbody></table>"
+        )
+
+    html = "<!doctype html><html lang='en'><meta charset='utf-8'><title>SurveySync CAD Review</title><style>body{font:14px system-ui;margin:32px;color:#172b43}h1{font-size:26px}table{border-collapse:collapse;width:100%;margin:18px 0}th,td{border:1px solid #ccd4dd;padding:7px;text-align:left;overflow-wrap:anywhere}th{background:#edf2f7}p{overflow-wrap:anywhere}tr{break-inside:avoid}@media print{body{margin:12mm;font-size:10pt}thead{display:table-header-group}}</style><body><h1>SurveySync CAD Review</h1>"
+    html += (
+        "<p>Drawing: "
+        + escape(data["source_name"])
+        + "</p><p>Source SHA-256: "
+        + escape(data["source_sha256"])
+        + "</p><p>Project CRS: "
+        + escape(data["project"]["crs"] or "Local coordinates")
+        + " · Units: "
+        + escape(data["project_units"])
+        + "</p>"
+    )
+    html += (
+        "<p>"
+        + escape(data["notice"])
+        + "</p><p>"
+        + escape(data["unit_warning"])
+        + "</p><p>"
+        + escape(data["qa"]["scope"])
+        + "</p><h2>Ordered closure</h2>"
+    )
+    if check:
+        html += (
+            "<p><strong>"
+            + escape(check["status"].replace("_", " "))
+            + "</strong> · Tolerance 0.10 ft ("
+            + escape(check["foot_unit"])
+            + ")</p><p>"
+            + escape(check["notice"])
+            + "</p>"
+        )
+        html += table(
+            ["From → To", "Join", "Delta E", "Delta N", "Gap (ft)", "Review"],
+            [
+                [
+                    g["after_entity"] + " → " + g["to_entity"],
+                    "Closing" if g["closing_gap"] else "Internal",
+                    format(g["delta_easting"], ".8g"),
+                    format(g["delta_northing"], ".8g"),
+                    format(g["gap_ft"], ".8g"),
+                    "INVESTIGATE" if g["over_tolerance"] else "Within tolerance; review required",
+                ]
+                for g in check["gaps"]
+            ],
+        )
+    else:
+        html += "<p>No ordered chain was selected; closure was not evaluated.</p>"
+    html += "<h2>Findings</h2>" + table(
+        ["Kind", "Entities", "Finding", "Evidence", "Approximate"],
+        [
+            [
+                i["kind"],
+                "; ".join(i["entity_ids"]),
+                i["message"],
+                json.dumps(i["value"]),
+                i["approximate"],
+            ]
+            for i in data["qa"]["issues"]
+        ],
+    )
+    html += (
+        "<h2>Unsupported content</h2>"
+        + table(
+            ["Entity", "Type", "Reason"],
+            [[u["entity_id"], u["type"], u["reason"]] for u in data["unsupported"]],
+        )
+        + "</body></html>"
+    )
     out = io.BytesIO()
     with ZipFile(out, "w", ZIP_DEFLATED) as z:
         z.writestr(
@@ -237,6 +353,8 @@ def report(data, selections):
             json.dumps(report_data, indent=2, ensure_ascii=False, allow_nan=False),
         )
         z.writestr("CAD_Findings.csv", stream.getvalue())
+        z.writestr("CAD_Closure.csv", closure_csv.getvalue())
+        z.writestr("CAD_Review.html", html)
         z.writestr(
             "README.txt",
             "SurveySync CAD review\n"
