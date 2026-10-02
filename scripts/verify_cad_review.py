@@ -77,11 +77,20 @@ def main():
                 page.locator('#cadChain [data-reverse="1"]').uncheck()
                 page.locator('#cadIssues [data-issue]').first.click()
                 expect(page.locator('#cadEvidence')).to_contain_text('LINE')
+                page.locator('#cadReviewer').fill('Acceptance tester')
+                page.locator('#cadDecisionNote').fill('Checked original source; retain for review')
+                page.locator('#cadDecisionStatus').select_option('confirmed')
+                page.locator('#cadSaveDecision').click()
+                expect(page.locator('#cadMessage')).to_contain_text('Decision and audit history saved')
+                expect(page.locator('#cadIssues [data-issue]').first).to_contain_text('confirmed')
                 with page.expect_download() as download:page.locator('#cadReport').click()
                 package=ZipFile(io.BytesIO(Path(download.value.path()).read_bytes()))
                 exported=json.loads(package.read('CAD_Review.json'))
                 assert exported['closure']['status']=='WITHIN_TOLERANCE_REVIEW_REQUIRED'
                 assert len(exported['unsupported'])==1
+                decision_export=json.loads(package.read('CAD_Workflow.json'))
+                assert decision_export['review_state']['history'][0]['status']=='confirmed'
+                assert b'Acceptance tester' in package.read('CAD_Review.html')
                 report['checks'].append('Explicit alignment/units, real DXF upload, layer/table/finding selection, ordered chain/reverse, unsupported report and actual ZIP download')
                 page.locator('#cadTool').select_option('pan');canvas=page.locator('#cadCanvas');canvas.scroll_into_view_if_needed();box=canvas.bounding_box();assert box
                 page.mouse.move(box['x']+100,box['y']+100);page.mouse.down();page.mouse.move(box['x']+140,box['y']+130);page.mouse.up()
@@ -98,6 +107,28 @@ def main():
                     expect(page.locator('#cadImport')).to_be_enabled();page.locator('#cadHistory').select_option(review);page.locator('#cadOpen').click();expect(page.locator('#cadEntities tr')).to_have_count(5)
                     canvas.scroll_into_view_if_needed();page.screenshot(path=str(OUT/f'cad-{mode}.png'),full_page=True)
                 page.set_viewport_size({'width':900,'height':1000});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+                page.locator('#cadIssues [data-issue]').first.click()
+                expect(page.locator('#cadDecisionStatus')).to_have_value('confirmed')
+                revised=root/'revised.dxf'
+                next(iter(m.query('LINE'))).dxf.end=(2011,1000,0)
+                doc.saveas(revised)
+                page.locator('#cadFile').set_input_files(str(revised));page.locator('#cadAligned').check();page.locator('#cadUnits').select_option('us_survey_feet');page.locator('#cadImport').click()
+                expect(page.locator('#cadSummary')).to_contain_text('revised.dxf',timeout=50000)
+                expect(page.locator('#cadReport')).to_be_enabled()
+                page.locator('#cadBefore').select_option(review);page.locator('#cadCompare').click()
+                expect(page.locator('#cadComparisonSummary')).to_contain_text('unchanged representations')
+                page.locator('#cadChanges [data-change]').first.click()
+                expect(page.locator('#cadEvidence')).to_contain_text('changed_candidate')
+                with page.expect_download() as revision_download:page.locator('#cadReport').click()
+                revision_package=ZipFile(io.BytesIO(Path(revision_download.value.path()).read_bytes()))
+                revision_data=json.loads(revision_package.read('CAD_Workflow.json'))
+                assert revision_data['comparison']['before']['review_id']==review
+                assert not revision_data['review_state']['history']
+                assert any(c['kind']=='changed_candidate' for c in revision_data['comparison']['changes'])
+                assert dxf.read_bytes()==original
+                page.screenshot(path=str(OUT/'cad-revision-comparison.png'),full_page=True)
+                report['checks'].append('Saved/reopened finding decisions, immutable audit history, revised DXF comparison, selected overlay and exact decision/comparison export')
+
                 page.screenshot(path=str(OUT/'cad-narrow.png'),full_page=True)
                 api('/api/v9/project/create',{'parent_folder':str(root/'projects'),'name':'Other','crs':'EPSG:2278'})
                 page.locator('#cadReport').click();expect(page.locator('#cadMessage')).to_contain_text('Project changed')

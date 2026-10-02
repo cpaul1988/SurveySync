@@ -61,7 +61,7 @@ function openReleaseNotes(markSeen=false){
 
 function openAboutSurveySync(){
   openModalShell('about-surveysync');
-  const version=releaseLabel(releaseNotesData)||String(statusData?.release_id||statusData?.version||'9.5.1-beta.1');
+  const version=releaseLabel(releaseNotesData)||String(statusData?.release_id||statusData?.version||'9.5.2-beta.1');
   $('#modalBody').innerHTML=`<div class="about-brand"><span class="ss-brand-marks ss-brand-regular" data-ss-brand="regular"><img class="ss-brand-globe" src="/surveysync-static/surveysync_globe.svg" alt="SurveySync globe"><img class="ss-client-logo" src="/static/edsi_mark.png" alt="EDSI" title="EDSI theme"></span><div><div class="brand-lockup-name">SurveySync</div><div class="brand-lockup-tagline">UNIFYING GLOBAL DATA</div><p class="muted" style="margin:8px 0 0">Modular land-survey workspace · v${esc(version)}</p></div></div><p>One project foundation for field books, control, COGO, topo, boundary, GIS, QA, crew and reporting workflows.</p><p class="muted">Product branding uses the Surveying Navy / Topographic Gold / Canvas Cream 9.4 identity. Client themes such as EDSI remain presentation profiles and do not replace SurveySync ownership.</p><div class="row"><button id="aboutDone" class="primary">Close</button></div>`;
   $('#aboutDone').onclick=closeModalShell;
 }

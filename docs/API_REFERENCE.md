@@ -236,3 +236,9 @@ active project. A planned adapter stays planned even when its package is install
 No optional imports, external processes, device probing or network calls are made.
 
 9.5.1 CAD: POST /api/v9/cad/import (multipart DXF/units/alignment); GET /api/v9/cad/reviews; GET /api/v9/cad/reviews/{id}; POST /api/v9/cad/closure and /report (review ID, snapshot, ordered selections). All require X-SurveySync-Project.
+
+### CAD review workflow (9.5.2)
+- `POST /api/v9/cad/state`: review_id and snapshot return finding IDs, current decisions, ordered audit history and a state token.
+- `POST /api/v9/cad/decision`: adds finding_id, status (`needs_review`, `confirmed`, `dismissed`), reviewer, note and state_token. Required reasons and optimistic concurrency prevent silent stale overwrites.
+- `POST /api/v9/cad/compare`: adds before_review_id and before_snapshot; returns conservative representation differences. Both imports must match current project context and points.
+- `POST /api/v9/cad/report`: requires current state_token and optionally the before pair. Revalidates both sources and exports decisions/history/comparison. All routes require the current project header. No write to source drawings or points.

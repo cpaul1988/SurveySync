@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FORMATTED = [
     "surveysync/cad_geometry.py",
     "surveysync/cad_review.py",
+    "surveysync/cad_review_workflow.py",
     "surveysync/cad_review_routes.py",
     "surveysync/cad_worker.py",
     "surveysync/visual_qa.py",

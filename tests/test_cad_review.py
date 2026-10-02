@@ -149,6 +149,7 @@ def test_route_upload_closure_stale_project_and_export(project,tmp_path,monkeypa
     r=client.post('/api/v9/cad/import',headers=h,**args);assert r.status_code==200,r.text
     data=r.json();payload={'review_id':data['review_id'],'snapshot':data['snapshot'],'selections':[{'entity_id':data['entities'][0]['entity_id']}]}
     assert client.post('/api/v9/cad/closure',headers=h,json=payload).json()['status']=='INVESTIGATE'
+    payload['state_token']=client.post('/api/v9/cad/state',headers=h,json=payload).json()['token']
     assert client.post('/api/v9/cad/report',headers=h,json=payload).content[:2]==b'PK'
     assert client.post('/api/v9/cad/closure',headers={'X-SurveySync-Project':'other'},json=payload).status_code==409
     args['data']['alignment_confirmed']='false'

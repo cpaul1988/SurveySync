@@ -6,6 +6,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from .desktop_context import require_panel_project
 from . import cad_review as cad
+from . import cad_review_workflow as workflow
 from .cad_geometry import closure
 
 router = APIRouter(prefix="/api/v9/cad")
@@ -26,6 +27,9 @@ class Selection(BaseModel):
 class ReviewIn(BaseModel):
     review_id: str = Field(pattern="^[0-9a-f]{32}$")
     snapshot: str = Field(pattern="^[0-9a-f]{64}$")
+    state_token: str | None = Field(default=None, pattern="^[0-9a-f]{64}$")
+    before_review_id: str | None = Field(default=None, pattern="^[0-9a-f]{32}$")
+    before_snapshot: str | None = Field(default=None, pattern="^[0-9a-f]{64}$")
     selections: list[Selection] = Field(default_factory=list, max_length=1000)
 
 
@@ -120,7 +124,13 @@ def export_report(request: Request, payload: ReviewIn):
         try:
             project = project_for(request)
             data = checked(project, payload)
-            output = cad.report(data, [s.model_dump() for s in payload.selections])
+            review_state = workflow.state(project, data)
+            if payload.state_token != review_state["token"]:
+                raise ValueError("Drawing decisions changed. Reopen the review before exporting.")
+            comparison = comparison_for(project, data, payload)
+            output = workflow.report(
+                data, [s.model_dump() for s in payload.selections], review_state, comparison
+            )
             project.db.audit(
                 "BoundarySync",
                 "CAD_REVIEW_REPORT",
@@ -128,6 +138,8 @@ def export_report(request: Request, payload: ReviewIn):
                 object_id=payload.review_id,
                 details={
                     "snapshot": data["snapshot"],
+                    "state_token": review_state["token"],
+                    "comparison_before": comparison["before"] if comparison else None,
                     "selections": [s.model_dump() for s in payload.selections],
                     "source_modified": False,
                 },
@@ -137,5 +149,70 @@ def export_report(request: Request, payload: ReviewIn):
                 media_type="application/zip",
                 headers={"Content-Disposition": 'attachment; filename="SurveySync_CAD_Review.zip"'},
             )
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+
+class DecisionIn(ReviewIn):
+    finding_id: str = Field(pattern="^[0-9a-f]{64}$")
+    status: str = Field(pattern="^(needs_review|confirmed|dismissed)$")
+    note: str = Field(min_length=1, max_length=4000)
+    reviewer: str = Field(min_length=1, max_length=120)
+
+
+def comparison_for(project, data, payload):
+    if not payload.before_review_id and not payload.before_snapshot:
+        return None
+    if not payload.before_review_id or not payload.before_snapshot:
+        raise ValueError("Select and compare the earlier drawing first.")
+    before = cad.read(project, payload.before_review_id)
+    if before["snapshot"] != payload.before_snapshot:
+        raise ValueError("Earlier drawing evidence changed. Compare again.")
+    return workflow.compare(before, data)
+
+
+@router.post("/state")
+def get_state(request: Request, payload: ReviewIn):
+    from . import router as context
+
+    with context.project_lock:
+        try:
+            project = project_for(request)
+            return workflow.state(project, checked(project, payload))
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/decision")
+def save_decision(request: Request, payload: DecisionIn):
+    from . import router as context
+
+    with context.project_lock:
+        try:
+            project = project_for(request)
+            return workflow.decide(
+                project,
+                checked(project, payload),
+                payload.finding_id,
+                payload.status,
+                payload.note,
+                payload.reviewer,
+                payload.state_token,
+            )
+        except (ValueError, OSError) as exc:
+            raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/compare")
+def compare_drawings(request: Request, payload: ReviewIn):
+    from . import router as context
+
+    with context.project_lock:
+        try:
+            project = project_for(request)
+            result = comparison_for(project, checked(project, payload), payload)
+            if result is None:
+                raise ValueError("Choose an earlier drawing to compare.")
+            return result
         except (ValueError, OSError) as exc:
             raise HTTPException(400, str(exc)) from exc
