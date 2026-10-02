@@ -195,3 +195,6 @@ See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privac
 `tests/test_level_rechecks.py` covers paired, separate and station-row setup mapping, shared turning-point sight isolation, staged preview without mutation, approval/rejection, failed and stale returns, source checksum, deliverable registration, API behavior and schema-6 project migration backup. The local release gate passed 686 tests (1 skipped) with 63.66% coverage; Windows acceptance remains pending.
 
 9.5.1 CAD coverage: tests/test_cad_review.py and scripts/verify_cad_review.py exercise geometry, units/transforms, immutable evidence, stale context and linked browser/report controls.
+
+## 9.5.2 CAD workflow candidate
+`test_cad_review_workflow.py` covers decision isolation/concurrency, immutable source evidence, comparison matching limits, safe reports and API guards. `verify_cad_review.py` exercises actual decision/reopen/compare/export controls. Local release gate: 718 passed, 1 skipped; Windows and representative real-job acceptance pending.

@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.5.1",
+  "version": "9.5.2",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1144,6 +1144,21 @@
       "documentation": [
         "docs/CAD_REVIEW.md",
         "RELEASE_NOTES_v9_5_1.md"
+      ]
+    },
+    "cad_review_workflow": {
+      "implementation": [
+        "surveysync/cad_review_workflow.py",
+        "surveysync/cad_review_routes.py",
+        "surveysync/static/cad_review.js"
+      ],
+      "tests": [
+        "tests/test_cad_review_workflow.py",
+        "scripts/verify_cad_review.py"
+      ],
+      "documentation": [
+        "docs/CAD_REVIEW.md",
+        "RELEASE_NOTES_v9_5_2.md"
       ]
     }
   }

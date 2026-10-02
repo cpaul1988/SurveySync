@@ -1,3 +1,7 @@
+## 9.5.2-beta.1
+
+CAD finding decisions with reasons and audit history, conservative revised-drawing comparison with before/after overlays, and expanded review packages. ControlSync now says "3-point workbook profile". No original geometry is changed. See docs/CAD_REVIEW.md.
+
 ## 9.5.1-beta.1
 
 Read-only CAD Drawing & Geometry QA, explicit units, linked review, ordered 0.10-foot closure and immutable report evidence. See docs/CAD_REVIEW.md.

@@ -1,24 +1,23 @@
 {
   "product": "SurveySync",
-  "version": "9.5.1",
-  "build_type": "survey-workspace-candidate",
-  "baseline": "9.4.9 Stable",
-  "candidate_branch": "feat/survey-workspace-950",
+  "version": "9.5.2",
+  "build_type": "cad-review-workflow-candidate",
+  "baseline": "9.5.1 Stable",
+  "candidate_branch": "work/9.5.2-cad-review-workflow",
   "feedback": {
     "checked_before_build": true,
-    "checked_utc": "2026-10-01",
+    "checked_utc": "2026-10-02",
     "intake_count": 16,
     "latest_intake": "FBR-0016",
-    "error_tracker_entries": 0,
-    "form_responses": 0
+    "notes": "Intake reviewed; latest report unchanged since prior candidate. No new CAD-specific reports."
   },
   "qa": {
-    "status": "Local full release gate passed: 692 tests, 6 skipped; final Windows acceptance tracked in PR #21.",
+    "status": "Linux full release gate passed: 718 passed, 1 skipped, 64.35% coverage. CAD browser acceptance passed. Windows installer and representative real-job acceptance pending.",
     "coverage_floor_percent": 54
   },
   "release": {
     "published": false,
     "require_exact_tested_installer": true
   },
-  "release_id": "9.5.1-beta.1"
+  "release_id": "9.5.2-beta.1"
 }

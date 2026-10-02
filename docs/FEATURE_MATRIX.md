@@ -138,3 +138,5 @@ A suspect level setup can issue a crew template, stage complete three-wire retur
 | Adoption in other modules, expanded CAD/geometry and GNSS/instruments | Planned | Not included in this candidate |
 
 9.5.1 candidate: BoundarySync CAD Drawing & Geometry QA — read-only DXF and ordered closure; see CAD_REVIEW.md.
+
+| BoundarySync | Snapshot-bound finding decisions and conservative revision comparison | Candidate 9.5.2 | `surveysync/cad_review_workflow.py` | `tests/test_cad_review_workflow.py` |

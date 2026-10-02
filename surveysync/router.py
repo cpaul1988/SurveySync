@@ -170,7 +170,7 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.5.1-beta.1 adds read-only CAD Drawing & Geometry QA in BoundarySync.",
+    "9.5.2-beta.1 adds CAD finding decisions, audit history, revised-drawing comparisons and review reports in BoundarySync.",
     "Import DXF lines, polylines, arcs, circles, text and supported blocks with explicit units and coordinate-alignment confirmation.",
     "Review layers, drawing entities, survey points, source hashes and unsupported-content reports in one workspace.",
     "Flag straight-segment duplicates, zero-length segments, nearby gaps, crossings and self-intersections without modifying geometry.",

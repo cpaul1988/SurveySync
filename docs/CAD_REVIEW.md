@@ -29,3 +29,13 @@ Limits are 32 MiB DXF, 10,000 expanded entities, 150,000 display vertices, 5,000
 Pinned runtime: ezdxf 1.4.4 (MIT), Shapely 2.1.2 (BSD-3-Clause; bundled GEOS LGPL). Dependencies and transitives are included in hash-locked runtime/dev requirements. `tests/test_cad_review.py` checks transformations, OCS, bulges, unsupported content, known geometry failures, closure order/direction, units, limits, retained-source tampering, route guards and report export. `scripts/verify_cad_review.py` exercises actual browser controls and source preservation. Windows installer/runtime/update acceptance is required before publication.
 
 Threshold classification permits a floating-point roundoff margin based on coordinate precision; reported gaps and original coordinates are not adjusted.
+
+## 9.5.2 — decisions and revised drawings
+
+Select a finding, choose Needs review / Confirmed finding / Dismissed with reason, enter your reviewer name and evidence, and Save decision. Confirmation means the finding exists, not that geometry was repaired. Saved history remains visible when reopening this import. To revise a decision, save another entry; earlier entries remain in the project audit chain. Names are self-entered.
+
+Import the revised DXF with its actual units and verified alignment. With the revised drawing open, choose the earlier retained import under Compare a revised drawing and press Compare drawings. Select a change to view its evidence and dashed-red before / solid-green after overlay. The comparison lists supported representations only. Same top-level handles are candidate matches, not proof of entity identity; expanded block children are always unmatched. An unchanged sampled curve or text anchor does not prove the native CAD entity is identical. Unsupported content from both imports remains in the comparison evidence.
+
+Download review report includes all findings and saved decisions, regardless of hidden layers, plus decision history and the currently computed comparison. Changing the earlier-drawing selector clears that comparison until Compare is run again. The ZIP contains CAD_Decisions.csv and CAD_Workflow.json as well as the original CAD review report files. A stale decision token requires reopening the review. Altered DXF bytes, project context or overlay points block comparison/export; reimport against the current context. Original geometry and canonical points are never modified.
+
+Acceptance: use a representative real project DXF and matching points to confirm known control alignment, one known defect, one deliberately revised entity, unsupported-content reporting, decision retention after restart and agreement between visible decisions and exported reports. Synthetic tests do not substitute for this field acceptance.

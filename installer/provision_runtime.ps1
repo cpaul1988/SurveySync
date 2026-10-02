@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)][string]$InstallDir,
-    [string]$AppVersion = "9.5.1"
+    [string]$AppVersion = "9.5.2"
 )
 
 $ErrorActionPreference = "Stop"
