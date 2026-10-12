@@ -1,3 +1,9 @@
+## 2026-10-12 — Development dependency security maintenance
+
+- Updated the development tool `uv` from 0.12.17 to 0.12.18 to address CVE-2026-104843 / GHSA-2cv4-cqwr-gwf7 (Windows wheel-extraction path traversal).
+- Regenerated the development lockfile and SHA-256 hashes with the patched tool, preserving unrelated dependency pins.
+- The existing Quality gate verifies hash-locked installation, application regressions, and all-platform dependency security. This is repository maintenance; the published SurveySync 9.5.2 installer and update channels retain their existing identities.
+
 ## 9.5.2-beta.1
 
 CAD finding decisions with reasons and audit history, conservative revised-drawing comparison with before/after overlays, and expanded review packages. ControlSync now says "3-point workbook profile". No original geometry is changed. See docs/CAD_REVIEW.md.
