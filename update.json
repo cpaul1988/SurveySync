@@ -1,8 +1,17 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-10-16T18:09:44Z",
-  "publisher_tool": "GitHub Actions",
+  "generated_utc": "2026-10-16T18:34:00Z",
+  "publisher_tool": "Security incident containment",
   "product": "SurveySync",
+  "release_hold": {
+    "active": true,
+    "channels": ["beta", "stable"],
+    "withdrawn_version": "9.5.3",
+    "withdrawn_release_id": "9.5.3-beta.1",
+    "withdrawn_installer_sha256": "65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
+    "reason": "Microsoft Defender reported Trojan:Win32/Bearfoos.A!ml for the installed SurveySync.exe. Investigation is in progress; false-positive status is not confirmed. Do not restore or exclude the detected executable.",
+    "message": "Beta and Stable updates are temporarily suspended for security investigation. Existing clients fail closed because no release is advertised for these channels. No downgrade is forced."
+  },
   "channels": {
     "developer": {
       "size_bytes": 6360913,
@@ -16,37 +25,6 @@
       "sha256": "596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
       "artifact_identity": "sha256:596f047d42db85fc87653fa52196258bd4b346bd026de1665a427f84841b0298",
       "required": false
-    },
-    "beta": {
-      "version": "9.5.3",
-      "release_id": "9.5.3-beta.1",
-      "channel": "beta",
-      "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.3/SurveySync_Setup_9.5.3-beta.1.exe",
-      "size_bytes": 9107024,
-      "sha256": "65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
-      "artifact_identity": "sha256:65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
-      "release_tag": "v9.5.3",
-      "release_notes": "Promoted to Stable by CP on 2026-10-16. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.3-beta.1. No rebuild.\n\nFinal acceptance: all four workflows passed on the approved head, including the installed native controls, 24 lifecycle cycles, and update replacement tests. Bundled QA/release files preserve their pre-build checkpoint wording; PR #24 and the approval receipt record final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.3-beta.1 — FieldBookSync integration\n\nPublished and promoted to Stable on October 16, 2026. Resolves FBR-0018.\n\n## What changes\n\nFieldBookSync uses the actual SurveySync application menu, module tabs, sidebar and project card. Its processing/review UI is a persistent, same-origin content pane. Ordinary module switches do not reload it. The existing review, mapping, batch, profile, trainer, analysis and history workflows remain available. FieldBook commands also appear in the common Tools menu.\n\nThe active SurveySync project is authoritative. The module inherits its name and ID, validates the project-local storage folder, and refuses a mismatched or stale view before data operations. Selecting the same project is idempotent. A failed new runtime does not close the previous project's job database. Active analysis, imports, batch work, live-network work and in-flight API responses prevent project replacement.\n\nLegacy .fbs imports retain the source title as provenance but cannot replace the destination SurveySync project's identity. Reset and recovery retain that identity. Existing source/map coordinates are not transformed as part of this integration. A legacy module-only rename is rejected instead of silently creating a conflicting project name.\n\nFeedback remains available with no project. Background Intake retries now retain the original report root even if the user switches projects during retry. Report IDs, local-first capture and shared Intake transport are unchanged. Native file-picker calls from the embedded module delegate to the main desktop bridge.\n\n## Validation and availability\n\nSee QA_REPORT_v9_5_3.md for measured results. Windows/WebView2, browser, installation, lifecycle, and update replacement acceptance passed on the exact approved candidate. Beta and Stable distribute the same verified installer.",
-      "required": false,
-      "published_utc": "2026-10-16T18:09:44Z"
-    },
-    "stable": {
-      "version": "9.5.3",
-      "release_id": "9.5.3-beta.1",
-      "channel": "stable",
-      "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.3/SurveySync_Setup_9.5.3-beta.1.exe",
-      "size_bytes": 9107024,
-      "sha256": "65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
-      "artifact_identity": "sha256:65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
-      "release_tag": "v9.5.3",
-      "release_notes": "Promoted to Stable by CP on 2026-10-16. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.3-beta.1. No rebuild.\n\nFinal acceptance: all four workflows passed on the approved head, including the installed native controls, 24 lifecycle cycles, and update replacement tests. Bundled QA/release files preserve their pre-build checkpoint wording; PR #24 and the approval receipt record final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.3-beta.1 — FieldBookSync integration\n\nPublished and promoted to Stable on October 16, 2026. Resolves FBR-0018.\n\n## What changes\n\nFieldBookSync uses the actual SurveySync application menu, module tabs, sidebar and project card. Its processing/review UI is a persistent, same-origin content pane. Ordinary module switches do not reload it. The existing review, mapping, batch, profile, trainer, analysis and history workflows remain available. FieldBook commands also appear in the common Tools menu.\n\nThe active SurveySync project is authoritative. The module inherits its name and ID, validates the project-local storage folder, and refuses a mismatched or stale view before data operations. Selecting the same project is idempotent. A failed new runtime does not close the previous project's job database. Active analysis, imports, batch work, live-network work and in-flight API responses prevent project replacement.\n\nLegacy .fbs imports retain the source title as provenance but cannot replace the destination SurveySync project's identity. Reset and recovery retain that identity. Existing source/map coordinates are not transformed as part of this integration. A legacy module-only rename is rejected instead of silently creating a conflicting project name.\n\nFeedback remains available with no project. Background Intake retries now retain the original report root even if the user switches projects during retry. Report IDs, local-first capture and shared Intake transport are unchanged. Native file-picker calls from the embedded module delegate to the main desktop bridge.\n\n## Validation and availability\n\nSee QA_REPORT_v9_5_3.md for measured results. Windows/WebView2, browser, installation, lifecycle, and update replacement acceptance passed on the exact approved candidate. Beta and Stable distribute the same verified installer.",
-      "required": false,
-      "published_utc": "2026-10-16T18:09:44Z",
-      "promoted_from": "beta",
-      "promoted_utc": "2026-10-16T18:09:44Z",
-      "tested_channel_published_utc": "2026-10-16T18:09:44Z"
     }
   }
 }
