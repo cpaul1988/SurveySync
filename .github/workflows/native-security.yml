@@ -20,6 +20,17 @@ jobs:
         with:
           go-version: '1.27.2'
           cache: false
+      - name: Install only the existing hash-locked icon dependency
+        shell: python
+        run: |
+          import os,pathlib,re,subprocess,sys
+          text=pathlib.Path('requirements.lock').read_text(encoding='utf-8')
+          blocks=re.findall(r'^pillow==[^\n]*(?:\n[ \t]+[^\n]*)*',text,re.M)
+          if len(blocks)!=1 or '--hash=sha256:' not in blocks[0]:
+              raise RuntimeError('A unique locked Pillow dependency is required.')
+          pin=pathlib.Path(os.environ['RUNNER_TEMP'])/'native-icon.lock'
+          pin.write_text(blocks[0]+'\n',encoding='utf-8')
+          subprocess.run([sys.executable,'-m','pip','install','--require-hashes','--only-binary=:all:','--no-deps','-r',str(pin)],check=True)
       - name: Require active updated Microsoft Defender
         shell: pwsh
         run: ./scripts/initialize_defender.ps1 -EnableRealtime -EvidenceDirectory security-evidence/prepare
