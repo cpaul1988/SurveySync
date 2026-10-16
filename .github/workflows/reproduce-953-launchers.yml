@@ -1,0 +1,52 @@
+name: SurveySync Original Binary Provenance
+on:
+  push:
+    branches: [fix/defender-release-954]
+    paths: ['.github/workflows/reproduce-953-launchers.yml']
+permissions:
+  contents: read
+jobs:
+  reproduce:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e62ae8743cb9fe09fd0e191a2fd06e9758d2531c
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          # Forensic reproduction only, NEVER a new distribution build.
+          go-version: '1.23.12'
+      - name: Rebuild without running original or rebuilt executable
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: '0'
+          GOAMD64: v1
+          GOTOOLCHAIN: local
+          GOFLAGS: ''
+          GOPROXY: 'off'
+        run: |
+          mkdir -p evidence build
+          test "$(go env GOVERSION)" = go1.23.12
+          go build -trimpath -ldflags '-s -w -H=windowsgui' -o build/SurveySync.exe ./installer/app_launcher.go
+          go build -trimpath -ldflags '-s -w -H=windowsgui' -o build/SurveySyncUpdater.exe ./installer/update_helper.go
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          expected={'SurveySync.exe':'e238799ffd8c84c7d648db8a97468abde8771b418156612e0224ff0f450f9fd1','SurveySyncUpdater.exe':'ccdd9ced728482dee53d75b4ad311be3b93de4f9eb49943e900a197b2f274676'}
+          rows=[]
+          for name,digest in expected.items():
+              p=pathlib.Path('build',name); actual=hashlib.sha256(p.read_bytes()).hexdigest()
+              rows.append({'file':name,'expected_original_sha256':digest,'rebuilt_sha256':actual,'byte_identical':actual==digest})
+          report={'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'compiler':subprocess.check_output(['go','version'],text=True).strip(),'files':rows,'all_identical':all(x['byte_identical'] for x in rows),'limitations':'Matching source provenance is not a malware verdict or a reproduction of the user\u0027s quarantined file.'}
+          pathlib.Path('evidence/reproduction.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,indent=2))
+          if not report['all_identical']: raise SystemExit('Rebuilt bytes differ; investigate, do not claim source/binary identity.')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: incident-953-reproduction-evidence
+          path: evidence/
+          retention-days: 30
