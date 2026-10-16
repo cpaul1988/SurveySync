@@ -22,9 +22,7 @@ jobs:
       - name: Require active Defender for release artifact scans
         shell: pwsh
         run: |
-          if ((Get-Service WinDefend).Status -ne 'Running') { Start-Service WinDefend }
-          Set-MpPreference -DisableRealtimeMonitoring $false -ErrorAction Stop
-          Update-MpSignature -ErrorAction Stop
+          ./scripts/initialize_defender.ps1 -EnableRealtime -EvidenceDirectory security-evidence/prepare
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.2'

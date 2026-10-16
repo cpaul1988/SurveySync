@@ -27,7 +27,7 @@ function Snapshot {
 try {
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'Microsoft Defender release scans require Windows.' }
     if (-not (Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue)) { throw 'Microsoft Defender is unavailable.' }
-    Update-MpSignature -ErrorAction Stop
+    & (Join-Path $PSScriptRoot 'initialize_defender.ps1') -EvidenceDirectory $evidence
     $status=Snapshot
     $report.defender=$status
     foreach ($flag in @('AMServiceEnabled','AntivirusEnabled','RealTimeProtectionEnabled')) {

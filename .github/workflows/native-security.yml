@@ -1,0 +1,45 @@
+name: SurveySync Native Security
+on:
+  pull_request:
+    paths: ['scripts/**', 'installer/**', 'GO_VERSION.txt', '.github/workflows/native-security.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-provenance-and-scan:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.2'
+          cache: false
+      - name: Require active updated Microsoft Defender
+        shell: pwsh
+        run: ./scripts/initialize_defender.ps1 -EnableRealtime -EvidenceDirectory security-evidence/prepare
+      - name: Build identifiable native launchers without running them
+        shell: pwsh
+        run: |
+          ./scripts/generate_surveysync_icon.ps1
+          ./scripts/build_windows_launchers.ps1
+          python scripts/verify_native.py
+          if ($LASTEXITCODE -ne 0) { throw 'Native PE/GUI check failed.' }
+      - name: Scan both actual native binaries with unchanged protection
+        shell: pwsh
+        run: ./scripts/scan_windows_artifacts.ps1 -Paths SurveySync.exe,SurveySyncUpdater.exe -EvidenceDirectory security-evidence/native
+      - name: Retain security evidence, not a distributable release
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-security-evidence
+          path: |
+            security-evidence/
+            build/native/*.json
+            build/native/*.txt
+          retention-days: 14

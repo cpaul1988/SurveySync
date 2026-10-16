@@ -177,7 +177,8 @@ SURVEYSYNC_RELEASE_NOTES = [
     "Active, freshly updated Microsoft Defender must scan the signed launchers and final installer.",
     "Artifact hashes and scanner logs are retained and checked before packaging or release.",
     "FBR-0018 project identity, shared themes and persistent FieldBook module switching are retained.",
-    "Security holds fail closed. A scan pass is not a Microsoft false-positive determination."
+    "Security holds fail closed. A scan pass is not a Microsoft false-positive determination.",
+    "Globe branding and release notes remain available throughout SurveySync."
 ]
 
 
