@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-10-02T18:48:58Z",
+  "generated_utc": "2026-10-16T18:09:44Z",
   "publisher_tool": "GitHub Actions",
   "product": "SurveySync",
   "channels": {
@@ -18,35 +18,35 @@
       "required": false
     },
     "beta": {
-      "version": "9.5.2",
-      "release_id": "9.5.2-beta.1",
+      "version": "9.5.3",
+      "release_id": "9.5.3-beta.1",
       "channel": "beta",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.2/SurveySync_Setup_9.5.2-beta.1.exe",
-      "size_bytes": 9094182,
-      "sha256": "834dc2e6ad2c1f94170367660c8f0f75870bf70875cde215062c6875b3bf1e1e",
-      "artifact_identity": "sha256:834dc2e6ad2c1f94170367660c8f0f75870bf70875cde215062c6875b3bf1e1e",
-      "release_tag": "v9.5.2",
-      "release_notes": "Promoted to Stable by CP on 2026-10-02. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.2-beta.1. No rebuild.\n\nAcceptance completed: all four workflows passed, including 24 lifecycle cycles and three update replacement paths. Bundled QA/release files preserve their pre-build checkpoint wording; PR #23 records final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.2-beta.1 — CAD review decisions and revision comparison\n\nPublished and promoted to Stable on October 2, 2026.\n\n- Save Needs review, Confirmed finding, or Dismissed decisions with a required reviewer and reason. Decisions remain tied to the exact imported drawing snapshot. History is stored in the project audit chain; competing stale saves are rejected.\n- Compare the open drawing (after) with an earlier retained import (before). Review changed top-level handle candidates, unmatched before/after entities and selected-change overlays. Decisions never transfer automatically.\n- Export current finding decisions, full decision history and optional revision comparison in the existing printable HTML/CSV/JSON review ZIP. Original DXF hashes and closure evidence remain included.\n- ControlSync uses the label **3-point workbook profile**.\n\nComparison operates on supported imported representations, not full native CAD semantics. Handles can be reused; block children are conservatively unmatched. Curves are sampled; text is an anchor; unsupported content is listed separately. Confirmed findings are not repairs. No snapping, forced closure, geometry edits or project-point edits are introduced. Reviewer names are self-entered, not authenticated signatures.\n\nBoth drawings must be reimported if the project coordinate context or overlay points change. Export rejects stale decision tokens or altered source evidence. Windows installer acceptance passed. Representative real-job DXF/point validation remains pending; synthetic fixture results do not establish field accuracy.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.3/SurveySync_Setup_9.5.3-beta.1.exe",
+      "size_bytes": 9107024,
+      "sha256": "65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
+      "artifact_identity": "sha256:65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
+      "release_tag": "v9.5.3",
+      "release_notes": "Promoted to Stable by CP on 2026-10-16. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.3-beta.1. No rebuild.\n\nFinal acceptance: all four workflows passed on the approved head, including the installed native controls, 24 lifecycle cycles, and update replacement tests. Bundled QA/release files preserve their pre-build checkpoint wording; PR #24 and the approval receipt record final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.3-beta.1 — FieldBookSync integration\n\nPublished and promoted to Stable on October 16, 2026. Resolves FBR-0018.\n\n## What changes\n\nFieldBookSync uses the actual SurveySync application menu, module tabs, sidebar and project card. Its processing/review UI is a persistent, same-origin content pane. Ordinary module switches do not reload it. The existing review, mapping, batch, profile, trainer, analysis and history workflows remain available. FieldBook commands also appear in the common Tools menu.\n\nThe active SurveySync project is authoritative. The module inherits its name and ID, validates the project-local storage folder, and refuses a mismatched or stale view before data operations. Selecting the same project is idempotent. A failed new runtime does not close the previous project's job database. Active analysis, imports, batch work, live-network work and in-flight API responses prevent project replacement.\n\nLegacy .fbs imports retain the source title as provenance but cannot replace the destination SurveySync project's identity. Reset and recovery retain that identity. Existing source/map coordinates are not transformed as part of this integration. A legacy module-only rename is rejected instead of silently creating a conflicting project name.\n\nFeedback remains available with no project. Background Intake retries now retain the original report root even if the user switches projects during retry. Report IDs, local-first capture and shared Intake transport are unchanged. Native file-picker calls from the embedded module delegate to the main desktop bridge.\n\n## Validation and availability\n\nSee QA_REPORT_v9_5_3.md for measured results. Windows/WebView2, browser, installation, lifecycle, and update replacement acceptance passed on the exact approved candidate. Beta and Stable distribute the same verified installer.",
       "required": false,
-      "published_utc": "2026-10-02T18:48:57Z"
+      "published_utc": "2026-10-16T18:09:44Z"
     },
     "stable": {
-      "version": "9.5.2",
-      "release_id": "9.5.2-beta.1",
+      "version": "9.5.3",
+      "release_id": "9.5.3-beta.1",
       "channel": "stable",
       "publisher": "Clever Bird Development",
-      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.2/SurveySync_Setup_9.5.2-beta.1.exe",
-      "size_bytes": 9094182,
-      "sha256": "834dc2e6ad2c1f94170367660c8f0f75870bf70875cde215062c6875b3bf1e1e",
-      "artifact_identity": "sha256:834dc2e6ad2c1f94170367660c8f0f75870bf70875cde215062c6875b3bf1e1e",
-      "release_tag": "v9.5.2",
-      "release_notes": "Promoted to Stable by CP on 2026-10-02. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.2-beta.1. No rebuild.\n\nAcceptance completed: all four workflows passed, including 24 lifecycle cycles and three update replacement paths. Bundled QA/release files preserve their pre-build checkpoint wording; PR #23 records final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.2-beta.1 — CAD review decisions and revision comparison\n\nPublished and promoted to Stable on October 2, 2026.\n\n- Save Needs review, Confirmed finding, or Dismissed decisions with a required reviewer and reason. Decisions remain tied to the exact imported drawing snapshot. History is stored in the project audit chain; competing stale saves are rejected.\n- Compare the open drawing (after) with an earlier retained import (before). Review changed top-level handle candidates, unmatched before/after entities and selected-change overlays. Decisions never transfer automatically.\n- Export current finding decisions, full decision history and optional revision comparison in the existing printable HTML/CSV/JSON review ZIP. Original DXF hashes and closure evidence remain included.\n- ControlSync uses the label **3-point workbook profile**.\n\nComparison operates on supported imported representations, not full native CAD semantics. Handles can be reused; block children are conservatively unmatched. Curves are sampled; text is an anchor; unsupported content is listed separately. Confirmed findings are not repairs. No snapping, forced closure, geometry edits or project-point edits are introduced. Reviewer names are self-entered, not authenticated signatures.\n\nBoth drawings must be reimported if the project coordinate context or overlay points change. Export rejects stale decision tokens or altered source evidence. Windows installer acceptance passed. Representative real-job DXF/point validation remains pending; synthetic fixture results do not establish field accuracy.",
+      "installer_url": "https://github.com/cpaul1988/SurveySync/releases/download/v9.5.3/SurveySync_Setup_9.5.3-beta.1.exe",
+      "size_bytes": 9107024,
+      "sha256": "65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
+      "artifact_identity": "sha256:65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95",
+      "release_tag": "v9.5.3",
+      "release_notes": "Promoted to Stable by CP on 2026-10-16. Exact accepted beta.1 installer bytes; physical release identity remains 9.5.3-beta.1. No rebuild.\n\nFinal acceptance: all four workflows passed on the approved head, including the installed native controls, 24 lifecycle cycles, and update replacement tests. Bundled QA/release files preserve their pre-build checkpoint wording; PR #24 and the approval receipt record final acceptance. Production signing is not activated.\n\n# SurveySync 9.5.3-beta.1 — FieldBookSync integration\n\nPublished and promoted to Stable on October 16, 2026. Resolves FBR-0018.\n\n## What changes\n\nFieldBookSync uses the actual SurveySync application menu, module tabs, sidebar and project card. Its processing/review UI is a persistent, same-origin content pane. Ordinary module switches do not reload it. The existing review, mapping, batch, profile, trainer, analysis and history workflows remain available. FieldBook commands also appear in the common Tools menu.\n\nThe active SurveySync project is authoritative. The module inherits its name and ID, validates the project-local storage folder, and refuses a mismatched or stale view before data operations. Selecting the same project is idempotent. A failed new runtime does not close the previous project's job database. Active analysis, imports, batch work, live-network work and in-flight API responses prevent project replacement.\n\nLegacy .fbs imports retain the source title as provenance but cannot replace the destination SurveySync project's identity. Reset and recovery retain that identity. Existing source/map coordinates are not transformed as part of this integration. A legacy module-only rename is rejected instead of silently creating a conflicting project name.\n\nFeedback remains available with no project. Background Intake retries now retain the original report root even if the user switches projects during retry. Report IDs, local-first capture and shared Intake transport are unchanged. Native file-picker calls from the embedded module delegate to the main desktop bridge.\n\n## Validation and availability\n\nSee QA_REPORT_v9_5_3.md for measured results. Windows/WebView2, browser, installation, lifecycle, and update replacement acceptance passed on the exact approved candidate. Beta and Stable distribute the same verified installer.",
       "required": false,
-      "published_utc": "2026-10-02T18:48:57Z",
+      "published_utc": "2026-10-16T18:09:44Z",
       "promoted_from": "beta",
-      "promoted_utc": "2026-10-02T18:48:57Z",
-      "tested_channel_published_utc": "2026-10-02T18:48:57Z"
+      "promoted_utc": "2026-10-16T18:09:44Z",
+      "tested_channel_published_utc": "2026-10-16T18:09:44Z"
     }
   }
 }
