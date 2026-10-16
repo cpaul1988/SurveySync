@@ -1,0 +1,51 @@
+name: Prepare SurveySync Security Candidate
+on:
+  push:
+    branches: [fix/defender-release-954]
+    paths: ['.github/workflows/prepare-security-954.yml']
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.repository == 'cpaul1988/SurveySync'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check preimages, prepare versioned source and validate metadata
+        run: |
+          python .github/scripts/prepare_security_candidate_954.py
+          python scripts/validate_release_identity.py
+          python scripts/validate_release_docs.py
+          python scripts/validate_static_quality.py
+          git diff --check
+      - name: Store prepared tree and commit without moving any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json,os,pathlib,subprocess
+          repo='cpaul1988/SurveySync'; parent=os.environ['GITHUB_SHA']
+          def api(path,data=None):
+              cmd=['gh','api',path]
+              if data is not None:cmd+=['--method','POST','--input','-']
+              result=subprocess.run(cmd,input=json.dumps(data) if data is not None else None,text=True,capture_output=True,check=True)
+              return json.loads(result.stdout)
+          base=api(f'repos/{repo}/git/commits/{parent}')['tree']['sha']
+          names=subprocess.check_output(['git','diff','--name-only'],text=True).splitlines()
+          if len(names)!=20:raise RuntimeError('Unexpected modified file set')
+          elements=[{'path':n,'mode':'100644','type':'blob','content':pathlib.Path(n).read_text()} for n in names]
+          elements += [{'path':n,'mode':'100644','type':'blob','sha':None} for n in ['.github/workflows/prepare-security-954.yml','.github/scripts/prepare_security_candidate_954.py']]
+          tree=api(f'repos/{repo}/git/trees',{'base_tree':base,'tree':elements})['sha']
+          commit=api(f'repos/{repo}/git/commits',{'message':'fix: harden native build and require exact Defender artifact evidence (9.5.4-beta.1)','tree':tree,'parents':[parent]})['sha']
+          report={'parent':parent,'prepared_commit':commit,'tree':tree,'changed_files':names,'branch':'fix/defender-release-954','branch_updated':False}
+          pathlib.Path('prepared-commit.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prepared-security-commit
+          path: prepared-commit.json
+          retention-days: 7
