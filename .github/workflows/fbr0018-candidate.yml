@@ -1,0 +1,20 @@
+name: FBR-0018 Candidate Validation
+on:
+  push:
+    branches: [fix/fbr0018-integration]
+permissions:
+  contents: read
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive exact candidate source
+        run: git archive --format=zip --output=source-snapshot.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fbr0018-source-snapshot
+          path: source-snapshot.zip
+          retention-days: 7
