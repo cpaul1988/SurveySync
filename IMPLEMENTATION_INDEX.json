@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.5.2",
+  "version": "9.5.3",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1159,6 +1159,29 @@
       "documentation": [
         "docs/CAD_REVIEW.md",
         "RELEASE_NOTES_v9_5_2.md"
+      ]
+    },
+    "fbr0018_fieldbook_shell_integration": {
+      "introduced": "9.5.3",
+      "implementation": [
+        "surveysync/fieldbook_session.py",
+        "fieldbook_sync/project_binding.py",
+        "surveysync/static/fieldbook_host.js",
+        "surveysync/static/fieldbook_host.css",
+        "fieldbook_sync/static/shell_bridge.js",
+        "fieldbook_sync/storage.py",
+        "fieldbook_sync/app.py",
+        "surveysync/router.py"
+      ],
+      "tests": [
+        "tests/test_fbr0018_fieldbook_integration.py",
+        "scripts/fbr0018_browser_smoke.py"
+      ],
+      "documentation": [
+        "RELEASE_NOTES_v9_5_3.md",
+        "docs/FIELDBOOK_SHELL_INTEGRATION.md",
+        "docs/ARCHITECTURE.md",
+        "docs/API_REFERENCE.md"
       ]
     }
   }

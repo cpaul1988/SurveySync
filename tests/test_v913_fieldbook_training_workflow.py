@@ -8,7 +8,9 @@ from fieldbook_sync.models import FieldBookPage, ImportedFileRecord
 def _runtime(tmp_path, monkeypatch):
     monkeypatch.setenv("SURVEYSYNC_CONFIG_ROOT", str(tmp_path / "cfg"))
     from fieldbook_sync import app as field_app
-    field_app.runtime = field_app.Runtime(tmp_path / "fieldbook_runtime")
+    from surveysync import router as shell
+    monkeypatch.setattr(shell, "current_project", None)
+    monkeypatch.setattr(field_app, "runtime", field_app.Runtime(tmp_path / "fieldbook_runtime"))
     return field_app, TestClient(field_app.app)
 
 

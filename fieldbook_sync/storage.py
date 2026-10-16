@@ -40,6 +40,7 @@ class AppStorage:
         self.settings_path = self.root / "settings.json"
         for d in [self.profile_dir, self.field_note_profile_dir, self.field_note_training_dir, self.page_dir, self.enhanced_dir, self.export_dir, self.project_dir, self.examples_dir, self.batch_dir, self.feedback_dir]:
             d.mkdir(parents=True, exist_ok=True)
+        self.survey_sync_context: dict | None = None
         self.lock = RLock()
         self.state = self._load_state()
 
@@ -63,7 +64,10 @@ class AppStorage:
 
     def save(self) -> None:
         """Atomic autosave with a one-generation crash-recovery snapshot."""
+        from .project_binding import apply_identity
+
         with self.lock:
+            apply_identity(self, self.state)
             self.state.project_modified_at = utc_now_iso()
             if self.state_path.exists():
                 try:

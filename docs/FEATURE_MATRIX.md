@@ -140,3 +140,10 @@ A suspect level setup can issue a crew template, stage complete three-wire retur
 9.5.1 candidate: BoundarySync CAD Drawing & Geometry QA — read-only DXF and ordered closure; see CAD_REVIEW.md.
 
 | BoundarySync | Snapshot-bound finding decisions and conservative revision comparison | Candidate 9.5.2 | `surveysync/cad_review_workflow.py` | `tests/test_cad_review_workflow.py` |
+
+
+## 9.5.3 — FieldBook shared integration
+
+FBR-0018: shared FieldBook navigation/theme, canonical identity and storage verification, persistent module content, stale-request rejection and original-workspace feedback retry capture are implemented in the 9.5.3 candidate; Windows acceptance remains a release gate.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

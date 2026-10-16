@@ -72,3 +72,10 @@ Standalone point import, editable code classifications, feature-chain range dete
 
 **Support diagnostics:** local diagnostic JSONL → Support Center merged sync state → optional retry to Error Log endpoint or explicit “Report This Error” Feedback Wizard report. Diagnostic/support submission is designed to exclude raw survey source files unless a separate workflow explicitly attaches them.
 
+
+
+## 9.5.3 — FieldBook shared integration
+
+Active project manifest → verified FieldBook storage binding → canonical name/ID mirror → captured ID/root view token → API request lease → data operation. Explicit snapshot import adopts destination identity while preserving source title and coordinates.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

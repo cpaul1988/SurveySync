@@ -96,3 +96,10 @@ Standalone point import, editable code classifications, feature-chain range dete
 Adds the integrated Support Center, interrupted-session detection/recovery, SHA-256-cached Survey Data Inspector with downstream workflow handoff, and TopoSync QC profiles/run history/candidate decisions/advisory calibration. The release hardening pass also fixes normal-start update initialization, prevents file-association maintenance commands from creating false recovery notices, and refreshes project CRS/unit context on Inspector cache hits. See `RELEASE_NOTES_v9_3_1.md` and `QA_REPORT_v9_3_1.md`.
 
 9.5.1-beta.1: unpublished CAD Drawing & Geometry QA candidate; see RELEASE_NOTES_v9_5_1.md.
+
+
+## 9.5.3 — FieldBook shared integration
+
+9.5.3-beta.1 — unreleased FBR-0018 shared-shell/project-identity candidate. Based on 9.5.2 plus the October 12 dependency patch; update feeds unchanged.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

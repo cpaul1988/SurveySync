@@ -74,3 +74,10 @@ See `docs/REMAINING_AUDIT_WORK.md` for G01–G05 desktop connections, safeguards
 See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privacy, dual OCR views, original-image context, regression scope, and remaining real-model/hardware/calibration acceptance.
 
 CAD Review 9.5.1: modelspace only, approximate curve display/self-intersections, no DWG or automatic fixes; excludes curved inter-entity intersections and partial overlaps. No engineering closure inference from already-closed entities. See CAD_REVIEW.md for limits.
+
+
+## 9.5.3 — FieldBook shared integration
+
+9.5.3-beta.1 is an unreleased integration candidate until exact-source browser/Windows acceptance completes. The pending-input confirmation on actual project changes is intentionally conservative. Initial FieldBook entry still initializes its content once; only subsequent tab transitions retain the same document.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

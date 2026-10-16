@@ -76,3 +76,10 @@ Broad `Exception` handling is treated as technical debt. The 9.2.5 gate prevents
 ## 9.3.0 engineering hardening
 
 See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared release gates, dependency locks, domain extraction, diagnostics and standalone TopoSync rod-height range QC. Windows acceptance and distribution signing remain outstanding.
+
+
+## 9.5.3 — FieldBook shared integration
+
+Use one persistent, same-origin content adapter around the mature FieldBook engine rather than rewrite its survey computations. Share actual shell components and resolved CSS values. Preserve legacy-title provenance and never silently transform coordinates to achieve identity consistency.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

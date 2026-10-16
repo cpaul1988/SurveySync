@@ -459,6 +459,8 @@ class ImportedFileRecord(BaseModel):
     representative_page_ids: List[str] = Field(default_factory=list)
 
 class AppState(BaseModel):
+    surveysync_project_id: str = ""
+    legacy_project_name: str = ""
     project_name: str = "Untitled Project"
     project_created_at: str = Field(default_factory=utc_now_iso)
     project_modified_at: str = Field(default_factory=utc_now_iso)

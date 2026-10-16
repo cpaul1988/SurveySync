@@ -1,23 +1,23 @@
 {
   "product": "SurveySync",
-  "version": "9.5.2",
-  "build_type": "cad-review-workflow-candidate",
-  "baseline": "9.5.1 Stable",
-  "candidate_branch": "work/9.5.2-cad-review-workflow",
+  "version": "9.5.3",
+  "build_type": "fieldbook-shell-integration-candidate",
+  "baseline": "9.5.2 + 2026-10-12 development security maintenance",
+  "candidate_branch": "fix/fbr0018-integration",
   "feedback": {
     "checked_before_build": true,
-    "checked_utc": "2026-10-02",
-    "intake_count": 16,
-    "latest_intake": "FBR-0016",
-    "notes": "Intake reviewed; latest report unchanged since prior candidate. No new CAD-specific reports."
+    "checked_utc": "2026-10-16",
+    "intake_count": 18,
+    "latest_intake": "FBR-0018",
+    "notes": "FBR-0018 and user confirmation reviewed. Same active test project displayed as Untitled in FieldBookSync. FBR-0017 is a delivery test. Separate error/retry tracker reports zero entries."
   },
   "qa": {
-    "status": "Linux full release gate passed: 718 passed, 1 skipped, 64.35% coverage. CAD browser acceptance passed. Windows installer and representative real-job acceptance pending.",
+    "status": "Local maintained suite: 733 passed, 1 skipped. 15 focused integration cases included. Browser and Windows installer acceptance pending; local Chromium policy blocks loopback navigation.",
     "coverage_floor_percent": 54
   },
   "release": {
     "published": false,
     "require_exact_tested_installer": true
   },
-  "release_id": "9.5.2-beta.1"
+  "release_id": "9.5.3-beta.1"
 }

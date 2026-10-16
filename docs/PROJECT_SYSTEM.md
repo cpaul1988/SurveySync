@@ -43,3 +43,10 @@ Approved level recheck sights are append-only records in `level_recheck_sights`;
 # 9.4.9 level recheck persistence
 
 Level recheck requests created under 9.4.8 in `Modules/ControlSync/level_rechecks.json` are imported on first access into the project database's `project_metadata` row named `level_rechecks`. The original JSON remains as legacy evidence. Subsequent changes use the database row, allowing approval state, approved sight overlays and the active level solution to commit or roll back together.
+
+
+## 9.5.3 — FieldBook shared integration
+
+The FieldBook module no longer owns a separate project identity. AppStorage mirrors the active SurveySync name/ID on saves; mismatched persisted IDs are rejected except during an explicit .fbs copy/import. The connection guard also verifies the resolved module storage root.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

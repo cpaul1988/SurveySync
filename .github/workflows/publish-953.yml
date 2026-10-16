@@ -1,0 +1,30 @@
+name: Publish verified SurveySync 9.5.3
+on:
+  push:
+    branches: [fix/fbr0018-integration]
+    paths: ['.github/release-953.json']
+permissions:
+  contents: read
+concurrency:
+  group: surveysync-release
+  cancel-in-progress: false
+jobs:
+  publish-accepted:
+    if: github.repository == 'cpaul1988/SurveySync' && github.ref == 'refs/heads/fix/fbr0018-integration'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test publication safeguards without network writes
+        run: python -m unittest discover -s .github/scripts/tests -p test_publish_verified_953.py -v
+      - name: Publish and promote the exact independently accepted installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/publish_verified_953.py

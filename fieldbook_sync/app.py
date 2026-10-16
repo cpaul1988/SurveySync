@@ -345,31 +345,9 @@ def _valid_feedback_url(value: str) -> bool:
 
 
 
-def rebind_project_storage(storage_root: Path | str) -> dict:
-    """Move the embedded FieldBookSync engine to one SurveySync project workspace.
-
-    Project switching is refused while analysis/import work is active. Every cache,
-    recovery file and SQLite job ledger is recreated beneath the selected project so
-    state cannot leak between projects.
-    """
-    global runtime, logger
-    old = runtime
-    with old.lock:
-        if old.job.running or old.import_job.running:
-            raise RuntimeError("Cannot switch SurveySync projects while FieldBookSync is processing data.")
-    try:
-        old.job_store.close()
-    except Exception:
-        logging.getLogger(__name__).warning("Recovery fallback in app; operation did not complete.", exc_info=True)
-    runtime = Runtime(storage_root)
-    logger = configure_logging(runtime.storage.root / "logs")
-    return {
-        "root": str(runtime.storage.root),
-        "state_path": str(runtime.storage.state_path),
-        "job_database": str(runtime.job_store.path),
-        "ocr_cache": str(runtime.ocr_cache_dir),
-        "interpretation_cache": str(runtime.interpretation_cache_dir),
-    }
+def rebind_project_storage(storage_root: Path | str, project_context: dict | None = None) -> dict:
+    from .project_binding import rebind
+    return rebind(sys.modules[__name__], storage_root, project_context)
 
 class Runtime:
     def __init__(self, storage_root: Path | str | None = None) -> None:
@@ -531,20 +509,21 @@ app = FastAPI(title=f"SurveySync v{CURRENT_VERSION}", version=CURRENT_VERSION)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-def _deferred_startup_checks(delay_seconds: float = 1.5) -> None:
+def _deferred_startup_checks(delay_seconds: float = 1.5, target_runtime=None) -> None:
     """Run optional recovery/GPU probes only after the UI has become usable.
 
     v8.1.17 started this daemon thread while the application module was still being
     imported. On Windows that overlapped with pywebview/WebView2 initialization.
     v8.1.21 waits for an explicit UI-ready signal instead.
     """
+    target_runtime = target_runtime or runtime
     try:
         # Recovery can run as soon as the UI explicitly says it is ready. The slow
         # NVIDIA probe is intentionally delayed so it cannot compete with WebView2's
         # first interactive frames / release-note dismissal.
         try:
             t = time.perf_counter()
-            runtime.recovered_interrupted_jobs = runtime.job_store.recover_interrupted_jobs()
+            target_runtime.recovered_interrupted_jobs = target_runtime.job_store.recover_interrupted_jobs()
             _startup_mark("recover_interrupted_jobs_background", t)
         except Exception as exc:
             STARTUP_METRICS["recover_interrupted_jobs_error"] = str(exc)
@@ -553,13 +532,13 @@ def _deferred_startup_checks(delay_seconds: float = 1.5) -> None:
             time.sleep(delay_seconds)
         try:
             t = time.perf_counter()
-            runtime.hardware_profile = detect_hardware(include_gpu=True)
+            target_runtime.hardware_profile = detect_hardware(include_gpu=True)
             _startup_mark("hardware_gpu_probe_background", t)
         except Exception as exc:
             STARTUP_METRICS["hardware_gpu_probe_error"] = str(exc)
             print(f"[FieldBook Sync startup] GPU probe failed: {exc}", flush=True)
     finally:
-        runtime.deferred_startup_complete = True
+        target_runtime.deferred_startup_complete = True
         STARTUP_METRICS["deferred_startup_complete"] = True
 
 
@@ -570,12 +549,13 @@ def start_deferred_startup_checks(delay_seconds: float = 1.5) -> bool:
             return False
         runtime.deferred_startup_started = True
         STARTUP_METRICS["deferred_startup_started"] = True
-    threading.Thread(
+    runtime.deferred_startup_thread = threading.Thread(
         target=_deferred_startup_checks,
-        args=(max(0.0, float(delay_seconds)),),
+        args=(max(0.0, float(delay_seconds)), runtime),
         name="FBS-startup-probes",
         daemon=True,
-    ).start()
+    )
+    runtime.deferred_startup_thread.start()
     return True
 
 
@@ -1022,6 +1002,7 @@ def _summary() -> dict:
         return {
             "app_name": APP_NAME,
             "project_name": state.project_name,
+            "project_context": dict(runtime.storage.survey_sync_context or {}),
             "project_created_at": state.project_created_at,
             "project_modified_at": state.project_modified_at,
             "autosave_path": str(runtime.storage.state_path),
@@ -2803,14 +2784,18 @@ def _feedback_report_file(report_id: str) -> Path:
     return runtime.storage.feedback_dir / "reports" / safe / "report.json"
 
 
-def _sync_feedback_report(report_id: str, endpoint_url: str) -> None:
+def _sync_feedback_report(report_id: str, endpoint_url: str, storage_root: Path | None = None) -> None:
     """Sync a locally saved report without ever risking the local feedback record.
 
     The shared Apps Script endpoint is allowed to be temporarily unavailable. Transient
     HTTP 5xx/network failures are retried in the background; after the final attempt the
     report remains PENDING locally with a human-readable error and can be retried later.
     """
-    path = _feedback_report_file(report_id)
+    storage_root = storage_root or runtime.storage.root
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "", str(report_id or ""))
+    if not safe or safe != report_id:
+        raise ValueError("Invalid feedback report ID.")
+    path = storage_root / "feedback" / "reports" / safe / "report.json"
     try:
         report = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
@@ -2823,7 +2808,7 @@ def _sync_feedback_report(report_id: str, endpoint_url: str) -> None:
         if delay:
             time.sleep(delay)
         try:
-            update_feedback_sync(runtime.storage.root, report_id, {
+            update_feedback_sync(storage_root, report_id, {
                 "status": "syncing",
                 "provider": "google_apps_script",
                 "attempt": attempt,
@@ -2831,7 +2816,7 @@ def _sync_feedback_report(report_id: str, endpoint_url: str) -> None:
             })
             result = submit_to_tracker_endpoint(endpoint_url, report, path.parent)
             result["attempt"] = attempt
-            update_feedback_sync(runtime.storage.root, report_id, result)
+            update_feedback_sync(storage_root, report_id, result)
             logger.info("Feedback report %s synced directly to Intake as %s on attempt %s.", report_id, result.get("intake_id"), attempt)
             return
         except Exception as exc:
@@ -2839,7 +2824,7 @@ def _sync_feedback_report(report_id: str, endpoint_url: str) -> None:
             logger.warning("Feedback report %s sync attempt %s/%s failed: %s", report_id, attempt, len(delays), exc)
 
     try:
-        update_feedback_sync(runtime.storage.root, report_id, {
+        update_feedback_sync(storage_root, report_id, {
             "status": "pending",
             "provider": "google_apps_script",
             "attempts": len(delays),
@@ -2859,7 +2844,7 @@ def _queue_feedback_sync(report_id: str, endpoint_url: str) -> bool:
         raise ValueError("Shared tracker sync requires a deployed HTTPS Google Apps Script /exec URL.")
     threading.Thread(
         target=_sync_feedback_report,
-        args=(report_id, url),
+        args=(report_id, url, runtime.storage.root),
         name=f"FBS-feedback-sync-{report_id[-6:]}",
         daemon=True,
     ).start()
@@ -3679,6 +3664,8 @@ def api_redo() -> dict:
 
 @app.post("/api/project/name")
 def api_project_name(payload: ProjectNameIn) -> dict:
+    if runtime.storage.survey_sync_context:
+        raise HTTPException(409, "Project identity is managed by SurveySync, not by the FieldBook module.")
     name = payload.name.strip()
     if not name:
         raise HTTPException(400, "Project name is required.")
@@ -3808,6 +3795,8 @@ def _commit_staged_project(stage_root: Path, state: AppState, profile: CodeProfi
         _assert_analysis_idle_locked()
         if expected_revision is not None and runtime.project_revision != expected_revision:
             raise HTTPException(409, "Project data changed while the project file was being prepared. Retry Open Project.")
+        from .project_binding import apply_identity
+        apply_identity(runtime.storage, state, adopt=True)
         existing_batch = runtime.storage.state.batch_jobs
         if runtime.storage.page_dir.exists():
             shutil.rmtree(runtime.storage.page_dir)
@@ -3904,6 +3893,11 @@ def api_recovery_restore() -> dict:
         except Exception as exc:
             raise HTTPException(400, f"Recovery snapshot could not be read: {exc}") from exc
         # Page images are retained in the local workspace and their paths remain valid.
+        from .project_binding import apply_identity
+        try:
+            apply_identity(runtime.storage, recovered)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
         recovered.batch_jobs = runtime.storage.state.batch_jobs
         runtime.storage.state = recovered
         _bump_project_revision_locked()
@@ -4355,6 +4349,9 @@ from .batch_workers import (
 
 from surveysync.router import router as surveysync_router
 app.include_router(surveysync_router)
+
+from surveysync.fieldbook_session import FieldBookSessionMiddleware
+app.add_middleware(FieldBookSessionMiddleware)
 
 # Register last so the transport-delivery guard wraps the buffering HTTP layers.
 app.add_middleware(
