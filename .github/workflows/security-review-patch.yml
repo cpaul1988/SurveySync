@@ -1,0 +1,53 @@
+name: Prepare reviewed security follow-up
+on:
+  push:
+    branches: [ops/security-reviewed-patch]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare five exact-source edits as content blobs, without changing refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json,pathlib,subprocess,hashlib,os
+          repo='cpaul1988/SurveySync'
+          expected={'surveysync/router.py':'5efd5908aeb202f1f51b7572123cac27fb9cb3c0','scripts/scan_windows_artifacts.ps1':'784e0081d562019be61d81454fa4604c28e1d5ce','.github/workflows/repair-acceptance.yml':'ab370ced5c86f3f2bcf0f509215abc2d572d5bbf','.github/workflows/ui-validation.yml':'68c47ce891b424a041f0c3f179a02295e8a0bf19','.github/workflows/release.yml':'67f2efb5d9b7ccb99b29bd7c788999c4f3d9ce7c'}
+          def api(path,body):
+              r=subprocess.run(['gh','api',path,'--method','POST','--input','-'],input=json.dumps(body),text=True,capture_output=True)
+              if r.returncode:raise RuntimeError(r.stderr)
+              return json.loads(r.stdout)
+          elements=[]
+          for name,blob in expected.items():
+              raw=subprocess.check_output(['git','show','HEAD:'+name]); actual=hashlib.sha1(f'blob {len(raw)}\0'.encode()+raw).hexdigest()
+              if actual!=blob:raise RuntimeError('Unexpected preimage: '+name)
+              text=raw.decode('utf-8')
+              if name.endswith('router.py'):
+                  before='"Security holds fail closed. A scan pass is not a Microsoft false-positive determination."'
+                  after=before+',\n    "Globe branding and release notes remain available throughout SurveySync."'
+              elif name.endswith('scan_windows_artifacts.ps1'):
+                  before='    Update-MpSignature -ErrorAction Stop'
+                  after="    & (Join-Path $PSScriptRoot 'initialize_defender.ps1') -EvidenceDirectory $evidence"
+              else:
+                  before="          if ((Get-Service WinDefend).Status -ne 'Running') { Start-Service WinDefend }\n          Set-MpPreference -DisableRealtimeMonitoring $false -ErrorAction Stop\n          Update-MpSignature -ErrorAction Stop"
+                  after='          ./scripts/initialize_defender.ps1 -EnableRealtime -EvidenceDirectory security-evidence/prepare'
+              if text.count(before)!=1:raise RuntimeError('Unexpected replacement count: '+name)
+              text=text.replace(before,after)
+              result=api(f'repos/{repo}/git/blobs',{'content':text,'encoding':'utf-8'})
+              elements.append({'path':name,'mode':'100644','type':'blob','sha':result['sha']})
+          elements.append({'path':'scripts/initialize_defender.ps1','mode':'100644','type':'blob','sha':subprocess.check_output(['git','rev-parse','HEAD:scripts/initialize_defender.ps1'],text=True).strip()})
+          pathlib.Path('reviewed-patch.json').write_text(json.dumps({'base':'6f05ac42070619b191fb68ecf9552c1a7d776d9b','tree_elements':elements},indent=2))
+          print(pathlib.Path('reviewed-patch.json').read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reviewed-security-patch
+          path: reviewed-patch.json
+          retention-days: 3
