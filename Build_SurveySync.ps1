@@ -24,25 +24,11 @@ try {
 }
 finally { Pop-Location }
 
-if (-not $SkipLauncherBuild) {
-    $go = Get-Command go -ErrorAction SilentlyContinue
-    if ($go) {
-        Push-Location $Root
-        try {
-            $oldGoos=$env:GOOS; $oldGoarch=$env:GOARCH; $oldCgo=$env:CGO_ENABLED
-            $env:GOOS='windows'; $env:GOARCH='amd64'; $env:CGO_ENABLED='0'
-            & $go.Source build -trimpath -ldflags '-s -w -H=windowsgui' -o SurveySync.exe .\installer\app_launcher.go
-            if ($LASTEXITCODE -ne 0) { throw 'SurveySync.exe build failed.' }
-            & $go.Source build -trimpath -ldflags '-s -w -H=windowsgui' -o SurveySyncUpdater.exe .\installer\update_helper.go
-            if ($LASTEXITCODE -ne 0) { throw 'SurveySyncUpdater.exe build failed.' }
-            $env:GOOS=$oldGoos; $env:GOARCH=$oldGoarch; $env:CGO_ENABLED=$oldCgo
-        }
-        finally { $env:GOOS=$oldGoos; $env:GOARCH=$oldGoarch; $env:CGO_ENABLED=$oldCgo; Pop-Location }
-    }
-    else { throw 'Go is required to rebuild the current launchers. Stale prebuilt binaries cannot be released.' }
-}
+& (Join-Path $Root 'scripts\build_windows_launchers.ps1') -Root $Root
 
 & (Join-Path $Root 'scripts\sign_windows_artifacts.ps1') -Paths @((Join-Path $Root 'SurveySync.exe'), (Join-Path $Root 'SurveySyncUpdater.exe'))
+
+& (Join-Path $Root 'scripts\scan_windows_artifacts.ps1') -Paths @((Join-Path $Root 'SurveySync.exe'), (Join-Path $Root 'SurveySyncUpdater.exe')) -EvidenceDirectory (Join-Path $Root 'security-evidence/native')
 
 & $python.Source (Join-Path $Root 'scripts\verify_native.py')
 if ($LASTEXITCODE -ne 0) { throw 'Native launcher verification failed.' }
@@ -67,6 +53,7 @@ finally { Pop-Location }
 
 if (-not (Test-Path $Output)) { throw "Installer was not created: $Output" }
 & (Join-Path $Root 'scripts\sign_windows_artifacts.ps1') -Paths @($Output)
+& (Join-Path $Root 'scripts\scan_windows_artifacts.ps1') -Paths @($Output) -EvidenceDirectory (Join-Path $Root 'security-evidence/installer')
 $hash = (Get-FileHash $Output -Algorithm SHA256).Hash.ToLowerInvariant()
 $hashPath = "$Output.sha256"
 "$hash  $(Split-Path -Leaf $Output)" | Set-Content -Encoding ascii $hashPath

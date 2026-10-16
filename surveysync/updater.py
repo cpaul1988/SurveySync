@@ -77,6 +77,11 @@ def fetch_manifest(store: ConfigStore) -> dict:
 def select_release(manifest: dict, channel: str) -> dict:
     if channel not in {"stable", "beta", "developer"}:
         raise ValueError("Unknown release channel.")
+    hold = manifest.get("release_hold")
+    if isinstance(hold, dict) and hold.get("active") is True:
+        held = hold.get("channels", [])
+        if not isinstance(held, list) or channel in held:
+            raise ValueError("SurveySync updates are temporarily suspended for security review. Keep Windows protection enabled.")
     channels = manifest.get("channels")
     rel = channels.get(channel) if isinstance(channels, dict) else (
         manifest if str(manifest.get("channel") or "stable") == channel else None)

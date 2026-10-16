@@ -1,23 +1,29 @@
 {
   "product": "SurveySync",
-  "version": "9.5.3",
-  "build_type": "fieldbook-shell-integration-candidate",
-  "baseline": "9.5.2 + 2026-10-12 development security maintenance",
-  "candidate_branch": "fix/fbr0018-integration",
+  "version": "9.5.4",
+  "build_type": "security-release-candidate",
+  "baseline": "9.5.3 + Defender incident containment",
+  "candidate_branch": "fix/defender-release-954",
   "feedback": {
     "checked_before_build": true,
     "checked_utc": "2026-10-16",
     "intake_count": 18,
     "latest_intake": "FBR-0018",
-    "notes": "FBR-0018 and user confirmation reviewed. Same active test project displayed as Untitled in FieldBookSync. FBR-0017 is a delivery test. Separate error/retry tracker reports zero entries."
+    "notes": "Intake rechecked before this candidate build. Defender screenshots and explicit fix request are the security incident input. FieldBook integration is retained."
   },
   "qa": {
-    "status": "Local maintained suite: 733 passed, 1 skipped. 15 focused integration cases included. Browser and Windows installer acceptance pending; local Chromium policy blocks loopback navigation.",
+    "status": "Security evidence and independent Windows acceptance required. No claim of vendor false-positive clearance.",
     "coverage_floor_percent": 54
   },
   "release": {
     "published": false,
     "require_exact_tested_installer": true
   },
-  "release_id": "9.5.3-beta.1"
+  "release_id": "9.5.4-beta.1",
+  "security": {
+    "defender_required": true,
+    "go_version": "1.27.2",
+    "blocked_release": "9.5.3-beta.1",
+    "vendor_clearance": false
+  }
 }

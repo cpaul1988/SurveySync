@@ -172,13 +172,12 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.5.3-beta.1 integrates FieldBookSync into the persistent SurveySync shell for FBR-0018.",
-    "Use the same module navigation, project card, globe branding, theme and colors everywhere.",
-    "FieldBookSync now inherits the active project name and ID and validates its real storage location.",
-    "Switching module tabs keeps the FieldBook page, review filter and uncommitted input in memory.",
-    "Stale project requests and mismatched storage are refused; project switching is blocked during active work.",
-    "Feedback retries retain their originating workspace. The wizard remains available without a project.",
-    "Version-keyed release notes are retained. This is an unreleased candidate pending Windows acceptance."
+    "9.5.4-beta.1 adds native build provenance and mandatory artifact security scanning.",
+    "Launchers use pinned Go 1.27.2 and embed SurveySync product/version/icon resources.",
+    "Active, freshly updated Microsoft Defender must scan the signed launchers and final installer.",
+    "Artifact hashes and scanner logs are retained and checked before packaging or release.",
+    "FBR-0018 project identity, shared themes and persistent FieldBook module switching are retained.",
+    "Security holds fail closed. A scan pass is not a Microsoft false-positive determination."
 ]
 
 

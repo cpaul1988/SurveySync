@@ -1,7 +1,7 @@
 #define MyAppName "SurveySync"
-#define MyAppVersion "9.5.3"
+#define MyAppVersion "9.5.4"
 #ifndef MyReleaseID
-  #define MyReleaseID "9.5.3-beta.1"
+  #define MyReleaseID "9.5.4-beta.1"
 #endif
 #define MyAppPublisher "Clever Bird Development"
 #define MyAppURL "https://github.com/cpaul1988/SurveySync"
@@ -53,7 +53,7 @@ Name: "fbsassoc"; Description: "Associate .fbs project files with SurveySync"; G
 Name: "localai"; Description: "Run optional FieldBookSync Local AI setup after installation"; GroupDescription: "Local AI:"; Flags: unchecked
 
 [Files]
-Source: "..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git\*,.github\*,.build-venv\*,.prod-verify\*,.ruff_cache\*,.mypy_cache\*,.pytest_cache\*,.coverage,coverage.xml,installer\output\*,tests\*,legacy_tests\*,ui-evidence\*,repair-evidence\*,remaining-evidence\*,lifecycle-evidence\*,candidate-evidence\*,baseline-artifact\*,released-baseline\*,_ui_payload\*,.venv\*,.paddleenv\*,runtime\*,dist\*,build\*,__pycache__\*,*.pyc,*.pyo,*.pfx,*.p12,*.key,*.pem"
+Source: "..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "security-evidence\*,original-input\*,original-unpacked\*,.git\*,.github\*,.build-venv\*,.prod-verify\*,.ruff_cache\*,.mypy_cache\*,.pytest_cache\*,.coverage,coverage.xml,installer\output\*,tests\*,legacy_tests\*,ui-evidence\*,repair-evidence\*,remaining-evidence\*,lifecycle-evidence\*,candidate-evidence\*,baseline-artifact\*,released-baseline\*,_ui_payload\*,.venv\*,.paddleenv\*,runtime\*,dist\*,build\*,__pycache__\*,*.pyc,*.pyo,*.pfx,*.p12,*.key,*.pem"
 Source: "provision_runtime.ps1"; DestDir: "{app}\installer"; Flags: ignoreversion; AfterInstall: ProvisionRuntime
 
 [Icons]
@@ -62,7 +62,7 @@ Name: "{autoprograms}\SurveySync (Browser Fallback)"; Filename: "{app}\.venv\Scr
 Name: "{autodesktop}\SurveySync"; Filename: "{app}\SurveySync.exe"; WorkingDir: "{app}"; IconFilename: "{app}\branding\SurveySync.ico"; Tasks: desktopicon
 
 [InstallDelete]
-; v9.5.3 is an in-place SurveySync correction update and retains the FieldBook Sync migration cleanup.
+; v9.5.4 is an in-place SurveySync correction update and retains the FieldBook Sync migration cleanup.
 ; Only legacy application binaries/shortcuts are removed. User data under
 ; %LOCALAPPDATA%\FieldBookSync and user-created .fbs files are intentionally untouched.
 Type: files; Name: "{app}\FieldBookSync.exe"
