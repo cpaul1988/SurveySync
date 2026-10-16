@@ -6,7 +6,8 @@ permissions:
   contents: read
 concurrency:
   group: surveysync-repair-acceptance-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve installed-test evidence when a follow-up documentation/CI commit arrives.
+  cancel-in-progress: false
 jobs:
   installed-windows:
     if: github.repository == 'cpaul1988/SurveySync'
@@ -89,17 +90,30 @@ jobs:
         run: gh release download v9.4.0-beta.4 --repo cpaul1988/SurveySync --pattern SurveySync_Setup_9.4.0.exe --dir released-baseline
       - name: Real numbered-beta and released-version HTTPS replacement cycles
         run: python scripts/verify_update_cycle.py
+      - name: Stage exact independently tested candidate
+        id: candidate
+        shell: pwsh
+        run: |
+          $releaseId = (Get-Content RELEASE_ID.txt -Raw).Trim()
+          $version = (Get-Content VERSION.txt -Raw).Trim().Replace('.', '_')
+          $setup = "installer/output/SurveySync_Setup_$releaseId.exe"
+          $files = @($setup, "$setup.sha256", "RELEASE_NOTES_v$version.md", "QA_REPORT_v$version.md", 'VERSION.txt', 'RELEASE_ID.txt')
+          foreach ($file in $files) { if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing candidate artifact: $file" } }
+          $digest = (Get-FileHash -LiteralPath $setup -Algorithm SHA256).Hash.ToLowerInvariant()
+          $expected = ((Get-Content -LiteralPath "$setup.sha256" -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+          if ($digest -ne $expected -or $digest -ne $env:SS_INSTALLER_SHA256) { throw 'Candidate bytes differ from the installed/tested installer.' }
+          $stage = Join-Path $env:RUNNER_TEMP 'verified-candidate'
+          if (Test-Path $stage) { throw 'Candidate artifact staging directory already exists.' }
+          New-Item -ItemType Directory -Path $stage | Out-Null
+          foreach ($file in $files) { Copy-Item -LiteralPath $file -Destination $stage }
+          git rev-parse HEAD | Set-Content (Join-Path $stage 'tested-source.txt')
+          "name=SurveySync_${releaseId}_Verified_Installer" >> $env:GITHUB_OUTPUT
+          "path=$stage" >> $env:GITHUB_OUTPUT
       - name: Preserve successfully tested installer only as an unpublished artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SurveySync_9.5.2_beta1_Verified_Installer
-          path: |
-            installer/output/SurveySync_Setup_9.5.2-beta.1.exe
-            installer/output/SurveySync_Setup_9.5.2-beta.1.exe.sha256
-            RELEASE_NOTES_v9_5_2.md
-            QA_REPORT_v9_5_2.md
-            VERSION.txt
-            RELEASE_ID.txt
+          name: ${{ steps.candidate.outputs.name }}
+          path: ${{ steps.candidate.outputs.path }}
           if-no-files-found: error
           retention-days: 14
       - name: Collect runtime diagnostics and exact source
