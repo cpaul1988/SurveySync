@@ -1,3 +1,12 @@
+## 9.5.3-beta.1 — FBR-0018 shared FieldBook workspace
+
+- Use the actual SurveySync shell/sidebar and persistent FieldBook content pane; keep module view state during tab switches.
+- Bind the canonical project name, ID and real storage root; reject stale/mismatched requests, preserve identity on reset/import/recovery, and retain legacy titles as provenance.
+- Protect project changes during API responses and active analysis/import/batch/network work. Preserve the old runtime when a new bind fails.
+- Scope feedback retries to their original workspace, preserve no-project feedback and forward native pickers from embedded content.
+- Add backend and real-browser regression coverage and fix stale hardcoded installer artifact names in UI validation.
+- Unreleased candidate. See QA_REPORT_v9_5_3.md for observed validation and outstanding Windows acceptance.
+
 ## 2026-10-12 — Development dependency security maintenance
 
 - Updated the development tool `uv` from 0.12.17 to 0.12.18 to address CVE-2026-104843 / GHSA-2cv4-cqwr-gwf7 (Windows wheel-extraction path traversal).

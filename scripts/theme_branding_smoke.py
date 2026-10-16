@@ -42,19 +42,12 @@ def navigate(page, url, reload=False):
     FieldBookSync restores Dashboard after its startup API calls. Testing Options
     before that completes races the restore and is not an interactive-ready test.
     """
-    fieldbook = '/fieldbook' in url
-    if fieldbook:
-        with page.expect_response(lambda response: response.url == BASE + '/api/startup/ready'
-                                  and response.request.method == 'POST', timeout=20000) as ready:
-            if reload:
-                page.reload(wait_until='domcontentloaded')
-            else:
-                page.goto(url, wait_until='domcontentloaded')
-        assert ready.value.ok
-    elif reload:
+    if reload:
         page.reload(wait_until='domcontentloaded')
     else:
         page.goto(url, wait_until='domcontentloaded')
+    if '/fieldbook' in url:
+        expect(page.locator('#moduleName')).to_have_text('FieldBookSync', timeout=20000)
     expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)
 
 
@@ -94,12 +87,9 @@ def assert_brand(page, client):
 def choose_theme(page, key, fieldbook=False):
     # Real Options controls invoke the production theme handler.
     expect(page.locator('#productSplash')).to_be_hidden(timeout=15000)
-    if fieldbook:
-        page.evaluate("switchTab('options')")
-        page.locator(f'[data-theme-choice="{key}"]').click()
-    else:
-        page.evaluate("switchView('settings')")
-        page.locator('#globalTheme').select_option(key)
+    # FieldBook uses the same global Options controls, not a separate palette.
+    page.evaluate("switchView('settings')")
+    page.locator('#globalTheme').select_option(key)
     expect(page.locator('html')).to_have_attribute('data-product-theme', key)
     assert_brand(page, key in CLIENT_THEMES)
     for _ in range(50):

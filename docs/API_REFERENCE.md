@@ -242,3 +242,10 @@ No optional imports, external processes, device probing or network calls are mad
 - `POST /api/v9/cad/decision`: adds finding_id, status (`needs_review`, `confirmed`, `dismissed`), reviewer, note and state_token. Required reasons and optimistic concurrency prevent silent stale overwrites.
 - `POST /api/v9/cad/compare`: adds before_review_id and before_snapshot; returns conservative representation differences. Both imports must match current project context and points.
 - `POST /api/v9/cad/report`: requires current state_token and optionally the before pair. Revalidates both sources and exports decisions/history/comparison. All routes require the current project header. No write to source drawings or points.
+
+
+## 9.5.3 — FieldBook shared integration
+
+GET /api/v9/fieldbook/context returns project_id, name, root, fieldbook_root, token, CRS/units and bound. Embedded API requests carry X-SurveySync-Project; downloads carry ss_project. A stale view or incorrect storage binding returns HTTP 409 with code FBS_PROJECT_CONTEXT. These tokens are consistency guards, not authentication.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

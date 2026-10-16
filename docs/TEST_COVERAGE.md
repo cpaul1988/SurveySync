@@ -198,3 +198,10 @@ See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privac
 
 ## 9.5.2 CAD workflow candidate
 `test_cad_review_workflow.py` covers decision isolation/concurrency, immutable source evidence, comparison matching limits, safe reports and API guards. `verify_cad_review.py` exercises actual decision/reopen/compare/export controls. Local release gate: 718 passed, 1 skipped; Windows and representative real-job acceptance pending.
+
+
+## 9.5.3 — FieldBook shared integration
+
+FBR-0018 adds tests/test_fbr0018_fieldbook_integration.py (15 backend cases) and scripts/fbr0018_browser_smoke.py (real-server browser scenarios). Existing standalone test fixtures now isolate both project owners. See the versioned QA report and CI artifacts for measured outcomes.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

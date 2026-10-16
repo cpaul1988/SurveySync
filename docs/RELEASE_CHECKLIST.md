@@ -91,3 +91,10 @@ Standalone point import, editable code classifications, feature-chain range dete
 - Re-smoke 9.3.0 TopoSync corrected-copy safeguards, ControlSync, FieldBookSync, feedback, diagnostics and update consent.
 - Build fresh native launchers and the Inno installer; verify all visible version surfaces and the SHA-256 output are 9.3.1.
 
+
+
+## 9.5.3 — FieldBook shared integration
+
+For 9.5.3 run the FieldBook integration browser smoke in addition to existing gates. Verify a named project in both modules, ten repeated tab switches, no-project feedback, a second project, stale request refusal and a native save dialog on the exact installer before promotion.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

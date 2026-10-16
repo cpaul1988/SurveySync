@@ -72,3 +72,10 @@ SurveySync 9.3.2 also introduces a reusable horizontal-alignment domain layer in
 Each project stores a persistent random chain identity in `audit_chain_meta`; that identity is included in every canonical audit hash so a valid audit/event chain copied from another project database will not verify in the destination project.
 
 9.5.1: CAD parsing/geometry checks execute in a disposable bounded worker. Immutable review packages carry original bytes/hash and project/point context; route layer revalidates identity before retention. See CAD_REVIEW.md.
+
+
+## 9.5.3 — FieldBook shared integration
+
+The FieldBook engine is retained behind a persistent same-origin workspace pane. SurveySync owns the actual menu, module tabs, sidebar and theme. Backend request leases and exclusive binding prevent storage/project switches during active operations.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

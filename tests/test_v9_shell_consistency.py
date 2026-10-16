@@ -25,7 +25,9 @@ def test_main_home_owns_release_notes_and_feedback_wizard():
     js=(ROOT/'surveysync/static/app.js').read_text(encoding='utf-8')
     assert 'id="whatsNewCard"' in html
     assert 'Open Feedback Wizard' in html
-    assert "location.href=`/fieldbook?${q.toString()}`" in js
+    assert "window.ssFieldBook.openAction('feedback',prefill)" in js
+    assert "location.href=`/fieldbook?${q.toString()}`" not in js
+    assert 'id="fieldbookWorkspace"' in html
 
 def test_main_feedback_endpoint_does_not_require_project():
     py=(ROOT/'surveysync/router.py').read_text(encoding='utf-8')

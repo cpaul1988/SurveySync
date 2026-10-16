@@ -89,6 +89,7 @@ from pydantic import BaseModel, Field
 
 from . import __version__
 from .static_assets import serve_static
+from .fieldbook_session import changing_project, project_identity, router as fieldbook_session_router
 from .audit import utc_now
 from .config import AppConfig, ConfigStore, ENVIRONMENTS, RELEASE_CHANNELS, DEFAULT_UPDATE_MANIFEST_URL
 from .project import SurveyProject, safe_name
@@ -147,6 +148,7 @@ from .diagnostics import (
 
 STATIC = Path(__file__).resolve().parent / "static"
 router = APIRouter()
+router.include_router(fieldbook_session_router)
 for subrouter in (
     control_workspace_router,
     level_recheck_router,
@@ -170,13 +172,13 @@ from .release_identity import installed_release_id
 SURVEYSYNC_RELEASE_NOTES_ID = installed_release_id(__version__)
 
 SURVEYSYNC_RELEASE_NOTES = [
-    "9.5.2-beta.1 adds CAD finding decisions, audit history, revised-drawing comparisons and review reports in BoundarySync.",
-    "Import DXF lines, polylines, arcs, circles, text and supported blocks with explicit units and coordinate-alignment confirmation.",
-    "Review layers, drawing entities, survey points, source hashes and unsupported-content reports in one workspace.",
-    "Flag straight-segment duplicates, zero-length segments, nearby gaps, crossings and self-intersections without modifying geometry.",
-    "Check an explicitly ordered open boundary chain against 0.10 ft; never snap, force closure or adjust record coordinates.",
-    "Export findings and closure evidence as CSV/JSON. Curves are approximated for display and intersection screening.",
-    "Globe branding and version-keyed release notes are retained; this candidate requires installed Windows acceptance before promotion."
+    "9.5.3-beta.1 integrates FieldBookSync into the persistent SurveySync shell for FBR-0018.",
+    "Use the same module navigation, project card, globe branding, theme and colors everywhere.",
+    "FieldBookSync now inherits the active project name and ID and validates its real storage location.",
+    "Switching module tabs keeps the FieldBook page, review filter and uncommitted input in memory.",
+    "Stale project requests and mismatched storage are refused; project switching is blocked during active work.",
+    "Feedback retries retain their originating workspace. The wizard remains available without a project.",
+    "Version-keyed release notes are retained. This is an unreleased candidate pending Windows acceptance."
 ]
 
 
@@ -188,7 +190,7 @@ def _fieldbook_app_module():
 
 def _bind_fieldbook(project: SurveyProject) -> dict:
     field_app = _fieldbook_app_module()
-    result = field_app.rebind_project_storage(project.paths.fieldbook_root)
+    result = field_app.rebind_project_storage(project.paths.fieldbook_root, project_identity(project))
     # AI provider is a workstation-wide SurveySync preference, not survey data.
     try:
         cfg = config_store.load()
@@ -228,7 +230,7 @@ def _forget_project(path: Path, *, clear_last: bool = True) -> None:
 
 def _set_current(project: SurveyProject) -> SurveyProject:
     global current_project
-    with project_lock:
+    with project_lock, changing_project():
         _bind_fieldbook(project)
         current_project = project
         _remember_project(project.paths.root)
@@ -398,7 +400,7 @@ def project_delete(payload: ProjectDeleteIn):
         raise HTTPException(400, f'Type the project name exactly to delete it: {project_name}')
     was_active = False
     try:
-        with project_lock:
+        with project_lock, changing_project():
             was_active = _clear_current_for_delete(root)
             _remove_project_tree(root)
             _forget_project(root)
@@ -512,16 +514,12 @@ def migrate_fieldbook(file_path: str):
     try:
         source=p.import_source(bundle,"FieldBookSync","Original v8 project bundle retained immutably during v9 migration.")
         field_app=_fieldbook_app_module()
-        from fieldbook_sync.project_files import load_project_bundle
-        state, profile=load_project_bundle(bundle, field_app.runtime.storage.page_dir, field_app.runtime.storage.examples_dir)
-        field_app.runtime.storage.state=state
-        field_app.runtime.storage.save()
-        if profile is not None:
-            from fieldbook_sync.profiles import save_profile
-            save_profile(field_app.runtime.storage.profile_dir, profile)
-        p.manifest["fieldbook_migration"]={"status":"MIGRATED","source":source["source_id"],"legacy_project_name":state.project_name,"migrated_utc":utc_now()}
-        p.save_manifest(action="FIELDBOOK_V8_MIGRATED",details={"source_id":source["source_id"],"legacy_project_name":state.project_name})
-        return {"ok":True,"legacy_project_name":state.project_name,"fieldbook_url":"/fieldbook","source_id":source["source_id"]}
+        field_app.load_project_path_into_runtime(bundle)
+        state = field_app.runtime.storage.state
+        legacy_name = state.legacy_project_name or state.project_name
+        p.manifest["fieldbook_migration"]={"status":"MIGRATED","source":source["source_id"],"legacy_project_name":legacy_name,"migrated_utc":utc_now()}
+        p.save_manifest(action="FIELDBOOK_V8_MIGRATED",details={"source_id":source["source_id"],"legacy_project_name":legacy_name})
+        return {"ok":True,"legacy_project_name":legacy_name,"fieldbook_url":"/fieldbook","source_id":source["source_id"]}
     except Exception as exc: raise HTTPException(400,str(exc))
 
 @router.get("/api/v9/audit")

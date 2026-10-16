@@ -1,0 +1,22 @@
+/* Reuse the real SurveySync sidebar/menubar rather than rendering a second one. */
+body[data-active-view^="fieldbook:"] .content-area{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+body[data-active-view^="fieldbook:"] .workspace-view-heading{flex:0 0 auto}
+#fieldbookWorkspace.active{display:flex;flex-direction:column;flex:1;min-height:0;max-width:none;width:100%}
+#fieldbookLoadStatus{padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);margin-bottom:10px}
+#fieldbookLoadStatus[hidden],#fieldbookProjectActions[hidden],#fieldbookRetry[hidden]{display:none}
+#fieldbookFrameMount{flex:1;min-height:0;display:flex}
+#fieldbookFrame{display:block;flex:1;width:100%;height:100%;border:0;background:var(--bg);color-scheme:normal}
+.fieldbook-menu-group{display:none}
+body[data-active-module="FieldBookSync"] .fieldbook-menu-group{display:block}
+html[data-ss-embedded="1"],html[data-ss-embedded="1"] body{height:100%;min-height:0;margin:0;overflow:hidden;background:var(--bg)}
+html[data-ss-embedded="1"] .app{display:block!important;width:100%;height:100%;min-width:0;background:var(--bg)}
+html[data-ss-embedded="1"] .app>.env-strip,html[data-ss-embedded="1"] .app>.desktop-menubar,
+html[data-ss-embedded="1"] .app>.surveysync-module-tabs,html[data-ss-embedded="1"] .app>.sidebar,
+html[data-ss-embedded="1"] .main-shell>.desktop-statusbar{display:none!important}
+html[data-ss-embedded="1"] .app>.main-shell{display:flex!important;flex-direction:column;height:100%;min-height:0;min-width:0;margin:0}
+html[data-ss-embedded="1"] .main-shell>.content{flex:1;min-height:0;overflow:auto;padding:16px}
+html[data-ss-embedded="1"] .main-shell>.topbar{flex:0 0 auto;min-height:44px;padding:6px 12px;background:var(--panel);flex-wrap:wrap;gap:8px}
+html[data-ss-embedded="1"] .topbar [data-command="new-project"],html[data-ss-embedded="1"] .topbar [data-command="open-project"],
+html[data-ss-embedded="1"] #themeBtn{display:none!important}
+html[data-support-only="1"] .main-shell>.content,html[data-support-only="1"] .main-shell>.topbar{visibility:hidden;pointer-events:none}
+html[data-ss-embedded="1"] .view{animation:none}

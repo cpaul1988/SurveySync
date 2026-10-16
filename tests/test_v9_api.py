@@ -33,7 +33,8 @@ def test_project_switch_isolates_fieldbook_storage(tmp_path, monkeypatch):
     root_b=field_app.runtime.storage.root; db_b=field_app.runtime.job_store.path
     assert root_a != root_b and db_a != db_b
     client.post('/api/v9/project/open',json={"path":a['root']})
-    assert field_app.runtime.storage.state.project_name=='Only A'
+    assert field_app.runtime.storage.state.project_name=='A'
+    assert field_app.runtime.storage.state.legacy_project_name=='Only A'
     assert field_app.runtime.storage.root==root_a
 
 def test_v9_navigation_shell_layout(tmp_path, monkeypatch):

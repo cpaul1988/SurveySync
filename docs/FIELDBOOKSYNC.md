@@ -55,3 +55,10 @@ See `ENGINEERING_STANDARDS.md` and the root `RELEASE_NOTES_v9_3_0.md` for shared
 ## 9.4.2-beta.2 local field-book follow-up
 
 See [Local field-book pipeline](LOCAL_FIELDBOOK_PIPELINE.md) for enforced privacy, dual OCR views, original-image context, regression scope, and remaining real-model/hardware/calibration acceptance.
+
+
+## 9.5.3 — FieldBook shared integration
+
+Open the shared project once. FieldBookSync now uses the actual common sidebar and keeps its live content across module switches. Tools includes the preserved FieldBook commands. An actual project change reloads module content only after confirmation and backend idle checks.
+
+See [FieldBook shell integration](FIELDBOOK_SHELL_INTEGRATION.md).

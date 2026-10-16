@@ -31,6 +31,8 @@ def _evidence(point_id: str) -> PageEvidence:
 def _setup_runtime(tmp_path, monkeypatch):
     from fieldbook_sync import app as field_app
 
+    from surveysync import router as shell
+    monkeypatch.setattr(shell, "current_project", None)
     rt = field_app.Runtime(tmp_path / "fieldbook")
     monkeypatch.setattr(field_app, "runtime", rt)
     points = [
