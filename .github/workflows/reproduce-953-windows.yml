@@ -1,0 +1,46 @@
+name: SurveySync Original Windows Provenance
+on:
+  push:
+    branches: [fix/defender-release-954]
+    paths: ['.github/workflows/reproduce-953-windows.yml']
+permissions:
+  contents: read
+jobs:
+  reproduce:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e62ae8743cb9fe09fd0e191a2fd06e9758d2531c
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          # Exact original compiler, forensic comparison only, no distribution.
+          go-version: '1.23.12'
+      - name: Compile exact original commands without executing binaries
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          New-Item -ItemType Directory -Force evidence | Out-Null
+          $env:GOOS='windows'; $env:GOARCH='amd64'; $env:CGO_ENABLED='0'
+          $env:GOTOOLCHAIN='local'; $env:GOFLAGS=''; $env:GOPROXY='off'
+          go build -trimpath -ldflags '-s -w -H=windowsgui' -o SurveySync.exe .\installer\app_launcher.go
+          if ($LASTEXITCODE -ne 0) { throw 'Launcher reproduction build failed.' }
+          go build -trimpath -ldflags '-s -w -H=windowsgui' -o SurveySyncUpdater.exe .\installer\update_helper.go
+          if ($LASTEXITCODE -ne 0) { throw 'Updater reproduction build failed.' }
+          $expected=@{'SurveySync.exe'='e238799ffd8c84c7d648db8a97468abde8771b418156612e0224ff0f450f9fd1';'SurveySyncUpdater.exe'='ccdd9ced728482dee53d75b4ad311be3b93de4f9eb49943e900a197b2f274676'}
+          $records=@()
+          foreach ($name in $expected.Keys) {
+            $actual=(Get-FileHash $name -Algorithm SHA256).Hash.ToLowerInvariant()
+            $records+=[ordered]@{file=$name;expected_sha256=$expected[$name];actual_sha256=$actual;identical=($actual -eq $expected[$name])}
+          }
+          $passed=@($records | Where-Object { -not $_.identical }).Count -eq 0
+          [ordered]@{source_sha=(git rev-parse HEAD);compiler=(go version);files=$records;all_identical=$passed;note='Exact source and binary provenance only. Not a malware verdict or identification of the user quarantine file.'} | ConvertTo-Json -Depth 5 | Tee-Object evidence/windows-reproduction.json
+          if (-not $passed) { throw 'Original Windows binary hashes not reproduced; investigate differences.' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: incident-953-windows-reproduction-evidence
+          path: evidence/
+          retention-days: 30

@@ -21,9 +21,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Require active Defender for release artifact scans
+        shell: pwsh
+        run: |
+          ./scripts/initialize_defender.ps1 -EnableRealtime -EvidenceDirectory security-evidence/prepare
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.23.x'
+          go-version: '1.27.2'
       - name: Install locked application and test dependencies
         run: python -m pip install --require-hashes -r requirements-dev.lock
       - name: Prepare isolated browser validation
@@ -132,6 +136,8 @@ jobs:
           name: SurveySync_Repair_Acceptance_Evidence
           path: |
             repair-evidence/
+            security-evidence/
+            build/native/native-provenance.json
             lifecycle-evidence/
             ui-evidence/
             coverage.xml

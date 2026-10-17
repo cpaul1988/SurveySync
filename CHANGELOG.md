@@ -1,3 +1,7 @@
+# 9.5.4-beta.1 — security build hardening
+
+Pinned supported Go toolchain, native product resources, mandatory active Defender scans of signed launchers and final installer, hash-bound scan evidence, and clear update-hold errors. Retains FBR-0018. Release remains held pending independent acceptance; this is not a Microsoft false-positive determination.
+
 ## 9.5.3-beta.1 — FBR-0018 shared FieldBook workspace
 
 - Use the actual SurveySync shell/sidebar and persistent FieldBook content pane; keep module view state during tab switches.

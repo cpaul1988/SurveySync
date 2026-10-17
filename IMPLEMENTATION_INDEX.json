@@ -1,6 +1,6 @@
 {
   "product": "SurveySync",
-  "version": "9.5.3",
+  "version": "9.5.4",
   "features": {
     "field_note_profile_trainer": {
       "introduced": "9.1.2",
@@ -1182,6 +1182,21 @@
         "docs/FIELDBOOK_SHELL_INTEGRATION.md",
         "docs/ARCHITECTURE.md",
         "docs/API_REFERENCE.md"
+      ]
+    },
+    "security_artifact_gate": {
+      "introduced": "9.5.4",
+      "implementation": [
+        "scripts/scan_windows_artifacts.ps1",
+        "scripts/validate_security_evidence.py",
+        "scripts/build_windows_launchers.ps1"
+      ],
+      "tests": [
+        "tests/test_security_evidence.py"
+      ],
+      "documentation": [
+        "docs/SECURITY_INCIDENT_953.md",
+        "RELEASE_NOTES_v9_5_4.md"
       ]
     }
   }

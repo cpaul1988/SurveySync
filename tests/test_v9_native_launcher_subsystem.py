@@ -26,8 +26,11 @@ def test_release_workflow_always_builds_gui_subsystem_launchers():
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
     assert "./Build_SurveySync.ps1" in workflow
     build = (ROOT / "Build_SurveySync.ps1").read_text(encoding="utf-8")
-    lines = [line.strip() for line in build.splitlines() if "& $go.Source build" in line]
-    app = next(line for line in lines if "app_launcher.go" in line)
-    updater = next(line for line in lines if "update_helper.go" in line)
-    assert "-H=windowsgui" in app
-    assert "-H=windowsgui" in updater
+    assert "scripts\\build_windows_launchers.ps1" in build
+    helper = (ROOT / "scripts/build_windows_launchers.ps1").read_text(encoding="utf-8")
+    assert "source='app_launcher.go'" in helper
+    assert "source='update_helper.go'" in helper
+    lines = [line for line in helper.splitlines() if "& $go.Source build" in line]
+    assert len(lines) == 1 and "-H=windowsgui" in lines[0]
+    assert "GOTOOLCHAIN='local'" in helper
+    assert "GO_VERSION.txt" in helper

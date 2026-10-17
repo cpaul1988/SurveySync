@@ -1,0 +1,108 @@
+name: SurveySync Exact Original Defender Scan
+on:
+  push:
+    branches: [fix/defender-release-954]
+    paths: ['.github/workflows/defender-original-scan.yml']
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Download exact accepted 9.5.3 installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 38942210139 --repo cpaul1988/SurveySync --name SurveySync_9.5.3-beta.1_Verified_Installer --dir original-input
+          echo '65b617f9a69aca551f68344124ef7f239afce10e4391edbc89f4d4cec9e09d95  original-input/SurveySync_Setup_9.5.3-beta.1.exe' | sha256sum -c -
+      - name: Build pinned non-executing Inno 6.7 parser for analysis only
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake g++ libboost-filesystem-dev libboost-iostreams-dev libboost-date-time-dev libboost-system-dev libboost-program-options-dev liblzma-dev
+          git init parser
+          git -C parser remote add origin https://github.com/dscho/innoextract.git
+          git -C parser fetch --depth=1 origin 376a13e7c41cc5528b6088d0dd16ec1b323a8d37
+          git -C parser checkout --detach 376a13e7c41cc5528b6088d0dd16ec1b323a8d37
+          test "$(git -C parser rev-parse HEAD)" = '376a13e7c41cc5528b6088d0dd16ec1b323a8d37'
+          cmake -S parser -B parser-build -DCMAKE_BUILD_TYPE=Release -DUSE_LTO=OFF
+          cmake --build parser-build --parallel 2
+      - name: Extract without running the installer or its scripts
+        run: |
+          mkdir -p evidence
+          parser-build/innoextract --version | tee evidence/parser-version.txt
+          parser-build/innoextract --extract --output-dir original-unpacked original-input/SurveySync_Setup_9.5.3-beta.1.exe > evidence/extract.log 2>&1
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path('original-unpacked'); entries=[]
+          for name in ['SurveySync.exe','SurveySyncUpdater.exe']:
+              found=list(root.rglob(name))
+              if len(found)!=1: raise RuntimeError(f'Expected one {name}: {found}')
+              p=found[0]; data=p.read_bytes()
+              entries.append({'path':str(p),'size':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+              r=subprocess.run(['go','version','-m',str(p)],text=True,capture_output=True,check=True)
+              pathlib.Path('evidence',name+'.buildinfo.txt').write_text(r.stdout)
+          pathlib.Path('evidence/original-binaries.json').write_text(json.dumps(entries,indent=2))
+          print(json.dumps(entries,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: incident-953-exact-original-files
+          path: original-unpacked/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: incident-953-parser-evidence
+          path: evidence/
+          retention-days: 30
+  defender:
+    needs: extract
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require an active Defender service without weakening protection
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force security-evidence | Out-Null
+          Get-MpComputerStatus | ConvertTo-Json -Depth 5 | Set-Content security-evidence/before.json
+          if ((Get-Service WinDefend).Status -ne 'Running') { Start-Service WinDefend }
+          Set-MpPreference -DisableRealtimeMonitoring $false -ErrorAction Stop
+          Update-MpSignature -ErrorAction Stop
+      - uses: actions/download-artifact@v4
+        with:
+          name: incident-953-exact-original-files
+          path: original-unpacked
+      - name: Scan exact original launchers, never execute them
+        shell: pwsh
+        run: |
+          $files=@()
+          foreach ($name in @('SurveySync.exe','SurveySyncUpdater.exe')) {
+            $match=@(Get-ChildItem original-unpacked -Filter $name -File -Recurse)
+            if ($match.Count -ne 1) { throw "Original artifact missing or quarantined: $name" }
+            $files+=$match[0].FullName
+          }
+          ./scripts/scan_windows_artifacts.ps1 -Paths $files -EvidenceDirectory security-evidence/original
+      - name: Retain detection and engine state regardless of outcome
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force security-evidence | Out-Null
+          Get-MpComputerStatus | ConvertTo-Json -Depth 5 | Set-Content security-evidence/after.json
+          @(Get-MpThreatDetection -ErrorAction SilentlyContinue) | ConvertTo-Json -Depth 8 | Set-Content security-evidence/detections.json
+          Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Windows Defender/Operational';Id=1116,1117;StartTime=(Get-Date).AddHours(-1)} -ErrorAction SilentlyContinue | Select-Object TimeCreated,Id,Message | ConvertTo-Json -Depth 6 | Set-Content security-evidence/events.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: incident-953-exact-defender-evidence
+          path: security-evidence/
+          retention-days: 30

@@ -93,6 +93,7 @@ def _wait(host: str,port: int,timeout: float=12.0)->bool:
 def main()->None:
     from surveysync.router import config_store as ss_config_store
     from surveysync.session_recovery import begin_session, end_session, set_project
+    from surveysync.desktop_shutdown import drain_server_before_cleanup
     args_raw=[a for a in sys.argv[1:] if a.strip()]
     root=Path(sys.executable).resolve().parent if getattr(sys,"frozen",False) else Path(__file__).resolve().parent
     if "--register-fbs" in args_raw:
@@ -118,8 +119,9 @@ def main()->None:
             load_project_path_into_runtime(p)
     config=uvicorn.Config(field_app.app,host=host,port=port,log_level="warning",access_log=False)
     server=uvicorn.Server(config);server.install_signal_handlers=lambda:None
-    thread=threading.Thread(target=server.run,name="SurveySyncServer",daemon=True);thread.start()
-    if not _wait(host,port):server.should_exit=True;raise RuntimeError("SurveySync could not start its local application service.")
+    # The HTTP service must outlive its in-flight workers, not the interpreter.
+    # A daemon plus a timed join allowed Python.NET teardown to overlap them.
+    thread=threading.Thread(target=server.run,name="SurveySyncServer",daemon=False)
     bridge=NativeBridge();window=webview.create_window(APP_NAME,f"http://{host}:{port}",width=1500,height=940,min_size=(1050,680),background_color="#0F203C",text_select=True)
     bridge._window=window
     window_icon = root / "branding" / "SurveySync.ico"
@@ -131,7 +133,6 @@ def main()->None:
             if shutdown_started:return
             shutdown_started=True
         field_app.request_application_shutdown("SurveySync window closed.");server.should_exit=True
-        end_session(ss_config_store.root)
         if close_window:
             try:window.destroy()
             except Exception:pass
@@ -143,12 +144,26 @@ def main()->None:
         while not field_app.runtime.shutdown_event.wait(timeout=0.2):
             pass
         shutdown()
-    webview.start(
-        watch_shutdown,
-        gui="edgechromium" if sys.platform=="win32" else None,
-        debug=False,
-        icon=str(window_icon) if window_icon.exists() else None,
-    )
-    shutdown(False);thread.join(timeout=8);field_app.finalize_application_shutdown()
+    thread.start()
+    try:
+        if not _wait(host,port):
+            raise RuntimeError("SurveySync could not start its local application service.")
+        webview.start(
+            watch_shutdown,
+            gui="edgechromium" if sys.platform=="win32" else None,
+            debug=False,
+            icon=str(window_icon) if window_icon.exists() else None,
+        )
+    finally:
+        # Also stop/drain the service when WebView initialization itself raises.
+        # Never close SQLite or finalize Python.NET underneath an active request.
+        try:
+            shutdown(False)
+        finally:
+            server.should_exit=True
+            drain_server_before_cleanup(thread,field_app.finalize_application_shutdown)
+    # A closing window is not yet a completed, clean application shutdown.
+    # Exceptions above intentionally leave the interrupted-session marker intact.
+    end_session(ss_config_store.root)
 
 if __name__=="__main__":main()
