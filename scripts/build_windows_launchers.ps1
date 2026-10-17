@@ -9,11 +9,9 @@ $version=(Get-Content (Join-Path $Root 'VERSION.txt') -Raw).Trim()
 $release=(Get-Content (Join-Path $Root 'RELEASE_ID.txt') -Raw).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+$' -or $release -notmatch '^\d+\.\d+\.\d+(?:-(?:alpha|beta|rc)\.\d+)?$') { throw 'Invalid version resources.' }
 $rc=Get-ChildItem "${env:ProgramFiles(x86)}/Windows Kits/10/bin/*/x64/rc.exe" -File | Sort-Object FullName -Descending | Select-Object -First 1
-$vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-if (-not $rc -or -not (Test-Path -LiteralPath $vswhere)) { throw 'Microsoft Windows SDK and Visual Studio build tools are required for native resources.' }
-$vs=(& $vswhere -latest -products '*' -property installationPath | Select-Object -First 1)
-$cvt=Get-ChildItem "$vs/VC/Tools/MSVC/*/bin/Hostx64/x64/cvtres.exe" -File | Sort-Object FullName -Descending | Select-Object -First 1
-if (-not $cvt) { throw 'Microsoft cvtres.exe is required.' }
+if (-not $rc) { throw 'Microsoft Windows SDK rc.exe is required for native resources.' }
+$python=(Get-Command python -ErrorAction Stop).Source
+$converter=Join-Path $Root 'scripts/res_to_coff.py'
 $work=Join-Path $Root 'build/native'
 if (Test-Path $work) { Remove-Item -LiteralPath $work -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $work | Out-Null
@@ -79,7 +77,9 @@ END
         try {
             & $rc.FullName /nologo /fo app.res app.rc
             if ($LASTEXITCODE -ne 0) { throw 'Resource compilation failed.' }
-            & $cvt.FullName /NOLOGO /MACHINE:X64 /OUT:rsrc_windows_amd64.syso app.res
+            # RC's payload is retained byte-for-byte. CVTRES absolute compiler
+            # symbols are incompatible with Go; use a bounded COFF metadata writer.
+            & $python $converter app.res rsrc_windows_amd64.syso
             if ($LASTEXITCODE -ne 0) { throw 'Resource object conversion failed.' }
             # Keep symbol/debug metadata for diagnostics; do not strip or pack.
             & $go.Source build -trimpath -buildvcs=false -ldflags '-H=windowsgui' -o (Join-Path $Root $target.name) .
@@ -92,7 +92,7 @@ END
         $buildInfo=(& $go.Source version -m $output | Out-String)
         if ($LASTEXITCODE -ne 0 -or $buildInfo -notmatch [regex]::Escape("go$expected")) { throw 'Native build provenance not available.' }
         $buildInfo | Set-Content -Encoding utf8 (Join-Path $work ($target.name+'.buildinfo.txt'))
-        $records+=@{name=$target.name;sha256_unsigned=$sha;source_sha256=(Get-FileHash $source -Algorithm SHA256).Hash.ToLowerInvariant();go_version=$actual;file_version=$info.FileVersion;company=$info.CompanyName;resource_compiler=$rc.FullName}
+        $records+=@{name=$target.name;sha256_unsigned=$sha;source_sha256=(Get-FileHash $source -Algorithm SHA256).Hash.ToLowerInvariant();go_version=$actual;file_version=$info.FileVersion;company=$info.CompanyName;resource_compiler=$rc.FullName;resource_converter_sha256=(Get-FileHash $converter -Algorithm SHA256).Hash.ToLowerInvariant()}
     }
     $records | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 (Join-Path $work 'native-provenance.json')
 } finally {
