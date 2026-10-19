@@ -1,0 +1,7 @@
+# Private development handoffs may contain explicitly entered task/evidence notes.
+/.dev-handoff/
+
+# Local Python verification artifacts.
+__pycache__/
+.pytest_cache/
+.ruff_cache/
