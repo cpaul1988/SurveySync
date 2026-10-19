@@ -149,6 +149,12 @@ class PipeMeasurement(BaseModel):
     connected_point_id: Optional[str] = None
     connection_score: Optional[float] = None
     qc_flags: List[str] = Field(default_factory=list)
+    # Local, measured association proposals. Model output cannot supply these fields.
+    source_page_id: Optional[str] = None
+    association_status: str = "unverified"
+    association_text_ids: List[str] = Field(default_factory=list)
+    association_path_ids: List[str] = Field(default_factory=list)
+    association_flags: List[str] = Field(default_factory=list)
 
 
 class PageEvidence(BaseModel):
@@ -179,6 +185,12 @@ class PageEvidence(BaseModel):
     primary_engine: Optional[str] = None
     secondary_engine: Optional[str] = None
     model_agreement: Optional[bool] = None
+    # Value presence, whole pipe records, and spatial relationships are distinct checks.
+    numerical_agreement: Optional[bool] = None
+    pipe_record_agreement: Optional[bool] = None
+    relationship_status: str = "unverified"
+    spatial_evidence: Dict[str, Any] = Field(default_factory=dict)
+    spatial_evidence_key: str = ""
     ocr_text: Optional[str] = None
     # v9.0.2 evidence-first orchestration. These fields are derived locally from
     # independent OCR/model agreement and deterministic validation; model self-confidence
@@ -220,6 +232,8 @@ class ResultRecord(BaseModel):
     evidence_records: List[PageEvidence] = Field(default_factory=list)
     notes: str = ""
     manually_overridden: bool = False
+    review_elapsed_seconds: Optional[float] = None
+    review_action_count: int = 0
     smart_confidence: float = 0.0
     confidence_factors: List[str] = Field(default_factory=list)
     qc_flags: List[str] = Field(default_factory=list)
@@ -272,6 +286,8 @@ class OcrCandidate(BaseModel):
     bbox: Optional[List[int]] = None  # normalized 0-1000
     engine: str = "paddleocr-vl"
     exact_match: bool = True
+    recognized_point_id: Optional[str] = None
+    source_view: str = "unknown"
 
 
 class NetworkEdge(BaseModel):
@@ -474,6 +490,8 @@ class AppState(BaseModel):
     fieldbook_pages: List[FieldBookPage] = Field(default_factory=list)
     ocr_candidates: List[OcrCandidate] = Field(default_factory=list)
     results: List[ResultRecord] = Field(default_factory=list)
+    analysis_metadata: Dict[str, Any] = Field(default_factory=dict)
+    spatial_graphs: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
     unmatched: List[UnmatchedEvidence] = Field(default_factory=list)
     network_edges: List[NetworkEdge] = Field(default_factory=list)
     history: List[HistoryEvent] = Field(default_factory=list)

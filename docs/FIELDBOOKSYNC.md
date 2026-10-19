@@ -4,6 +4,36 @@
 
 FieldBookSync converts scanned/photographed survey field notes into reviewable structured evidence. It is evidence-first: OCR/vision suggestions are not survey truth until deterministic checks and/or reviewer acceptance support them.
 
+## Unreleased relationship evidence pilot
+
+The local pipeline now retains a reviewable original-page graph of independently
+located OCR text, closed circle-like structure boundaries, measured ink paths,
+and exact PointID anchors. Numbers, pipe-record agreement, and relationship
+support are separate verdicts. A supported relationship is a review proposal;
+**all extracted pipes require human review in this pilot**, including high-score
+records whose values agree across engines.
+
+With the default `POINT_ID_FOUND` rule, exact PointID evidence still produces
+primary `YES`, and its absence produces `NO`. Detailed dip/pipe uncertainty stays
+in the separate QA/review fields. Original sources and imported survey points
+remain unchanged. Model-generated leader boxes and large context crops are
+observations, not measured lines; original-image geometry must support a
+proposal independently.
+
+**Blocks** (`ocr_mode="blocks"`) remains the default Paddle mode. **Spotting** is
+an explicit local option requiring an existing validated native model folder
+and a compatible installed Paddle API. It does not install or download weights.
+The Review dialog displays original-page overlays and competing proposals; the
+Engine panel can export a private, analysis-time benchmark snapshot.
+
+See the [relationship workflow, evidence contract, and acceptance limits](development/fieldbook_relationships.md),
+[local spotting setup](development/fieldbook_spotting.md), and
+[private benchmark protocol](FIELDBOOK_BENCHMARK.md). Saved Paddle block-mode
+runs report mode `blocks`, so the scorer uses `--run blocks=...`. Synthetic
+verification does not establish private-page accuracy, real model operation,
+or Windows/4 GB GPU acceptance. The existing [Defender release decision](SECURITY_INCIDENT_953.md)
+is unchanged.
+
 ## Field Note Profiles
 
 Built-ins: `BRT_STANDARD` and `GENERIC_SURVEY_NOTES`. Custom profiles describe detection cues, vocabulary, expected fields, symbols, and extraction/association rules. Built-in grammar is locked; custom copies are editable.

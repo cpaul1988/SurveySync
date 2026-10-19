@@ -227,7 +227,7 @@ def assess_evidence(
 
     if evidence.model_agreement is True:
         score += 0.14
-        factors.append("Independent OCR and model interpretation agree.")
+        factors.append("Independent OCR and model text interpretation agree; this does not verify drawn relationships.")
     elif evidence.model_agreement is False:
         score -= 0.24
         flags.append("MODEL_DISAGREEMENT")
@@ -246,8 +246,27 @@ def assess_evidence(
         score -= 0.05
         flags.append("NON_STRUCTURE_PAGE_CONTEXT")
 
+    # The new CPU graph is an uncalibrated review aid. Even a supported path cannot
+    # promote a pipe to automatic acceptance until a private, independently labelled
+    # benchmark establishes an acceptable false-accept rate on real field books.
+    # This gate is derived here, never supplied by a model or imported project flag.
+    pipe_review = bool(evidence.pipes or evidence.basis == EvidenceBasis.MEASUREMENT)
+    if pipe_review:
+        flags.append("PIPE_BINDING_REVIEW_REQUIRED")
+        factors.append("Review each pipe's note, drawn leader, structure and exact PointID on the original page.")
+        if not evidence.pipes:
+            flags.append("PIPE_RECORDS_MISSING")
+        if evidence.pipe_record_agreement is False:
+            flags.append("PIPE_RECORD_DISAGREEMENT")
+        if evidence.relationship_status == "conflict":
+            flags.append("PIPE_RELATIONSHIP_CONFLICT")
+        elif evidence.relationship_status == "ambiguous":
+            flags.append("AMBIGUOUS_PIPE_RELATIONSHIP")
+        elif evidence.relationship_status != "supported":
+            flags.append("NO_SUPPORTED_PIPE_RELATIONSHIP")
+
     score = round(max(0.0, min(1.0, score)), 3)
-    if exact_ocr and score >= 0.88 and evidence.model_agreement is not False and "AMBIGUOUS_SEMANTICS" not in flags:
+    if exact_ocr and not pipe_review and score >= 0.88 and evidence.model_agreement is not False and "AMBIGUOUS_SEMANTICS" not in flags:
         decision = "AUTO_ACCEPT"
     elif exact_ocr and score >= 0.58:
         decision = "REVIEW_DETAILS"

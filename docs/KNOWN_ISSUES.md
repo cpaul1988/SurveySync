@@ -2,11 +2,52 @@
 
 - Field Note Profiles guide interpretation; they do not guarantee handwriting recognition accuracy. Real field-book review remains required.
 - Auto profile detection is performed during analysis. The v9.1.3 pre-analysis preview intentionally does not claim a confidence score before OCR/vision has inspected the page.
-- `BRT_STANDARD` is BRT-aware but SurveySync does not claim a deterministic OpenCV circle/leader detector.
+- `BRT_STANDARD` describes field-note semantics. The unreleased CPU geometry pilot can propose bounded closed circle-like structures and original-ink leaders, but the profile itself does not prove a relationship or guarantee detection.
 - Direct proprietary Trimble `.job` conversion requires the official Trimble ASCII/File and Report Generator on Windows. `.jxl`/JobXML can be parsed directly.
 - Windows installer compilation requires Inno Setup 6. The build helper searches per-user and Program Files locations.
 - Optional local OCR/vision runtimes still require real-machine smoke testing after installation.
 - `.fnp` training examples can contain page imagery; treat exported bundles as project/client data even though prompt summaries intentionally omit raw prior values.
+
+## Unreleased FieldBook relationship pilot
+
+- Every extracted pipe requires human review, including a `supported` geometry
+  proposal with agreeing OCR/model values. Exact PointID primary `YES`/`NO`
+  remains available under the default `POINT_ID_FOUND` rule; detailed QA is
+  separate.
+- The CPU detector handles a limited class of closed circle-like structures
+  and intact, unbranched ink paths. Open circles, faint/gapped lines, grid lines,
+  crossings, touching handwriting, and competing targets can remain ambiguous
+  or unresolved. It does not classify arrowheads or infer flow direction.
+- Coarse OCR boxes can obscure useful line evidence. Identical original and
+  cleaned observations are deduplicated, but different readings/locations are
+  retained as alternatives. A large model context crop or proposed leader box
+  is not measured ink evidence.
+- The local record checker compares dip, diameter, material, and azimuth. It
+  does not verify `connected_point_raw`; explicit destination IDs remain a
+  separate observation. The private benchmark can score that field when it
+  has independent labels.
+- Exhausted geometry/serialization budgets return partial evidence and prevent
+  supported proposals. Changed or unavailable original image bytes suppress
+  saved graph geometry at the review endpoint.
+- Paddle **Blocks** remains the default. Optional **Spotting** requires a
+  compatible installed public API and existing local native model assets. It
+  neither downloads weights nor silently substitutes block output on capability
+  failure. The app's spotting path uses CPU inference; its RAM and latency on
+  the target Windows workstation have not been measured here.
+- Synthetic fixtures and the synthetic review browser harness do not establish
+  messy-handwriting accuracy, private field-book association accuracy, real
+  model initialization, or 4 GB GTX 1650 acceptance. Representative private
+  gold labels and target-machine runs remain required.
+- Benchmark snapshots contain private project evidence. Keep originals, labels,
+  exports, and reports private. A Paddle block-mode export is named `blocks` in
+  metadata and must be scored with `--run blocks=...`.
+
+See the [relationship overview](development/fieldbook_relationships.md),
+[spotting contract](development/fieldbook_spotting.md), and
+[private benchmark protocol](FIELDBOOK_BENCHMARK.md). This development work does
+not change the existing [Defender incident release decision](SECURITY_INCIDENT_953.md).
+
+## Import staging and recovery (v9.2.1)
 
 - v9.2.1 Import Staging is integrated with the canonical point-file path first; specialized legacy Control/GIS/FieldBook import screens remain direct workflows for compatibility and should be migrated to the shared staging framework in later releases.
 - The v9.2.1 project map is a visual-QC overview, not a full GIS renderer and not a coordinate transformation engine.

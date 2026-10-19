@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, List
+from typing import Optional, List, Literal
 from pydantic import BaseModel, Field
 from .models import StatusRule, DipStatus, ReviewState, PipeMeasurement
 from .profiles import CodeProfile
@@ -28,6 +28,8 @@ class SettingsIn(BaseModel):
     network_max_distance: float = Field(default=1500.0, gt=0, le=1000000)
     network_bearing_tolerance: float = Field(default=25.0, ge=1, le=90)
     performance_mode: str = "auto"
+    ocr_mode: Literal["blocks", "spotting"] = "blocks"
+    spotting_model_dir: str = ""
     rod_bust_enabled: bool = True
     rod_bust_search_radius: float = Field(default=15.0, gt=0, le=10000)
     rod_bust_max_slope_percent: float = Field(default=8.0, ge=0, le=1000)
@@ -111,6 +113,9 @@ class ResultEditIn(BaseModel):
     confidence: Optional[float] = Field(default=None, ge=0, le=1)
     notes: str = ""
     pipes: List[PipeMeasurement] = Field(default_factory=list)
+    review_duration_seconds: Optional[float] = Field(
+        default=None, ge=0, le=86400, allow_inf_nan=False
+    )
 
 
 class ProjectNameIn(BaseModel):

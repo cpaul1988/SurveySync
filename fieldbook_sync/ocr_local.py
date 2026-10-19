@@ -260,23 +260,30 @@ def _normalize_bbox_pixels(box: Any, width: int, height: int) -> list[int] | Non
 
 def _extract_blocks(payload: Any) -> list[dict]:
     blocks: list[dict] = []
-    def walk(obj: Any) -> None:
+    def walk(obj: Any, view: dict | None = None, depth: int = 0) -> None:
+        if depth > 24 or len(blocks) >= 2048:
+            return
         if isinstance(obj, dict):
+            view = obj.get("surveysync_view", view) or {}
             if isinstance(obj.get("parsing_res_list"), list):
                 for item in obj["parsing_res_list"]:
                     if isinstance(item, dict):
-                        blocks.append(item)
+                        blocks.append({**item, "source_view": view.get("role", "unknown"),
+                                       "source_image_sha256": view.get("image_sha256", "")})
+                        if len(blocks) >= 2048:
+                            return
             for v in obj.values():
-                walk(v)
+                walk(v, view, depth + 1)
         elif isinstance(obj, list):
             for v in obj:
-                walk(v)
+                walk(v, view, depth + 1)
     walk(payload)
     # de-duplicate blocks that appear in nested pruned/full result copies.
     unique = []
     seen = set()
     for block in blocks:
-        key = (str(block.get("block_content", "")), json.dumps(block.get("block_bbox"), sort_keys=True, default=str))
+        key = (str(block.get("block_content", "")), json.dumps(block.get("block_bbox"), sort_keys=True, default=str),
+               block.get("source_view"), block.get("source_image_sha256"))
         if key not in seen:
             seen.add(key)
             unique.append(block)
@@ -298,7 +305,7 @@ def _parse_bridge_output(proc: subprocess.CompletedProcess[str]) -> dict:
 
 
 
-_OCR_CACHE_SCHEMA = "fbs-paddle-spatial-v2-original-grid"
+_OCR_CACHE_SCHEMA = "fbs-paddle-spatial-v3-mode-provenance"
 
 
 def _sha256_file(path: str | Path, chunk_size: int = 1024 * 1024) -> str:
@@ -312,10 +319,10 @@ def _sha256_file(path: str | Path, chunk_size: int = 1024 * 1024) -> str:
     return h.hexdigest()
 
 
-def _ocr_cache_key(image_path: str | Path) -> str:
+def _ocr_cache_key(image_path: str | Path, *, ocr_mode: str = "blocks", model_sha256: str = "") -> str:
     # OCR payloads depend only on the rendered/enhanced page bytes and the bridge
     # schema/pipeline configuration, not on the selected survey profile or PointIDs.
-    raw = f"{_OCR_CACHE_SCHEMA}|{_sha256_file(image_path)}".encode("utf-8")
+    raw = f"{_OCR_CACHE_SCHEMA}|{ocr_mode}|{model_sha256}|{_sha256_file(image_path)}".encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -377,6 +384,26 @@ def clear_ocr_cache(cache_dir: str | Path) -> None:
     root.mkdir(parents=True, exist_ok=True)
     reset_cache_stats(root)
 
+
+def _validate_spotting_payload(payload: dict, image_path: str | Path, model_sha256: str) -> None:
+    from .text_spotting import normalize_spotting_result
+    res = payload.get("res")
+    metadata = res.get("spotting_metadata") if isinstance(res, dict) else None
+    if not isinstance(metadata, dict) or metadata.get("model_asset_sha256") != model_sha256:
+        raise RuntimeError("Spotting model files changed during analysis; discard this run and retry.")
+    if metadata.get("image_sha256") != _sha256_file(image_path):
+        raise RuntimeError("Spotting source image changed during analysis; re-run this page.")
+    with Image.open(image_path) as image:
+        size = list(image.size)
+    if (metadata.get("input_image_size") != size or metadata.get("page_size") != size
+            or metadata.get("rotation_cw") != 0 or metadata.get("crop_bbox") != [0, 0, *size]
+            or [res.get("width"), res.get("height")] != size):
+        raise RuntimeError("Spotting result coordinates do not match the original input image.")
+    checked = normalize_spotting_result(payload, image_path=image_path, image_sha256=metadata["image_sha256"],
+                                       asset_sha256=model_sha256, expected_image_size=tuple(size))
+    if checked["res"]["parsing_res_list"] != res.get("parsing_res_list"):
+        raise RuntimeError("Spotting text blocks do not match the native spotting response.")
+
 def run_paddle_pages(pages, app_root, timeout=3600, **kwargs):
     """Read original and grid-cleaned views in one bounded worker, preserving both.
 
@@ -384,7 +411,7 @@ def run_paddle_pages(pages, app_root, timeout=3600, **kwargs):
     handwriting. Both views have identical dimensions and independent content hashes.
     """
     from copy import deepcopy
-    expanded, owners, grouped, cached_flags = [], [], [], []
+    expanded, owners, grouped, cached_flags, view_roles = [], [], [], [], []
     for index, page in enumerate(pages):
         original = deepcopy(page)
         original.enhanced_image_path = None
@@ -395,6 +422,7 @@ def run_paddle_pages(pages, app_root, timeout=3600, **kwargs):
                 original.image_path = str(oriented)
         expanded.append(original)
         owners.append(index)
+        view_roles.append("original")
         grouped.append([])
         cached_flags.append([])
         if page.enhanced_image_path and Path(page.enhanced_image_path).exists():
@@ -403,11 +431,23 @@ def run_paddle_pages(pages, app_root, timeout=3600, **kwargs):
                     raise ValueError("OCR derivative geometry differs from the original. Reimport this field book.")
             expanded.append(deepcopy(page))
             owners.append(index)
+            view_roles.append("grid_cleaned")
     expected = [owners.count(i) for i in range(len(pages))]
     callback = kwargs.pop("page_callback", None)
     error_callback = kwargs.pop("page_error_callback", None)
     def receive(number, page, payload, cached):
         owner = owners[number - 1]
+        payload = deepcopy(payload)
+        view_path = page.enhanced_image_path if view_roles[number - 1] == "grid_cleaned" else page.image_path
+        if kwargs.get("ocr_mode") == "spotting":
+            _validate_spotting_payload(payload, view_path, payload.get("surveysync_model_sha256", ""))
+        payload["surveysync_view"] = {
+            "role": view_roles[number - 1],
+            "image_sha256": _sha256_file(view_path),
+            "ocr_mode": kwargs.get("ocr_mode", "blocks"),
+            "model_sha256": payload.get("surveysync_model_sha256", ""),
+            "coordinate_space": "input_image_pixels",
+        }
         grouped[owner].append(payload)
         cached_flags[owner].append(cached)
         if callback and len(grouped[owner]) == expected[owner]:
@@ -432,6 +472,8 @@ def _run_paddle_views(
     cancel_check: Callable[[], bool] | None = None,
     cache_dir: str | Path | None = None,
     performance_mode: str = "auto",
+    ocr_mode: str = "blocks",
+    spotting_model_dir: str = "",
 ) -> list[dict]:
     """Run PaddleOCR-VL once and stream individual page results back to the caller.
 
@@ -443,6 +485,14 @@ def _run_paddle_views(
     """
     if not pages:
         return []
+    if ocr_mode not in {"blocks", "spotting"}:
+        raise ValueError("Paddle OCR mode must be blocks or spotting.")
+    model_sha256 = ""
+    if ocr_mode == "spotting":
+        from .text_spotting import validate_spotting_model_dir
+        local_model = validate_spotting_model_dir(spotting_model_dir)
+        spotting_model_dir = str(local_model.directory)
+        model_sha256 = local_model.asset_sha256
     status = paddle_status(app_root)
     if not status.installed or not status.python_path:
         raise RuntimeError(status.message)
@@ -469,10 +519,12 @@ def _run_paddle_views(
             if cancel_check and cancel_check():
                 raise PaddleCancelled("PaddleOCR analysis cancelled.")
             try:
-                key = _ocr_cache_key(image_path)
+                key = _ocr_cache_key(image_path, ocr_mode=ocr_mode, model_sha256=model_sha256)
                 cache_keys[original_index] = key
                 cached = _load_cached_payload(cache_root, key)
-            except OSError:
+                if cached is not None and ocr_mode == "spotting":
+                    _validate_spotting_payload(cached, image_path, model_sha256)
+            except (OSError, RuntimeError, ValueError):
                 cached = None
             if cached is not None:
                 results[original_index] = cached
@@ -506,9 +558,11 @@ def _run_paddle_views(
         proc = subprocess.Popen(
             [
                 status.python_path, "-u", str(bridge), "--manifest", manifest_path,
-                "--prefetch-pages", str(plan.prefetch_pages),
-                *( ["--enable-hpi"] if plan.enable_hpi else [] ),
-                *( ["--prefer-gpu"] if plan.prefer_gpu else [] ),
+                "--ocr-mode", ocr_mode,
+                *( ["--spotting-model-dir", spotting_model_dir] if ocr_mode == "spotting" else [] ),
+                "--prefetch-pages", str(1 if ocr_mode == "spotting" else plan.prefetch_pages),
+                *( ["--enable-hpi"] if plan.enable_hpi and ocr_mode == "blocks" else [] ),
+                *( ["--prefer-gpu"] if plan.prefer_gpu and ocr_mode == "blocks" else [] ),
                 "--page-retries", "2",
             ],
             stdout=subprocess.PIPE,
@@ -589,6 +643,8 @@ def _run_paddle_views(
                 if progress_callback:
                     progress_callback(cached_count, total, f"PaddleOCR-VL 1.6: loading OCR model · {cached_count} cached · {len(missing_indices)} remaining")
             elif kind == "ready":
+                if ocr_mode == "spotting" and event.get("model_asset_sha256") != model_sha256:
+                    raise RuntimeError("Spotting worker loaded different model assets than the selected local export.")
                 if progress_callback:
                     first_original = missing_indices[0] + 1
                     device = str(event.get("device") or status.device or "cpu").upper()
@@ -607,6 +663,12 @@ def _run_paddle_views(
                     raise RuntimeError(f"PaddleOCR-VL returned an invalid page index: {local_idx}.")
                 original_idx = missing_indices[local_idx - 1]
                 payload = event.get("result") or {}
+                if not isinstance(payload, dict):
+                    raise RuntimeError("PaddleOCR returned an invalid result object.")
+                if ocr_mode == "spotting":
+                    _validate_spotting_payload(payload, image_paths[original_idx], model_sha256)
+                payload["surveysync_ocr_mode"] = ocr_mode
+                payload["surveysync_model_sha256"] = model_sha256
                 results[original_idx] = payload
                 completed_new += 1
                 if cache_root and cache_keys[original_idx]:
@@ -777,8 +839,10 @@ def locate_target_ids(
                 raw_text=text[:1200],
                 confidence=0.98 if exact else 0.70,
                 bbox=bbox,
-                engine="PaddleOCR-VL-1.6" if exact else "PaddleOCR-VL-1.6 near-match routing",
+                engine=str(block.get("source") or "PaddleOCR-VL-1.6") + ("" if exact else " near-match routing"),
                 exact_match=exact,
+                recognized_point_id=raw,
+                source_view=str(block.get("source_view", "unknown")),
             ))
     # One page/block may expose the same ID multiple times. Keep the first unique bbox/text.
     deduped = []
@@ -865,11 +929,12 @@ def _comparison_measurements(text: str) -> tuple[list[float], list[float], list[
             continue
         label = match.group("label").casefold()
         if label == "dip":
-            before = text[max(0, label_span[0] - 16):label_span[0]]
+            before = text[max(0, label_span[0] - 32):label_span[0]].rsplit("\n", 1)[-1].rsplit(";", 1)[-1]
             # ``12 DIP 4.20`` is materially ambiguous; do not use DIP as a measurement
             # label when a number sits immediately before it.  Returning less evidence is
             # safer than manufacturing a deterministic disagreement.
-            if re.search(rf"(?<![0-9.]){_NUM_TOKEN}\s*(?:[\"”]|in(?:ch(?:es)?)?)?\s*$", before, flags=re.I):
+            preceded_by_azimuth = re.search(rf"\b(?:az|azi|azimuth)\s*[:=#-]?\s*{_NUM_TOKEN}\s*$", before, flags=re.I)
+            if not preceded_by_azimuth and re.search(rf"(?<![0-9.]){_NUM_TOKEN}\s*(?:[\"”]|in(?:ch(?:es)?)?)?\s*$", before, flags=re.I):
                 continue
         dips.append(float(match.group("value")))
 
@@ -880,10 +945,13 @@ def _comparison_measurements(text: str) -> tuple[list[float], list[float], list[
     # Material-adjacent diameter notation.  For ``DIP`` specifically, skip the match if
     # that DIP token has already been classified as a dip/depth label above.
     material_diameter = re.compile(
-        rf"\b(?P<value>{_NUM_TOKEN})\s*(?P<material>{_PIPE_MATERIAL})\b",
+        rf"\b(?P<value>{_NUM_TOKEN})[ \t]*(?P<material>{_PIPE_MATERIAL})\b",
         flags=re.I,
     )
     for match in material_diameter.finditer(text):
+        before = text[max(0, match.start() - 24):match.start()]
+        if re.search(r"\b(?:az|azi|azimuth)\s*[:=#-]?\s*$", before, flags=re.I):
+            continue
         if match.group("material").casefold() == "dip" and _overlaps(match.span("material"), protected_dip_label_spans):
             continue
         diameters.append(float(match.group("value")))
@@ -893,7 +961,7 @@ def _comparison_measurements(text: str) -> tuple[list[float], list[float], list[
     ], text)
     return _dedupe_numbers(dips), _dedupe_numbers(diameters), _dedupe_numbers(azimuths)
 
-def compare_ocr_to_evidence(text: str, evidence: PageEvidence) -> tuple[bool | None, str]:
+def _compare_ocr_values(text: str, evidence: PageEvidence) -> tuple[bool | None, str]:
     """Compare clearly labeled PaddleOCR text with Qwen structured extraction.
 
     This is deliberately conservative. If OCR did not expose a labeled dip/diameter/azimuth
@@ -955,3 +1023,11 @@ def compare_ocr_to_evidence(text: str, evidence: PageEvidence) -> tuple[bool | N
     if explicit_cnl: summary.append("CNL (Could Not Locate)")
     if explicit_yes: summary.append("explicit DIPPED")
     return agree, "PaddleOCR comparison: " + "; ".join(summary)
+
+
+def compare_ocr_to_evidence(text: str, evidence: PageEvidence) -> tuple[bool | None, str]:
+    """Compatibility API for record-aware independent measurement comparison."""
+    from .measurement_comparison import compare_measurement_records
+
+    comparison = compare_measurement_records(text, evidence)
+    return comparison.agreement, comparison.summary

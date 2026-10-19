@@ -341,7 +341,17 @@ def _entry_to_evidence(item: Dict[str, Any], *, page: FieldBookPage, target_set:
         )
 
     status, basis = _parse_status_basis(item)
-    pipes = [PipeMeasurement.model_validate(p) for p in item.get("pipes", [])]
+    # Observation fields are the only fields a vision provider may supply. Derived
+    # relationship proofs, network IDs and QC claims are always recomputed locally.
+    observed_pipe_fields = {
+        "dip", "dip_raw", "diameter_in", "diameter_raw", "material", "azimuth_deg",
+        "azimuth_raw", "leader_direction_deg", "leader_direction_raw", "leader_bbox",
+        "connected_point_raw", "notes",
+    }
+    pipes = [
+        PipeMeasurement.model_validate({key: value for key, value in p.items() if key in observed_pipe_fields})
+        for p in item.get("pipes", []) if isinstance(p, dict)
+    ]
     return PageEvidence(
         matched_point_id=point_id,
         basis=basis,

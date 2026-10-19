@@ -3,17 +3,28 @@
   "version": "9.5.4",
   "build_type": "security-release-candidate",
   "baseline": "9.5.3 + Defender incident containment",
-  "candidate_branch": "fix/defender-release-954",
+  "candidate_branch": "feat/fieldbook-spatial-evidence",
   "feedback": {
     "checked_before_build": true,
-    "checked_utc": "2026-10-16",
+    "checked_utc": "2026-10-19T14:58:37Z",
     "intake_count": 18,
     "latest_intake": "FBR-0018",
-    "notes": "Intake rechecked before this candidate build. Defender screenshots and explicit fix request are the security incident input. FieldBook integration is retained."
+    "notes": "Read the complete live Intake range A1:R1001 and spreadsheet metadata before this draft PR. 18 records; latest FBR-0018, submitted 2026-10-16T16:44:16.847587Z. No newer intake. Existing FBR-0018 integration and Defender incident hold retained."
   },
   "qa": {
     "status": "Security evidence and independent Windows acceptance required. No claim of vendor false-positive clearance.",
-    "coverage_floor_percent": 54
+    "coverage_floor_percent": 54,
+    "fieldbook_acceptance": "Real private pages, installed PaddleOCR-VL spotting assets, and native Windows / GTX 1650 Max-Q 4 GB acceptance pending. Pipe bindings require manual review during this pilot.",
+    "fieldbook_source_gate": {
+      "checked_utc": "2026-10-19",
+      "passed": 1030,
+      "skipped": 2,
+      "coverage_percent": 68.52,
+      "dependency_pins_audited": 105,
+      "known_dependency_vulnerabilities": 0,
+      "synthetic_browser_checks": 20,
+      "scope": "Local source quality gate and synthetic UI; native Windows/model/private-page acceptance pending."
+    }
   },
   "release": {
     "published": false,
@@ -25,5 +36,6 @@
     "go_version": "1.27.2",
     "blocked_release": "9.5.3-beta.1",
     "vendor_clearance": false
-  }
+  },
+  "scope": "Unreleased FieldBook relationship-review pilot stacked on the 9.5.4-beta.1 Defender repair candidate; no promotion."
 }

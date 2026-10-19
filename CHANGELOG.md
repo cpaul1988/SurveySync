@@ -2,6 +2,16 @@
 
 Pinned supported Go toolchain, native product resources, mandatory active Defender scans of signed launchers and final installer, hash-bound scan evidence, and clear update-hold errors. Retains FBR-0018. Release remains held pending independent acceptance; this is not a Microsoft false-positive determination.
 
+## Unreleased — FieldBook relationship review pilot
+
+- Separate page-wide numerical agreement from complete pipe-record agreement, so values swapped between pipes cannot pass the text cross-check.
+- Propose text-to-leader-to-structure relationships using bounded local CPU analysis of the original page. Exact surveyed PointIDs, original-resolution path continuity and ambiguity are recorded separately. Crossings, gaps, uncertain circles and conflicting leaders remain review items.
+- Require human review of pipe bindings during this pilot, including apparently supported proposals. The primary PointID-found YES/NO rule remains independent of dip-detail review.
+- Add explicit PaddleOCR-VL 1.6 spotting with a supplied local native model directory, CPU execution, capability errors, verified input/model provenance and separate caches. Block OCR remains the default.
+- Show original-page review overlays, separate agreement checks, pipe filters and evidence-page selection. Keep unsaved corrections when changing evidence pages and preserve each in-flight interpretation's actual crop coordinates.
+- Add private benchmark exports and a conservative scorer for raw PointID, field, pipe and structure predictions, incorrect automatic acceptance, and measured review time. Synthetic fixtures check swapped records; field accuracy and native Windows / 4 GB acceptance remain pending.
+- Retain the Defender release hold and exact-artifact security gates. This source candidate does not publish an installer or promote Beta/Stable.
+
 ## 9.5.3-beta.1 — FBR-0018 shared FieldBook workspace
 
 - Use the actual SurveySync shell/sidebar and persistent FieldBook content pane; keep module view state during tab switches.
