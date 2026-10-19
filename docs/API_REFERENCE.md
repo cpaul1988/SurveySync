@@ -2,6 +2,88 @@
 
 This is a developer-oriented index, not a complete OpenAPI dump.
 
+## Unreleased FieldBook relationship review APIs
+
+These are FieldBook subapplication routes. The existing shared-project context
+guard still applies: embedded requests carry `X-SurveySync-Project`, and
+downloads use `ss_project` through the existing bridge.
+
+### OCR settings
+
+`POST /api/settings` accepts the existing `SettingsIn` object with these added
+fields. Preserve the other current settings when submitting this object; this
+endpoint is not a partial PATCH.
+
+| Field | Type / default | Behavior |
+| --- | --- | --- |
+| `ocr_mode` | `"blocks"` or `"spotting"`; default `"blocks"` | Selects the Paddle OCR mode. Other local providers do not become Paddle spotting by changing this setting. |
+| `spotting_model_dir` | String; default empty | For spotting, must resolve to an existing local native `PaddleOCR-VL-1.6-0.9B` export. Asset validation failure returns HTTP 400. Selection does not download a model. |
+
+`GET /api/state` exposes these fields in `settings`. Mode/model changes separate
+OCR caches. The worker also verifies the installed spotting API, source-image
+identity, and returned polygon contract; a valid directory alone does not
+establish runtime support. See [the local spotting contract](development/fieldbook_spotting.md).
+
+### Evidence and canonical page graphs
+
+`GET /api/results` retains raw `evidence_records` alongside aggregated results.
+The added fields are:
+
+| Object | Fields and meaning |
+| --- | --- |
+| `PageEvidence` | `numerical_agreement`, `pipe_record_agreement`: boolean or null. `model_agreement` combines available text comparisons. These do not establish a drawn relationship. |
+| `PageEvidence` | `relationship_status`: `supported`, `ambiguous`, `conflict`, or `unverified`. `spatial_evidence_key` addresses the canonical graph; persisted `spatial_evidence` is empty after canonicalization. |
+| `PipeMeasurement` | `source_page_id`, `association_status`, `association_text_ids`, `association_path_ids`, `association_flags`: derived local proposals and their evidence references. The observed `leader_bbox` stays separate. |
+| `AppState` | `spatial_graphs`: canonical graphs stored once by page/digest. `analysis_metadata`: provenance captured when analysis ran. |
+| `ResultRecord` | `review_elapsed_seconds` and `review_action_count`: elapsed time and number of timed review submissions; raw page evidence remains separate from edited result pipes. |
+
+`GET /api/fieldbook-spatial/{graph_key}` returns one canonical graph. Encode the
+key as a URL path component. Graph coordinates use the original page normalized
+to 0..1000; `paths[].points` contains `[x,y]` pairs, and boxes use
+`[x1,y1,x2,y2]`. The graph includes `source`, `text_regions`, `point_anchors`,
+`structures`, `paths`, `associations`, `status`, `truncated`, and diagnostic
+flags. Core graphs use `status="complete"` or `"partial"`; a complete graph is
+still review-only. Source metadata distinguishes original file `image_sha256`
+from oriented decoded `pixel_sha256`.
+
+A missing graph returns HTTP 404. Before serving geometry, the endpoint checks
+the current original-raster file hash. A changed/unavailable image returns
+`status="unavailable"`, `truncated=true`,
+`flags=["SOURCE_IMAGE_CHANGED_OR_UNAVAILABLE"]`, and empty geometry collections.
+The canonical serializer has a 2,000,000-byte UTF-8 graph budget; exceeding it
+stores an explicit partial marker and demotes proposals instead of pruning
+ambiguous alternatives silently.
+
+`PUT /api/results/{point_id}` retains the reviewed-edit workflow and additionally
+accepts optional `review_duration_seconds`, a finite number from 0 through
+86400. It accumulates review-dialog elapsed time, including reading/idle time;
+it is not a measurement of pure editing effort. This pilot always routes
+extracted pipes to human review, even for `relationship_status="supported"`.
+The default `POINT_ID_FOUND` primary `YES`/`NO` result remains separate from
+`dip_status` and `qa_needs_review`.
+
+### Private benchmark download
+
+`GET /api/fieldbook-benchmark/export` requires idle analysis and existing results.
+It returns a JSON attachment named `fieldbook-benchmark-run.json` with
+`Cache-Control: no-store`. With no results it returns HTTP 400. The payload has
+`benchmark_metadata`, `page_sha256`, `spatial_graphs`, `results`, and
+`ocr_candidates`. It includes private source text and evidence; this is not a
+redacted diagnostic export.
+
+Metadata describes the completed analysis, not the current settings at download.
+For Paddle/Hybrid runs, `benchmark_metadata.mode` is `blocks` or `spotting`;
+other providers retain their provider name. Run the local scorer using the same
+name, for example `--run blocks=.fieldbook-benchmark/blocks.json`. Older runs
+may retain mode `unknown`. Do not use `--run block=...` for a `blocks` export.
+See [the benchmark schema and scoring protocol](FIELDBOOK_BENCHMARK.md).
+
+The export and spatial endpoints are implemented in
+[`fieldbook_sync/export_routes.py`](../fieldbook_sync/export_routes.py).
+See [the relationship overview](development/fieldbook_relationships.md) for
+source attribution, geometry limits, and remaining real-model/workstation
+acceptance. These APIs do not change the existing release/security hold.
+
 ## Field-note profile APIs
 
 - `GET /api/field-note-profiles` — installed profiles, selected global mode, example counts.

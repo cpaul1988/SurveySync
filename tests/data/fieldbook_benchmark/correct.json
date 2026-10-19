@@ -1,0 +1,51 @@
+{
+  "results": [
+    {
+      "point_id": "0001",
+      "review_state": "UNREVIEWED",
+      "manually_overridden": false,
+      "evidence_records": [
+        {
+          "page_id": "synthetic-page",
+          "matched_point_id": "0001",
+          "dipped": "YES",
+          "evidence_decision": "AUTO_ACCEPT",
+          "pipes": [
+            {
+              "leader_bbox": [
+                100,
+                100,
+                200,
+                130
+              ],
+              "dip": 4.2,
+              "diameter_in": 8,
+              "material": "PVC",
+              "azimuth_deg": 90,
+              "connected_point_raw": null
+            },
+            {
+              "leader_bbox": [
+                300,
+                100,
+                400,
+                130
+              ],
+              "dip": 6.3,
+              "diameter_in": 12,
+              "material": "RCP",
+              "azimuth_deg": 270,
+              "connected_point_raw": "0002"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "benchmark_metadata": {
+    "schema_version": 1,
+    "mode": "correct",
+    "source_commit": null,
+    "model": "synthetic-test-fixture"
+  }
+}

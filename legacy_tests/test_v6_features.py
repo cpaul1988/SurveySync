@@ -218,6 +218,9 @@ def test_v6_ui_ids_referenced_by_js_exist():
     html = (root / "fieldbook_sync/static/index.html").read_text(encoding="utf-8")
     js = (root / "fieldbook_sync/static/app.js").read_text(encoding="utf-8")
     html_ids = set(re.findall(r'id=["\']([^"\']+)', html))
+    # Review controls are created when a result opens; validate their real templates.
+    relationship_js = (root / "fieldbook_sync/static/relationship-review.js").read_text(encoding="utf-8")
+    html_ids.update(re.findall(r'id=["\']([^"\']+)', js + relationship_js))
     # Static literal $('#id') / $$('.selector') references. Ignore selectors containing CSS syntax.
     refs = set(re.findall(r"\$\('#([A-Za-z][A-Za-z0-9_-]*)'\)", js))
     dynamic_ids = {"acceptResultBtn","addPipeBtn","editNotes","editStatus","editDipStatus","nextResultBtn","pipeEditors","prevResultBtn","reviewImage","saveResultBtn","secondOpinionBtn","arcAddBtn","arcAprx","arcAssignCrs","arcBackupAprx","arcBrowseAprxBtn","arcBrowseFolderBtn","arcProject","arcBackupProject","arcBrowseProjectBtn","arcDoneBtn","arcIncludeNetwork","arcLoadMapsBtn","arcMapInfo","arcMapSelect","arcOpenProject","arcOutputFolder","arcProjectSubfolder","arcReplaceExisting","arcRevealBtn","arcShpOnlyBtn","updateFolderBtn","updateInstallBtn","updateSourceBtn","installSurveySyncUpdateBtn","alignEnabled","alignOffsetX","alignOffsetY","alignOriginX","alignOriginY","alignRotation","alignScale","alignmentSolveResult","applyCrsManager","controlPairs","crsClearBtn","crsDirect","crsImportFile","crsSearch","crsSearchBtn","crsSearchResults","solveAlignmentBtn","clearFeedbackEndpointBtn","feedbackEndpointUrlInput","gmConvertBtn","gmConvertFile","gmConvertStatus","gmCustomFields","gmExportType","gmExtension","gmPreset","modalDiagnosticBundleBtn","openFeedbackTrackerBtn","saveFeedbackEndpointBtn","openFeedbackLogBtn","feedbackLogFolderBtn","feedbackLogSettingsBtn","feedbackReceiptFolderBtn","feedbackReceiptLogBtn","fwAttachments","fwBack","fwDiagnostics","fwNext","fwSubmit","fwSyncShared","manualAddPipeBtn","manualDipStatus","manualNotes","manualPipeEditors","manualPointId","manualSaveBtn","manualStatus","attachReviewPhotoBtn","teachProfileBox","teachProfileBtn","teachProfileSelect","previewTrainBookBtn"}
@@ -281,7 +284,7 @@ def test_v6_batch_hybrid_uses_real_hybrid_pipeline(monkeypatch, tmp_path):
     called = {"hybrid": 0}
     from fieldbook_sync import batch_workers
     monkeypatch.setattr(batch_workers, "list_ollama_models", lambda base_url: [appmod.runtime.ollama_model])
-    def fake_hybrid(job, state_arg, work_pages):
+    def fake_hybrid(job, state_arg, work_pages, **kwargs):
         called["hybrid"] += 1
         return [evidence], [], [candidate]
     monkeypatch.setattr(batch_workers, "_batch_hybrid_local", fake_hybrid)

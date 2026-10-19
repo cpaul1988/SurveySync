@@ -1,0 +1,13 @@
+# Private FieldBook labels, scans, benchmark runs and reports never belong in source.
+.fieldbook-benchmark/
+.dev-handoff/
+security-evidence/
+original-input/
+original-unpacked/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml

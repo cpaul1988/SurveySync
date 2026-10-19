@@ -376,6 +376,8 @@ class Runtime:
         self.network_max_distance: float = 1500.0
         self.network_bearing_tolerance: float = 25.0
         self.performance_mode: str = "auto"
+        self.ocr_mode: str = "blocks"
+        self.spotting_model_dir: str = ""
         _t = time.perf_counter()
         self.hardware_profile = detect_hardware(include_gpu=False)
         _startup_mark("hardware_core_profile", _t)
@@ -445,6 +447,10 @@ class Runtime:
         self.network_max_distance = float(saved.get("network_max_distance", self.network_max_distance))
         self.network_bearing_tolerance = float(saved.get("network_bearing_tolerance", self.network_bearing_tolerance))
         self.performance_mode = str(saved.get("performance_mode", self.performance_mode)).lower()
+        self.ocr_mode = str(saved.get("ocr_mode", "blocks"))
+        if self.ocr_mode not in {"blocks", "spotting"}:
+            self.ocr_mode = "blocks"
+        self.spotting_model_dir = str(saved.get("spotting_model_dir", ""))
         self.rod_bust_enabled = bool(saved.get("rod_bust_enabled", True))
         self.rod_bust_search_radius = float(saved.get("rod_bust_search_radius", 15.0))
         self.rod_bust_max_slope_percent = float(saved.get("rod_bust_max_slope_percent", 8.0))
@@ -849,19 +855,31 @@ def _run_paddle_supervised(
     cancel_check=None,
     cache_dir=None,
     performance_mode: str = "auto",
+    ocr_mode: str = "blocks",
+    spotting_model_dir: str = "",
+    ocr_provenance: dict | None = None,
     max_worker_attempts: int = 3,
 ):
     """Restart a crashed Paddle worker without repeating checkpointed pages."""
+    def observed_page(page_number, page, payload, from_cache):
+        if ocr_provenance is not None:
+            from .benchmark_export import record_ocr_provenance
+            record_ocr_provenance(ocr_provenance, page.page_id, payload)
+        if page_callback is not None:
+            page_callback(page_number, page, payload, from_cache)
+
     for worker_attempt in range(1, max_worker_attempts + 1):
         try:
             return run_paddle_pages(
                 pages, app_root,
                 progress_callback=progress_callback,
-                page_callback=page_callback,
+                page_callback=observed_page,
                 page_error_callback=page_error_callback,
                 cancel_check=cancel_check,
                 cache_dir=cache_dir,
                 performance_mode=performance_mode,
+                ocr_mode=ocr_mode,
+                spotting_model_dir=spotting_model_dir,
             )
         except PaddleCancelled:
             raise
@@ -1055,6 +1073,8 @@ def _summary() -> dict:
                 "network_max_distance": runtime.network_max_distance,
                 "network_bearing_tolerance": runtime.network_bearing_tolerance,
                 "performance_mode": runtime.performance_mode,
+                "ocr_mode": runtime.ocr_mode,
+                "spotting_model_dir": runtime.spotting_model_dir,
                 "rod_bust_enabled": runtime.rod_bust_enabled,
                 "rod_bust_search_radius": runtime.rod_bust_search_radius,
                 "rod_bust_max_slope_percent": runtime.rod_bust_max_slope_percent,
@@ -1596,6 +1616,14 @@ def api_select_profile(payload: SelectProfileIn) -> dict:
 
 @app.post("/api/settings")
 def api_settings(payload: SettingsIn) -> dict:
+    spotting_model_dir = payload.spotting_model_dir.strip()
+    if payload.ocr_mode == "spotting":
+        from .text_spotting import SpottingError, validate_spotting_model_dir
+        try:
+            local_model = validate_spotting_model_dir(spotting_model_dir)
+            spotting_model_dir = str(local_model.directory)
+        except (ValueError, OSError, SpottingError) as exc:
+            raise HTTPException(400, str(exc)) from exc
     provider = payload.provider.strip().lower()
     if provider in CLOUD_PROVIDERS:
         raise HTTPException(400, LOCAL_ONLY_MESSAGE)
@@ -1607,6 +1635,7 @@ def api_settings(payload: SettingsIn) -> dict:
         raise HTTPException(400, "Analysis provider must be Automatic, Hybrid Local, Qwen Local, Paddle OCR, Gemini, OpenAI, Anthropic Claude, or Manual Review.")
     with runtime.lock:
         _assert_analysis_idle_locked()
+        previous_ocr_settings = (runtime.ocr_mode, runtime.spotting_model_dir)
         previous_status_rule = runtime.status_rule
         runtime.provider = provider
         try:
@@ -1670,6 +1699,10 @@ def api_settings(payload: SettingsIn) -> dict:
         if perf_mode not in {"auto", "safe", "balanced", "high"}:
             raise HTTPException(400, "Performance mode must be Auto, Safe, Balanced, or High Performance.")
         runtime.performance_mode = perf_mode
+        runtime.ocr_mode = payload.ocr_mode
+        runtime.spotting_model_dir = spotting_model_dir
+        if previous_ocr_settings != (runtime.ocr_mode, runtime.spotting_model_dir):
+            _bump_project_revision_locked()
         runtime.storage.save_settings({
             "provider": runtime.provider,
             "provider_user_set": True,
@@ -1688,6 +1721,8 @@ def api_settings(payload: SettingsIn) -> dict:
             "network_max_distance": runtime.network_max_distance,
             "network_bearing_tolerance": runtime.network_bearing_tolerance,
             "performance_mode": runtime.performance_mode,
+            "ocr_mode": runtime.ocr_mode,
+            "spotting_model_dir": runtime.spotting_model_dir,
             "rod_bust_enabled": runtime.rod_bust_enabled,
             "rod_bust_search_radius": runtime.rod_bust_search_radius,
             "rod_bust_max_slope_percent": runtime.rod_bust_max_slope_percent,
@@ -2286,7 +2321,10 @@ def _analysis_worker(
     local_base_url: str = "http://127.0.0.1:11434",
 ) -> None:
     # The sixth positional argument remains for compatibility with Beta v4/v5 tests.
+    from .benchmark_export import analysis_run_metadata, summarize_ocr_provenance
+    analysis_started = time.monotonic()
     batch_pages = gemini_batch_pages
+    ocr_provenance: dict = {}
     with runtime.lock:
         runtime.worker_last_heartbeat_monotonic = time.monotonic()
         runtime.job.worker_heartbeat_at = utc_now_iso()
@@ -2301,6 +2339,11 @@ def _analysis_worker(
         targets = [p.point_id for p in survey_points]
         if not pages or not targets:
             raise RuntimeError("Survey structures and field-book pages are both required.")
+        run_metadata = analysis_run_metadata(
+            app_root=APP_ROOT, pages=pages,
+            mode=runtime.ocr_mode if provider in {"hybrid", "paddle"} else provider,
+            model=model, hardware=runtime.hardware_profile.as_dict(),
+        )
         if not _analysis_pause_checkpoint(analysis_revision, "before engine startup"):
             return
         # Refresh old warped derivatives before locating IDs on the original coordinate grid.
@@ -2359,6 +2402,7 @@ def _analysis_worker(
             all_evidence, all_unmatched, ocr_candidates = _hybrid_local_analysis(
                 pages=pages, targets=targets, model=model, local_base_url=local_base_url,
                 batch_pages=batch_pages, analysis_revision=analysis_revision,
+                ocr_provenance=ocr_provenance,
             )
         elif provider == "paddle":
             pstat = paddle_status(APP_ROOT)
@@ -2439,6 +2483,8 @@ def _analysis_worker(
                     page_callback=_paddle_only_page, page_error_callback=_paddle_only_error,
                     cancel_check=_paddle_only_should_stop,
                     cache_dir=runtime.ocr_cache_dir, performance_mode=runtime.performance_mode,
+                    ocr_mode=runtime.ocr_mode, spotting_model_dir=runtime.spotting_model_dir,
+                    ocr_provenance=ocr_provenance,
                 )
             except PaddleCancelled:
                 _check_worker_revision(analysis_revision, "Analysis stopped during OCR because project data changed.")
@@ -2452,6 +2498,8 @@ def _analysis_worker(
 
         if not _check_worker_revision(analysis_revision, "Analysis finished, but project data changed. Stale results were discarded."):
             return
+        from .relationship_evidence import store_page_graphs
+        spatial_graphs = store_page_graphs(all_evidence)
         results = aggregate_results(survey_points, all_evidence, confidence_threshold=threshold, status_rule=runtime.status_rule)
         all_unmatched = _dedupe_unmatched(all_unmatched)
         # Derived intelligence uses only deterministic rules.
@@ -2469,6 +2517,10 @@ def _analysis_worker(
             runtime.storage.state.unmatched = all_unmatched
             runtime.storage.state.ocr_candidates = ocr_candidates
             runtime.storage.state.network_edges = network_edges
+            run_metadata["measurements"]["wall_seconds"] = round(time.monotonic() - analysis_started, 3)
+            run_metadata["ocr_provenance"] = summarize_ocr_provenance(ocr_provenance)
+            runtime.storage.state.analysis_metadata = run_metadata
+            runtime.storage.state.spatial_graphs = spatial_graphs
             runtime.storage.save()
             runtime.job.running = False
             runtime.job.complete = True
@@ -2547,6 +2599,10 @@ def api_analyze() -> dict:
                 result.notes = "Manual Review mode: no AI was used. Locate the field-book entry and enter the observed status/pipe measurements."
             runtime.storage.state.results = results
             runtime.storage.state.unmatched = []
+            runtime.storage.state.spatial_graphs = {}
+            runtime.storage.state.analysis_metadata = {
+                "schema_version": 1, "mode": "manual", "generated_at": utc_now_iso(),
+            }
             runtime.storage.state.network_edges = refresh_intelligence(
                 results, runtime.storage.state.ocr_candidates,
                 elevation_is_rim=runtime.elevation_is_rim,
@@ -3494,6 +3550,9 @@ def api_edit_result(point_id: str, payload: ResultEditIn) -> dict:
             result.confidence = payload.confidence
         result.notes = payload.notes
         result.pipes = payload.pipes
+        if payload.review_duration_seconds is not None:
+            result.review_elapsed_seconds = round((result.review_elapsed_seconds or 0) + payload.review_duration_seconds, 3)
+            result.review_action_count += 1
         result.manually_overridden = True
         _refresh_intelligence_locked()
         after = result.model_dump(mode="json")
@@ -4139,39 +4198,6 @@ def api_reset() -> dict:
 
 
 
-@app.get("/api/export")
-def api_export() -> FileResponse:
-    # Snapshot under lock, then perform ZIP/GIS generation outside it so UI polling stays responsive.
-    with runtime.lock, runtime.storage.lock:
-        _assert_analysis_idle_locked()
-        if not runtime.storage.state.results:
-            raise HTTPException(400, "There are no results to export.")
-        state_copy = deepcopy(runtime.storage.state)
-    path = create_export_zip(state_copy, runtime.storage.export_dir)
-    return FileResponse(
-        path,
-        media_type="application/zip",
-        filename=path.name,
-        headers={"Cache-Control": "no-store"},
-    )
-
-
-@app.get("/api/export/{fmt}")
-def api_direct_export(fmt: str) -> StreamingResponse:
-    """Download a lightweight native GIS/CAD format without building the whole QA ZIP."""
-    with runtime.lock, runtime.storage.lock:
-        _assert_analysis_idle_locked()
-        if not runtime.storage.state.results:
-            raise HTTPException(400, "There are no results to export.")
-        state_copy = deepcopy(runtime.storage.state)
-    try:
-        filename, media_type, text = direct_export_text(state_copy, fmt)
-    except ValueError as exc:
-        raise HTTPException(404, "Supported direct exports are GeoJSON, KML, and DXF.") from exc
-    headers = {"Content-Disposition": f'attachment; filename="{filename}"', "Cache-Control": "no-store"}
-    return StreamingResponse(iter([text.encode("utf-8")]), media_type=media_type, headers=headers)
-
-
 @app.get("/api/arcgis/status")
 def api_arcgis_status() -> dict:
     """Report ArcGIS Pro and ArcGIS Desktop / ArcMap 10.x integration availability."""
@@ -4264,6 +4290,16 @@ def run_server(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = T
 
 
 # SurveySync v9 platform shell and shared-module APIs.
+
+from .export_routes import router as export_routes_router
+from .export_routes import (
+    api_export as api_export,
+    api_direct_export as api_direct_export,
+    api_fieldbook_benchmark_export as api_fieldbook_benchmark_export,
+    api_fieldbook_spatial as api_fieldbook_spatial,
+)
+app.include_router(export_routes_router)
+
 
 from .map_routes import router as map_routes_router
 from .map_routes import (

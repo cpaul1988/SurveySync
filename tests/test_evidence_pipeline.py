@@ -48,8 +48,10 @@ def test_payload_flatteners_are_provider_agnostic():
     assert "2437" in paddle and "4.62" in paddle
 
 
-def test_high_quality_independent_evidence_can_auto_accept_details():
+def test_high_quality_independent_explicit_status_can_auto_accept():
     ev = _evidence()
+    ev.basis = EvidenceBasis.EXPLICIT_YES
+    ev.evidence = "DIPPED"
     assessment = apply_assessment(_candidate(), ev, imported_point_ids=["2437", "2438"])
     assert assessment.decision == "AUTO_ACCEPT"
     assert assessment.score >= 0.88

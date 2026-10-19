@@ -1198,6 +1198,47 @@
         "docs/SECURITY_INCIDENT_953.md",
         "RELEASE_NOTES_v9_5_4.md"
       ]
+    },
+    "fieldbook_relationship_review_pilot": {
+      "introduced": "9.5.4-beta.1 (unreleased)",
+      "implementation": [
+        "fieldbook_sync/measurement_comparison.py",
+        "fieldbook_sync/spatial_association.py",
+        "fieldbook_sync/relationship_evidence.py",
+        "fieldbook_sync/text_spotting.py",
+        "fieldbook_sync/benchmark_export.py",
+        "fieldbook_sync/export_routes.py",
+        "fieldbook_sync/vision_pipeline.py",
+        "fieldbook_sync/evidence_pipeline.py",
+        "fieldbook_sync/ocr_local.py",
+        "paddle_bridge.py",
+        "fieldbook_sync/static/relationship-review.js",
+        "fieldbook_sync/static/app.js",
+        "scripts/benchmark_fieldbook.py",
+        "fieldbook_sync/batch_workers.py"
+      ],
+      "tests": [
+        "tests/test_pipe_measurement_comparison.py",
+        "tests/test_spatial_association.py",
+        "tests/test_relationship_pipeline.py",
+        "tests/test_text_spotting.py",
+        "tests/test_spotting_pipeline.py",
+        "tests/test_hybrid_crop_snapshot.py",
+        "tests/test_relationship_review_ui.py",
+        "tests/test_fieldbook_benchmark.py",
+        "scripts/verify_fieldbook_relationship_ui.py",
+        "tests/test_benchmark_run_provenance.py",
+        "tests/test_batch_relationships.py"
+      ],
+      "documentation": [
+        "docs/development/fieldbook_relationships.md",
+        "docs/development/fieldbook_spatial_core.md",
+        "docs/development/fieldbook_spotting.md",
+        "docs/FIELDBOOK_BENCHMARK.md",
+        "docs/FIELDBOOKSYNC.md",
+        "docs/API_REFERENCE.md",
+        "docs/KNOWN_ISSUES.md"
+      ]
     }
   }
 }

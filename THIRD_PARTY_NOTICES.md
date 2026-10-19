@@ -6,6 +6,55 @@ or materially used as an implementation reference in SurveySync.
 SurveySync's own project license is a separate decision by the repository owner.
 Nothing in this file changes the licensing terms of third-party projects.
 
+## FieldBook relationship pilot: design references
+
+`fieldbook_sync/spatial_association.py`, `relationship_evidence.py`, and
+`measurement_comparison.py` are original SurveySync implementations using
+existing Pillow/NumPy and standard-library facilities. No upstream graph
+application, detector, trained weights, or dataset is vendored by this pilot.
+
+- Azure-Samples, *Digitization of Piping and Instrument Diagrams*: the
+  [graph construction design](https://github.com/Azure-Samples/digitization-of-piping-and-instrument-diagrams/blob/c51302e3ec34147c676ef6eedbdd7551ea908b05/docs/graph-construction-design.md)
+  and [endpoint connection candidate module](https://github.com/Azure-Samples/digitization-of-piping-and-instrument-diagrams/blob/c51302e3ec34147c676ef6eedbdd7551ea908b05/src/app/services/graph_construction/create_line_connection_candidates.py)
+  at commit `c51302e3ec34147c676ef6eedbdd7551ea908b05` were architectural
+  references for explicit endpoints and reviewable relationships. The upstream
+  [MIT license](https://github.com/Azure-Samples/digitization-of-piping-and-instrument-diagrams/blob/c51302e3ec34147c676ef6eedbdd7551ea908b05/LICENSE.md)
+  credits Microsoft Corporation. No Azure source code, cloud service, model,
+  or deployment component is included in the SurveySync implementation.
+- T. Y. Zhang and C. Y. Suen, [*A fast parallel algorithm for thinning digital
+  patterns* (1984)](https://doi.org/10.1145/357994.358023): algorithmic reference
+  for the original bounded binary-image thinning implementation. No paper text
+  or third-party implementation is copied into the runtime.
+- [*Arrow R-CNN for handwritten diagram recognition*](https://doi.org/10.1007/s10032-020-00361-1):
+  research background for treating connections as a distinct task from text
+  and symbol recognition. No Arrow R-CNN code, datasets, or weights are included.
+
+Circuit-recognition repositories were reviewed only as adjacent research. No
+code or weights from those projects were imported, including projects whose
+source repository did not provide a code license. A separately stated model
+license was not treated as a license for repository source code.
+
+## PaddleOCR / PaddleX: optional local spotting adapter
+
+The new adapter uses the public API of the separately installed local Paddle
+runtime. It does not vendor PaddleOCR/PaddleX implementation files or bundle
+model weights. Existing inference assets must be selected locally; the new
+spotting path does not obtain them automatically.
+
+- PaddleOCR, Apache License 2.0: [public wrapper reviewed at commit
+  dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf](https://github.com/PaddlePaddle/PaddleOCR/blob/dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf/paddleocr/_pipelines/paddleocr_vl.py),
+  [upstream license](https://github.com/PaddlePaddle/PaddleOCR/blob/dab3fe35379033fdcb2d0e9572fac0b36c9a9ebf/LICENSE).
+- PaddleX, Apache License 2.0: [spotting token-to-pixel conversion](https://github.com/PaddlePaddle/PaddleX/blob/ffb64904d23708863ff5b8da312a5cbd52a7f462/paddlex/inference/pipelines/paddleocr_vl/uilts.py)
+  and [native model loading](https://github.com/PaddlePaddle/PaddleX/blob/ffb64904d23708863ff5b8da312a5cbd52a7f462/paddlex/inference/models/doc_vlm/predictor.py)
+  reviewed at commit `ffb64904d23708863ff5b8da312a5cbd52a7f462`,
+  [upstream license](https://github.com/PaddlePaddle/PaddleX/blob/ffb64904d23708863ff5b8da312a5cbd52a7f462/LICENSE).
+
+These pins identify the reviewed API contract, not a bundled runtime version.
+Installed distributions, model assets, and their transitive dependencies retain
+their own licenses and notices. The local asset hash is provenance, not a
+publisher signature or distribution license clearance. See the [spotting
+contract](docs/development/fieldbook_spotting.md) and [relationship overview](docs/development/fieldbook_relationships.md).
+
 ## Cogokit
 
 - Project: https://github.com/devinmlowe/cogokit

@@ -31,3 +31,51 @@ Installed Repair run **38995899435** passed installation, native controls, expor
 Inspection found an unsafe cleanup boundary: the HTTP service was a daemon thread, a timed join did not confirm it had stopped, and the session was marked clean before drainage. The follow-up uses a non-daemon server, always requests graceful stop on normal exit or WebView startup failure, joins the service before closing project storage, and writes the clean-session marker only after successful cleanup. It neither force-kills a process nor lengthens/removes the native acceptance deadlines. The exact cause of the native memory fault is not conclusively attributed from the available stack; the unsafe ordering is corrected and must pass another full installed run.
 
 Focused local verification of this follow-up: **51 passed**, including five new shutdown-order contracts, existing exit/watch contracts, resource-conversion tests and security-evidence tests. Static and release-documentation gates also pass. Final Windows stress/upgrade acceptance of the follow-up is pending at this written checkpoint. Public Beta/Stable feeds remain held.
+
+
+## Unreleased FieldBook relationship-review pilot — 2026-10-19
+
+This source change is stacked on the Defender repair candidate. It adds original-page geometry proposals, explicit local Paddle spotting, record-aware text comparison, private benchmarks, and review UI changes. Every pipe binding remains a human-review item during the pilot. The inherited release identity stays `9.5.4-beta.1`; no release promotion or antivirus clearance follows from the FieldBook tests.
+
+### Scope of evidence
+
+- Synthetic regression coverage exercises swapped pipe fields and complete-record swaps, ambiguous/crossing/gapped leaders, original-resolution continuity, exact PointIDs and leading zeros, crop/EXIF mapping, original-source preservation, bounded graphs, cancellation, and saved-project round trips.
+- The real supervisor, subprocess event transport and compressed caches are tested with synthetic OCR workers. No Paddle weights or model inference are used in those tests. Verified receipt hashes distinguish actual observations from configured but unused model assets.
+- A real threaded overlap regression verifies that a later Paddle locator update cannot move the coordinate frame of an already submitted Qwen crop. Explicit spotting cannot silently fall back when its runtime is absent.
+- The real embedded review controller, shell bridge, DOM and styles passed **20 synthetic Chromium checks**, with zero page errors and zero unexpected requests. These cover original-image overlay alignment, per-pipe filters, enhanced-mode hiding, project-scoped graph/download requests, delayed-response/close races, unsaved draft preservation, readable verdicts and notes, and narrow layout. The harness intercepts synthetic API responses and disables startup coordination; it is not backend, native application or OCR acceptance.
+- The private benchmark uses raw evidence, unique geometry pairing and a conservative duplicate-observation policy fixed before gold lookup. Conflicting observations cannot gain field credit by choosing the favorable reading. Synthetic fixtures do not establish field-book accuracy.
+
+### Validation status
+
+The complete local source quality gate passed on 2026-10-19 with **1,030 passed, 2 skipped, 1 dependency deprecation warning** in the regression suite, **68.52% coverage** against the unchanged **54%** floor, passing release identity/documentation/static checks, Ruff lint and formatting, mypy, Python compilation and JavaScript syntax checks. The required audit of **105 exact dependency pins** reported no known vulnerabilities. The two skips are the suite’s platform/capability skips; no new acceptance claim is made from a skipped test. Real private-page accuracy, installed PaddleOCR-VL 1.6 initialization, target Windows / GTX 1650 Max-Q 4 GB performance, current native installer/Defender checks, and independent Windows lifecycle acceptance remain separate gates. Historical checks above do not validate new executable or installer bytes.
+
+The live feedback tracker was re-read at **2026-10-19T14:58:37Z** across the complete `Intake!A1:R1001` range and metadata: **18 records**, latest **FBR-0018**, no newer intake. Tracker records were not edited.
+
+### Confirmed BRT profile follow-up — 2026-10-19
+
+The original full-gate and browser counts above belong to implementation commit
+`c53b749b017d5c8fff35c09f00d9bf817f024369`. This later follow-up updates BRT
+grammar to version 2 from the confirmed layout conventions: north is distinct
+from connection flow; note boxes and blank labels in the Excel illustration are
+not input requirements or measured values; connection count is variable; and
+undefined abbreviations remain raw notes pending a confirmed glossary.
+
+Older locked built-in BRT profiles receive the current canonical grammar when
+loaded. Stored JSON, timestamps, custom profiles, and labeled examples remain
+intact. Custom, unlocked, and future-version profiles retain their own grammar.
+The changed profile context produces a different interpretation-cache key.
+
+Focused validation passed: **14 profile tests** and **5 existing FastAPI
+training-workflow tests**, with one existing AnyIO deprecation warning in the
+workflow suite. The profile tests cover selected and AUTO composition, complete
+delivery of all 10 rules within the existing prompt limits, cache separation,
+and preservation of local profile/example data. Ruff `E9,F`, release identity,
+documentation validation, and whitespace checks passed. This is a profile and
+loading change; it adds no deterministic arrow detector, external-ID geometry
+support, dedicated flow field, or real-page accuracy result. Fresh hosted
+validation and all release acceptance gates remain separate from these focused
+checks.
+
+The feedback tracker and metadata were re-read at **2026-10-19T16:11:02Z** using
+the complete `Intake!A1:R1001` range. It still contained **18 records**, latest
+**FBR-0018**, with no newer intake. No tracker records were changed.

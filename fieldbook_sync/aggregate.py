@@ -43,6 +43,9 @@ def _semantic_dip_status(evidences: list[PageEvidence], confidence_threshold: fl
     for ev in evidences:
         effective = min(ev.point_id_confidence, ev.dipped_confidence)
         allowed = expected_basis.get(ev.dipped, set())
+        if "PIPE_BINDING_REVIEW_REQUIRED" in ev.validation_flags:
+            review.append((effective, ev))
+            continue
         if ev.dipped in decisive and ev.basis in allowed and effective >= confidence_threshold:
             decisive[ev.dipped].append((effective, ev))
         else:
@@ -91,6 +94,7 @@ def apply_status_rule_to_existing(results: Iterable[ResultRecord], status_rule: 
         if r.evidence_records:
             r.qa_needs_review = (
                 r.dip_status == DipStatus.REVIEW
+                or any(e.pipes for e in r.evidence_records)
                 or any(e.model_agreement is False for e in r.evidence_records)
                 or any((getattr(e, "evidence_decision", "") or "") not in {"", "AUTO_ACCEPT"} for e in r.evidence_records)
             )
@@ -142,7 +146,7 @@ def aggregate_results(
         dip_status, semantic_confidence, notes = _semantic_dip_status(evidences, confidence_threshold)
         point_confidence = max((ev.point_id_confidence for ev in evidences), default=0.0)
         model_conflict = any(ev.model_agreement is False for ev in evidences)
-        evidence_review = any((getattr(ev, "evidence_decision", "") or "") not in {"", "AUTO_ACCEPT"} for ev in evidences)
+        evidence_review = any(ev.pipes or (getattr(ev, "evidence_decision", "") or "") not in {"", "AUTO_ACCEPT"} for ev in evidences)
         qa_needs_review = dip_status == DipStatus.REVIEW or model_conflict or evidence_review
 
         if rule == StatusRule.POINT_ID_FOUND:

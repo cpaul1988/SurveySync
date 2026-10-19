@@ -11,13 +11,14 @@ from uuid import uuid4
 
 from .models import (
     FieldNoteProfile,
-    FieldNoteTrainingAnnotation,
+    FieldNoteTrainingAnnotation as FieldNoteTrainingAnnotation,
     FieldNoteTrainingExample,
     utc_now_iso,
 )
 
 AUTO_PROFILE_ID = "AUTO"
 BRT_PROFILE_ID = "BRT_STANDARD"
+BRT_PROFILE_VERSION = 2
 GENERIC_PROFILE_ID = "GENERIC_SURVEY_NOTES"
 MAX_BUNDLE_UNCOMPRESSED_BYTES = 250 * 1024 * 1024
 MAX_BUNDLE_MEMBER_BYTES = 50 * 1024 * 1024
@@ -50,38 +51,46 @@ def default_brt_profile() -> FieldNoteProfile:
         job_type="Utility / structure inventory",
         scope="built_in",
         locked=True,
+        version=BRT_PROFILE_VERSION,
         description=(
-            "Standard BRT field-note sketch grammar taught from real project pages: a circular structure/manhole, "
-            "north arrow or N orientation mark, structure PointID near the circle, and separate leaders for each pipe/connection."
+            "BRT field-note interpretation conventions: a circular structure/manhole, a sketch-north mark, "
+            "an exact structure PointID, and separate pipe/connection leaders. A reference mockup illustrates "
+            "these relationships without requiring its note boxes, colors, layout, or number of attachments. "
+            "Undefined labels remain raw notes pending a confirmed glossary."
         ),
         detection_cues=[
             "Circular structure/manhole sketch",
-            "North arrow or N inside/at the structure",
+            "Internal north arrow or N orientation mark, distinct from connector arrowheads",
             "Structure PointID written near the structure",
-            "Multiple pipe/feature leaders radiating from the structure",
-            "Leader annotations commonly include Dip, pipe diameter/material, Az, BOS/TOW/TOP, or destination PointID",
+            "Separate pipe/feature leaders with any visible number of attachments",
+            "Leader annotations may include Dip, pipe diameter/material, Az, raw BOS/TOD/TOW/TOP labels, or an explicit destination PointID",
         ],
         vocabulary=[
-            "Dip", "Az", "BOS", "TOW", "TOP", "PVC", "VCP", "RCP", "Trapped", "Filled w/debris", "to Point"
+            "Dip", "Az", "BOS", "TOD", "TOW", "TOP", "ID#", "PVC", "VCP", "RCP", "Trapped", "Filled w/debris", "to Point"
         ],
         expected_fields=[
             "structure_point_id", "north_orientation", "structure_notes", "pipe_leaders", "dip", "diameter",
-            "material", "azimuth", "destination_point_id", "BOS", "TOW", "TOP", "condition"
+            "material", "azimuth", "destination_point_id", "condition", "notes"
         ],
         extraction_instructions=[
-            "Treat every leader touching/radiating from the structure as a separate connection record.",
-            "Keep handwriting spatially associated with its own leader; never merge neighboring leader annotations.",
-            "Preserve written destination references such as 'to 3394' or 'Az = to 3394' as destination PointID evidence.",
-            "Keep visual leader direction separate from written azimuth so the two can be cross-checked.",
-            "Structure-wide notes stay at the structure level unless their placement clearly associates them with one leader.",
-            "If the sketch grammar is incomplete or uncertain, route the page/field to review instead of forcing this profile.",
+            "Identify the exact structure PointID from visible evidence. Repeated copies of its own ID# beside connection notes identify ownership; preserve them as raw notes, never as a destination or self-connection.",
+            "Keep every visible attachment/leader as a separate connection record, including more than two attachments. Associate handwriting with its own visible leader and preserve competing associations for review; repeated owner IDs do not merge separate connections.",
+            "An internal arrow or N orientation mark indicates sketch north when its role is clear. Use the visible mark and context, not ink color, a fixed position, or the paper's top edge. Keep this north mark distinct from connector flow arrowheads.",
+            "Keep sketch north orientation, written azimuth, visual leader bearing, and flow as separate observations. Do not copy one into another. Leave the written azimuth field unknown unless explicitly recorded; a visual leader bearing remains a separate estimate. Retain raw directional text and uncertainty.",
+            "For a connector with a clearly visible arrowhead, record flow toward the circle as inflow and away from the circle as outflow in that connection's notes. Without a distinct arrowhead, keep flow unknown. A leader line, north mark, or written azimuth alone does not establish flow; these observations require human review and are not automated arrow-detector evidence.",
+            "Rectangular note boxes in the reference mockup were only an Excel illustration. Actual handwritten notes need no box, fixed row order, or fixed annotation position. Use visible text/leader relationships and retain uncertainty instead of forcing the illustrated layout.",
+            "BOS, TOD and TOW have no confirmed glossary definitions or structure/pipe field scope. Preserve each exact written label and any visible value in notes, with observed placement when useful. Do not expand abbreviations, invent units, or assign field scope. Keep TOP distinct from TOD; preserve other undefined labels the same way.",
+            "Reference labels with no sample value supply no measurement. On the current page, an unfilled or illegible label remains raw notes with an unknown value, never zero. Do not fill blank values from another attachment, a template, or a training example.",
+            "Preserve explicit references such as 'to 3394' or 'Az = to 3394' as destination PointID text only when they clearly name another structure. A destination reference is not a numeric azimuth. Repeated own ID# denotes ownership; retain ambiguous references raw for review.",
+            "Assign defined structure-wide observations or individual pipe notes only when visible evidence supports that relationship. Undefined abbreviations retain raw text and location without inferred field scope. Incomplete grammar, uncertain handwriting, or unresolved associations require review.",
         ],
         symbols=[
             {"label": "structure", "meaning": "Surveyed structure/manhole", "visual_cue": "circle", "relationship": "center of connection sketch"},
-            {"label": "north_arrow", "meaning": "Sketch north/orientation", "visual_cue": "arrow or N", "relationship": "inside or adjacent to structure"},
+            {"label": "north_arrow", "meaning": "Sketch north/orientation, separate from flow", "visual_cue": "internal orientation arrow or N, independent of color", "relationship": "identified by visible structure context, not paper-up"},
             {"label": "structure_point_id", "meaning": "Surveyed structure PointID", "visual_cue": "handwritten integer/text", "relationship": "near structure circle"},
             {"label": "pipe_leader", "meaning": "Individual pipe/connection", "visual_cue": "line/arrow", "relationship": "touches/radiates from structure"},
-            {"label": "destination_point", "meaning": "Connected surveyed PointID", "visual_cue": "to #### / Az = to ####", "relationship": "belongs to one pipe leader"},
+            {"label": "flow_observation", "meaning": "Advisory connector inflow/outflow observation retained in notes", "visual_cue": "visible connector arrowhead toward/away from the circle", "relationship": "separate from north, written azimuth, and leader bearing; review required"},
+            {"label": "destination_point", "meaning": "Explicit reference to another surveyed PointID", "visual_cue": "to #### / Az = to ####", "relationship": "belongs to one connection; repeated own ID# identifies ownership"},
         ],
     )
 
@@ -122,7 +131,20 @@ def list_field_note_profiles(profile_dir: Path) -> List[FieldNoteProfile]:
     result: List[FieldNoteProfile] = []
     for path in sorted(profile_dir.glob("*.json")):
         try:
-            result.append(FieldNoteProfile.model_validate_json(path.read_text(encoding="utf-8")))
+            profile = FieldNoteProfile.model_validate_json(path.read_text(encoding="utf-8"))
+            if (profile.profile_id == BRT_PROFILE_ID and profile.scope == "built_in"
+                    and profile.locked and profile.version < BRT_PROFILE_VERSION):
+                # Installed locked grammar is code-owned. Refresh it in memory so old
+                # default files reach current prompts without rewriting user storage,
+                # custom profiles, timestamps, or separately stored labeled examples.
+                current = default_brt_profile()
+                profile = profile.model_copy(update={
+                    name: getattr(current, name) for name in (
+                        "version", "description", "detection_cues", "vocabulary",
+                        "expected_fields", "extraction_instructions", "symbols",
+                    )
+                })
+            result.append(profile)
         except Exception:
             continue
     result.sort(key=lambda p: (0 if p.profile_id == BRT_PROFILE_ID else 1 if p.scope == "built_in" else 2, p.name.casefold()))

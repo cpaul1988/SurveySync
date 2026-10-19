@@ -38,7 +38,6 @@ import json
 from copy import deepcopy
 from concurrent.futures import ThreadPoolExecutor
 import threading
-from pathlib import Path
 from typing import Any
 from .ai_reader import (
     ProviderUsage,
@@ -50,7 +49,17 @@ from .ai_reader import (
 )
 from .image_processing import crop_normalized_bbox
 from .spatial_preprocessing import structure_context_bbox
-from .ocr_local import PaddleCancelled, compare_ocr_to_evidence, locate_target_ids, paddle_status
+from .ocr_local import PaddleCancelled, locate_target_ids, paddle_status
+from .relationship_evidence import (
+    analyze_page_relationships,
+    apply_relationship_evidence,
+    apply_text_comparison,
+    comparison_text_for_point,
+    map_crop_evidence_to_original,
+    merge_text_regions,
+    paddle_text_regions,
+    windows_text_regions,
+)
 from .models import (
     DipStatus,
     EvidenceBasis,
@@ -74,6 +83,25 @@ from .evidence_pipeline import (
     windows_anchor_can_skip_paddle,
 )
 from surveysync.ai_runtime import DEFAULT_FOUNDRY_VISION_MODEL, get_local_ai_status, windows_ocr
+
+
+def _page_spatial_graph(page, regions, candidates, cancelled):
+    from .spatial_association import SpatialCancelled
+
+    try:
+        return analyze_page_relationships(page, regions, candidates, cancelled=cancelled)
+    except SpatialCancelled as exc:
+        raise PaddleCancelled("FieldBook spatial analysis cancelled.") from exc
+    except (OSError, ValueError) as exc:
+        # A failed geometry observation cannot destroy the independently found PointID.
+        return {
+            "status": "unavailable",
+            "source": {"page_id": page.page_id},
+            "reason": str(exc)[:300],
+            "text_regions": [],
+            "associations": [],
+            "paths": [],
+        }
 
 
 def _direct_vision_analysis(
@@ -353,6 +381,10 @@ def _windows_ocr_candidates_from_payload(
                     bbox=bbox,
                     engine="windows-ai-ocr",
                     exact_match=True,
+                    recognized_point_id=next(
+                        (token for token in tokens if token.casefold() == target.casefold()), None
+                    ),
+                    source_view="original",
                 )
             )
     return out
@@ -375,6 +407,7 @@ def _windows_local_analysis(
     candidates: list[OcrCandidate] = []
     seen: set[tuple] = set()
     page_by_id = {p.page_id: p for p in pages}
+    graphs_by_page: dict[str, dict] = {}
     crop_dir = context.runtime.interpretation_crop_dir / "windows_ai"
     crop_dir.mkdir(parents=True, exist_ok=True)
     with context.runtime.lock:
@@ -391,11 +424,7 @@ def _windows_local_analysis(
             return ([], [], [])
         if not context._analysis_pause_checkpoint(analysis_revision, "between Windows OCR pages"):
             return ([], [], [])
-        image_path = (
-            page.enhanced_image_path
-            if page.enhanced_image_path and Path(page.enhanced_image_path).exists()
-            else page.image_path
-        )
+        image_path = page.image_path
         try:
             payload = windows_ocr(image_path)
         except Exception as exc:
@@ -424,6 +453,12 @@ def _windows_local_analysis(
         page.page_type_confidence = classification.confidence
         page.page_type_reason = classification.reason
         page_candidates = _windows_ocr_candidates_from_payload(page, payload, targets)
+        graphs_by_page[page.page_id] = _page_spatial_graph(
+            page,
+            windows_text_regions(payload),
+            page_candidates,
+            context.runtime.cancel_event.is_set,
+        )
         fresh: list[OcrCandidate] = []
         for cand in page_candidates:
             key = context._live_candidate_key(cand)
@@ -537,15 +572,19 @@ def _windows_local_analysis(
                             )
                         )
                         continue
+                    map_crop_evidence_to_original(
+                        ev, src, structure_context_bbox(cand.bbox), cropped=bool(cropped)
+                    )
                     ev.bbox = cand.bbox or ev.bbox
                     ev.ocr_text = cand.raw_text
                     ev.primary_engine = engine_name
                     ev.secondary_engine = "Windows AI TextRecognizer"
                     ev.page_type = original.page_type
                     ev.page_type_confidence = original.page_type_confidence
-                    agreement, comparison = compare_ocr_to_evidence(cand.raw_text, ev)
-                    ev.model_agreement = agreement
-                    if agreement is False:
+                    graph = graphs_by_page.get(cand.page_id)
+                    comparison = apply_text_comparison(comparison_text_for_point(cand, graph), ev)
+                    apply_relationship_evidence(ev, graph)
+                    if ev.model_agreement is False:
                         ev.dipped = DipStatus.REVIEW
                         ev.basis = EvidenceBasis.AMBIGUOUS
                         ev.notes = (
@@ -610,9 +649,9 @@ def _windows_local_analysis(
         )
         with context.runtime.lock:
             if vision_provider in {"foundry", "ollama"}:
-                context.runtime.job.current_request = context.index
+                context.runtime.job.current_request = index
                 context.runtime.job.message = (
-                    f"Local interpretation: Point {cand.point_id} ({context.index}/{total})"
+                    f"Local interpretation: Point {cand.point_id} ({index}/{total})"
                 )
             context._touch_worker_locked()
     return (all_evidence, context._dedupe_unmatched(all_unmatched), candidates)
@@ -626,13 +665,22 @@ def _hybrid_local_analysis(
     local_base_url: str,
     batch_pages: int,
     analysis_revision: int,
+    ocr_provenance: dict | None = None,
 ) -> tuple[list[PageEvidence], list[UnmatchedEvidence], list[OcrCandidate]]:
     from . import app as context
 
     "Accuracy-first Paddle locator -> targeted Qwen interpretation -> full fallback.\n\n    v8.0.9 adds four speed paths without silently weakening the survey result:\n    * Paddle HPI/GPU is used when the isolated runtime supports it.\n    * Qwen crop interpretations are content-addressed and reused on unchanged pages.\n    * On capable hardware, CPU Paddle may overlap with a single Qwen/Ollama worker.\n    * A one-character Paddle near-match can route Qwen to a likely crop, but is never\n      accepted as a PointID unless Qwen visually confirms the exact target.  If it does\n      not, the original full-page fallback still runs.\n    "
     app_root = context.APP_ROOT
+    ocr_mode = getattr(context.runtime, "ocr_mode", "blocks")
     pstat = paddle_status(app_root)
     if not pstat.installed:
+        if ocr_mode == "spotting":
+            from .text_spotting import SpottingCapabilityError
+
+            raise SpottingCapabilityError(
+                "Spotting requires an installed PaddleOCR-VL 1.6 runtime. "
+                "Repair the local runtime or select block OCR explicitly."
+            )
         with context.runtime.lock:
             context.runtime.job.stage = "interpret"
             context.runtime.job.message = (
@@ -652,7 +700,9 @@ def _hybrid_local_analysis(
     plan = build_performance_plan(
         context.runtime.performance_mode, context.runtime.hardware_profile
     )
-    pipeline_overlap = bool(plan.pipeline_overlap and pstat.device == "cpu")
+    pipeline_overlap = bool(
+        plan.pipeline_overlap and pstat.device == "cpu" and ocr_mode == "blocks"
+    )
     if not context._check_worker_revision(
         analysis_revision, "Analysis stopped before OCR because project data changed."
     ):
@@ -698,6 +748,8 @@ def _hybrid_local_analysis(
             )
 
     page_by_id = {p.page_id: p for p in pages}
+    graphs_by_page: dict[str, dict] = {}
+    regions_by_page: dict[str, list[dict]] = {}
     candidates: list[OcrCandidate] = []
     candidate_seen: set[tuple] = set()
     confirmed_fuzzy_keys: set[tuple] = set()
@@ -831,21 +883,29 @@ def _hybrid_local_analysis(
             if ev.matched_point_id != cand.point_id:
                 continue
             matched = True
+            source_page = page_by_id.get(cand.page_id)
+            if source_page is not None:
+                map_crop_evidence_to_original(
+                    ev,
+                    source_page.image_path,
+                    structure_context_bbox(cand.bbox),
+                    cropped=image_path != source_page.image_path,
+                )
             ev.bbox = cand.bbox or ev.bbox
             ev.ocr_text = cand.raw_text
             ev.primary_engine = f"Qwen / Ollama ({model})" + (" [cache]" if cache_hit else "")
             ev.secondary_engine = cand.engine or "Independent OCR"
-            source_page = page_by_id.get(cand.page_id)
             if source_page is not None:
                 ev.page_type = source_page.page_type
                 ev.page_type_confidence = source_page.page_type_confidence
-            agreement, comparison = compare_ocr_to_evidence(cand.raw_text, ev)
-            ev.model_agreement = agreement
-            if agreement is False:
+            graph = graphs_by_page.get(cand.page_id)
+            comparison = apply_text_comparison(comparison_text_for_point(cand, graph), ev)
+            apply_relationship_evidence(ev, graph)
+            if ev.model_agreement is False:
                 ev.dipped = DipStatus.REVIEW
                 ev.basis = EvidenceBasis.AMBIGUOUS
                 ev.notes = ((ev.notes or "") + " Cross-model disagreement. " + comparison).strip()
-            elif agreement is True:
+            elif ev.model_agreement is True:
                 ev.notes = (
                     (ev.notes or "") + " Independent local extraction agrees. " + comparison
                 ).strip()
@@ -939,7 +999,9 @@ def _hybrid_local_analysis(
         with context.runtime.lock:
             context.runtime.job.total_requests = max(context.runtime.job.total_requests, total)
         if executor is not None:
-            futures.append(executor.submit(_interpret_candidate, cand))
+            # Supplemental OCR can refine the shared locator while Qwen is running.
+            # Keep this request's crop, observation and coordinate transform immutable.
+            futures.append(executor.submit(_interpret_candidate, cand.model_copy(deep=True)))
 
     trusted_windows_ids: set[str] = set()
     windows_anchor_pairs: set[tuple[str, str]] = set()
@@ -964,11 +1026,7 @@ def _hybrid_local_analysis(
                 analysis_revision, "between Windows fast-pass pages"
             ):
                 return ([], [], [])
-            image_path = (
-                page.enhanced_image_path
-                if page.enhanced_image_path and Path(page.enhanced_image_path).exists()
-                else page.image_path
-            )
+            image_path = page.image_path
             try:
                 payload = windows_ocr(image_path)
             except Exception:
@@ -987,8 +1045,15 @@ def _hybrid_local_analysis(
                 candidate_seen.add(key)
                 candidates.append(cand)
                 fresh_windows.append(cand)
-                if windows_anchor_can_skip_paddle(cand, classification):
+                if ocr_mode == "blocks" and windows_anchor_can_skip_paddle(cand, classification):
                     trusted_windows_ids.add(cand.point_id)
+            regions_by_page[page.page_id] = windows_text_regions(payload)
+            graphs_by_page[page.page_id] = _page_spatial_graph(
+                page,
+                regions_by_page[page.page_id],
+                [c for c in candidates if c.page_id == page.page_id],
+                _ocr_should_stop,
+            )
             if fresh_windows:
                 context._publish_live_candidates(fresh_windows, analysis_revision)
                 if executor is not None:
@@ -1024,7 +1089,16 @@ def _hybrid_local_analysis(
                 page.page_type_confidence = classification.confidence
                 page.page_type_reason = classification.reason
         page_candidates = locate_target_ids(
-            page, payload, paddle_targets, include_near_matches=plan.near_match_routing
+            page, payload, targets, include_near_matches=plan.near_match_routing
+        )
+        regions_by_page[page.page_id] = merge_text_regions(
+            regions_by_page.get(page.page_id, []) + paddle_text_regions(page, payload)
+        )
+        graphs_by_page[page.page_id] = _page_spatial_graph(
+            page,
+            regions_by_page[page.page_id],
+            [c for c in candidates if c.page_id == page.page_id] + page_candidates,
+            _ocr_should_stop,
         )
         fresh: list[OcrCandidate] = []
         exact_to_publish: list[OcrCandidate] = []
@@ -1040,6 +1114,8 @@ def _hybrid_local_analysis(
                     existing.confidence = max(existing.confidence, candidate.confidence)
                     if candidate.bbox:
                         existing.bbox = candidate.bbox
+                        existing.recognized_point_id = candidate.recognized_point_id
+                        existing.source_view = candidate.source_view
                     if candidate.raw_text and candidate.raw_text not in existing.raw_text:
                         existing.raw_text = (existing.raw_text + " | " + candidate.raw_text)[:1200]
                     continue
@@ -1093,6 +1169,9 @@ def _hybrid_local_analysis(
                 page_error_callback=_ocr_page_error,
                 cache_dir=context.runtime.ocr_cache_dir,
                 performance_mode=context.runtime.performance_mode,
+                ocr_mode=ocr_mode,
+                spotting_model_dir=getattr(context.runtime, "spotting_model_dir", ""),
+                ocr_provenance=ocr_provenance,
             )
         except PaddleCancelled:
             if executor is not None:
@@ -1142,6 +1221,23 @@ def _hybrid_local_analysis(
         for c in candidates
         if c.exact_match or context._live_candidate_key(c) in confirmed_fuzzy_keys
     ]
+    # An overlapping Windows interpretation may finish before the supplemental Paddle
+    # graph. Recompute only deterministic checks against the final page observations.
+    for ev in all_evidence:
+        choices = [
+            c
+            for c in confirmed_candidates
+            if c.page_id == ev.page_id and c.point_id == ev.matched_point_id
+        ]
+        candidate = next((c for c in choices if c.bbox == ev.bbox), choices[0] if choices else None)
+        graph = graphs_by_page.get(ev.page_id)
+        apply_relationship_evidence(ev, graph)
+        if candidate and ev.pipes:
+            apply_text_comparison(comparison_text_for_point(candidate, graph), ev)
+            if ev.model_agreement is False:
+                ev.dipped = DipStatus.REVIEW
+                ev.basis = EvidenceBasis.AMBIGUOUS
+        apply_assessment(candidate, ev, imported_point_ids=targets)
     confirmed_ids = {ev.matched_point_id for ev in all_evidence if ev.matched_point_id}
     remaining = [t for t in targets if t not in confirmed_ids]
     fuzzy_by_target: dict[str, list[OcrCandidate]] = {}

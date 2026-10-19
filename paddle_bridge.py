@@ -5,12 +5,24 @@ Paddle pipeline loaded, streams page-level events back to the main application,
 retries individual page failures, and can use compatible GPU/HPI acceleration.
 It is a required runtime asset for the evidence-first FieldBook analysis pipeline.
 """
+
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import sys
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
+
+from fieldbook_sync.text_spotting import (
+    LocalSpottingModel,
+    SpottingCapabilityError,
+    SpottingError,
+    normalize_spotting_result,
+    require_spotting_api,
+    validate_spotting_model_dir,
+)
 
 PREFIX = "FBS_EVENT|"
 
@@ -31,12 +43,14 @@ def emit(event: dict) -> None:
     print(PREFIX + json.dumps(event, ensure_ascii=True, default=str), flush=True)
 
 
-def _parse_args(argv: list[str]) -> tuple[list[str], int, bool, bool, int]:
+def _parse_args(argv: list[str]) -> tuple[list[str], int, bool, bool, int, str, str | None]:
     paths: list[str] = []
     prefetch_pages = 2
     enable_hpi = False
     prefer_gpu = False
     page_retries = 2
+    ocr_mode = "blocks"
+    spotting_model_dir = None
     i = 1
     while i < len(argv):
         arg = argv[i]
@@ -45,6 +59,8 @@ def _parse_args(argv: list[str]) -> tuple[list[str], int, bool, bool, int]:
             data = json.loads(manifest.read_text(encoding="utf-8"))
             if not isinstance(data, list):
                 raise ValueError("Paddle manifest must contain a JSON list of image paths.")
+            if any(not isinstance(x, str) or not x.strip() for x in data):
+                raise ValueError("Paddle manifest image paths must be nonempty strings.")
             paths.extend(str(Path(x).resolve()) for x in data)
             i += 2
             continue
@@ -64,9 +80,26 @@ def _parse_args(argv: list[str]) -> tuple[list[str], int, bool, bool, int]:
             page_retries = max(0, min(5, int(argv[i + 1])))
             i += 2
             continue
+        if arg == "--ocr-mode" and i + 1 < len(argv):
+            ocr_mode = argv[i + 1]
+            if ocr_mode not in ("blocks", "spotting"):
+                raise ValueError("--ocr-mode must be blocks or spotting.")
+            i += 2
+            continue
+        if arg == "--spotting-model-dir" and i + 1 < len(argv):
+            spotting_model_dir = argv[i + 1]
+            i += 2
+            continue
+        if arg.startswith("--"):
+            raise ValueError(f"Unknown or incomplete Paddle bridge argument: {arg}")
         paths.append(str(Path(arg).resolve()))
         i += 1
-    return paths, prefetch_pages, enable_hpi, prefer_gpu, page_retries
+    if ocr_mode == "spotting" and not spotting_model_dir:
+        raise SpottingCapabilityError(
+            "Spotting requires --spotting-model-dir pointing to existing local 1.6 assets. "
+            "No model download or block-mode substitution is permitted."
+        )
+    return paths, prefetch_pages, enable_hpi, prefer_gpu, page_retries, ocr_mode, spotting_model_dir
 
 
 def _warm_file(path: str) -> bytes:
@@ -79,6 +112,7 @@ def _warm_file(path: str) -> bytes:
 def _choose_device(prefer_gpu: bool) -> tuple[str, bool, str]:
     try:
         import paddle
+
         compiled = bool(getattr(paddle.device, "is_compiled_with_cuda", lambda: False)())
         count = int(paddle.device.cuda.device_count()) if compiled else 0
         if prefer_gpu and compiled and count > 0:
@@ -88,16 +122,72 @@ def _choose_device(prefer_gpu: bool) -> tuple[str, bool, str]:
         return "cpu", False, ""
 
 
-def _create_pipeline(enable_hpi: bool, device: str):
-    from paddleocr import PaddleOCRVL
+def _deny_spotting_network(event: str, args: tuple) -> None:
+    # The worker has no server/backend role. This also stops Python model-host
+    # clients if an installed dependency unexpectedly tries to fetch an asset.
+    # It is a process-local guard, not an OS sandbox for arbitrary native code.
+    if event in ("socket.connect", "socket.getaddrinfo", "socket.sendto"):
+        raise SpottingCapabilityError("Network access is disabled in the local spotting worker.")
+
+
+def _configure_spotting_offline() -> None:
+    # Set before importing PaddleOCR/PaddleX or Hugging Face dependencies.
+    os.environ.update(
+        {
+            "PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK": "True",
+            "HF_HUB_OFFLINE": "1",
+            "TRANSFORMERS_OFFLINE": "1",
+            "HF_HUB_DISABLE_TELEMETRY": "1",
+        }
+    )
+    sys.addaudithook(_deny_spotting_network)
+
+
+def _create_pipeline(
+    enable_hpi: bool,
+    device: str,
+    ocr_mode: str = "blocks",
+    spotting_model: LocalSpottingModel | None = None,
+):
+    if ocr_mode == "spotting" and spotting_model is None:
+        raise SpottingCapabilityError("Existing local spotting assets must be validated first.")
+    try:
+        from paddleocr import PaddleOCRVL
+    except ImportError as exc:
+        if ocr_mode == "spotting":
+            raise SpottingCapabilityError(
+                "The isolated PaddleOCR runtime is unavailable; repair it before using spotting."
+            ) from exc
+        raise
 
     common = dict(
         pipeline_version="v1.6",
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
-        use_layout_detection=True,
+        use_layout_detection=ocr_mode == "blocks",
         device=device,
     )
+    if ocr_mode == "spotting":
+        require_spotting_api(PaddleOCRVL)
+        common.update(
+            vl_rec_model_name="PaddleOCR-VL-1.6-0.9B",
+            vl_rec_model_dir=str(spotting_model.directory),
+            vl_rec_backend="native",
+            use_queues=False,
+        )
+        if enable_hpi:
+            emit(
+                {
+                    "event": "warning",
+                    "message": "Spotting uses the local native Paddle backend; HPI is inactive.",
+                }
+            )
+        try:
+            return PaddleOCRVL(**common), False
+        except (TypeError, ValueError, NotImplementedError) as exc:
+            raise SpottingCapabilityError(
+                f"The local Paddle environment cannot initialize explicit 1.6 spotting: {exc}"
+            ) from exc
     if enable_hpi:
         try:
             return PaddleOCRVL(enable_hpi=True, **common), True
@@ -105,48 +195,122 @@ def _create_pipeline(enable_hpi: bool, device: str):
             # HPI is an optional accelerator and can require extra runtime pieces on
             # some PaddleOCR releases.  Falling back to the normal engine preserves
             # accuracy and keeps the application usable.
-            emit({"event": "warning", "message": f"HPI unavailable; using standard inference: {type(exc).__name__}: {exc}"})
+            emit(
+                {
+                    "event": "warning",
+                    "message": f"HPI unavailable; using standard inference: {type(exc).__name__}: {exc}",
+                }
+            )
     try:
         return PaddleOCRVL(**common), False
     except TypeError as exc:
-        raise RuntimeError("PaddleOCR must support explicit device and geometry controls. Repair the local OCR environment.") from exc
+        raise RuntimeError(
+            "PaddleOCR must support explicit device and geometry controls. Repair the local OCR environment."
+        ) from exc
+
+
+def _predict_result(pipeline, path: str, ocr_mode: str, model: LocalSpottingModel | None):
+    kwargs = {}
+    image_digest = ""
+    image_size = None
+    if ocr_mode == "spotting":
+        if model is None:
+            raise SpottingCapabilityError("Existing local spotting assets must be validated first.")
+        from PIL import Image
+
+        with Image.open(path) as image:
+            if image.getexif().get(274, 1) != 1:
+                raise SpottingError("Apply EXIF orientation before submitting a spotting view.")
+            image_size = image.size
+        image_digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+        kwargs = dict(
+            prompt_label="spotting",
+            use_layout_detection=False,
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
+            use_queues=False,
+        )
+    results = list(pipeline.predict(path, **kwargs))
+    if len(results) != 1:
+        raise RuntimeError(f"PaddleOCR-VL returned {len(results)} result(s); expected exactly 1.")
+    try:
+        result = results[0].json
+    except AttributeError as exc:
+        if ocr_mode == "spotting":
+            raise SpottingCapabilityError(
+                "The installed Paddle API did not return its JSON result contract."
+            ) from exc
+        raise
+    if ocr_mode == "spotting":
+        if hashlib.sha256(Path(path).read_bytes()).hexdigest() != image_digest:
+            raise SpottingError("The spotting input image changed during inference.")
+        result = normalize_spotting_result(
+            result,
+            image_path=path,
+            image_sha256=image_digest,
+            asset_sha256=model.asset_sha256 if model else "",
+            expected_image_size=image_size,
+        )
+    return result
 
 
 def main() -> int:
     try:
-        paths, prefetch_pages, enable_hpi, prefer_gpu, page_retries = _parse_args(sys.argv)
+        paths, prefetch_pages, enable_hpi, prefer_gpu, page_retries, ocr_mode, model_dir = (
+            _parse_args(sys.argv)
+        )
     except Exception as exc:
-        emit({"event": "fatal", "error": f"{type(exc).__name__}: {exc}"})
+        emit(
+            {
+                "event": "fatal",
+                "error": f"{type(exc).__name__}: {exc}",
+                "code": "spotting_unavailable"
+                if isinstance(exc, SpottingCapabilityError)
+                else "invalid_arguments",
+            }
+        )
         return 2
     if not paths:
         emit({"event": "fatal", "error": "one or more image paths required"})
         return 2
 
     try:
-        emit({"event": "initializing", "total": len(paths)})
+        emit({"event": "initializing", "total": len(paths), "ocr_mode": ocr_mode})
+        spotting_model = None
+        if ocr_mode == "spotting":
+            _configure_spotting_offline()
+            spotting_model = validate_spotting_model_dir(model_dir)
         device, cuda_available, paddle_version = _choose_device(prefer_gpu)
         try:
-            pipeline, hpi_active = _create_pipeline(enable_hpi, device)
+            pipeline, hpi_active = _create_pipeline(enable_hpi, device, ocr_mode, spotting_model)
         except Exception as exc:
             if device.startswith("gpu"):
-                emit({
-                    "event": "warning",
-                    "message": f"GPU Paddle initialization failed; retrying on CPU: {type(exc).__name__}: {exc}",
-                })
+                emit(
+                    {
+                        "event": "warning",
+                        "message": f"GPU Paddle initialization failed; retrying on CPU: {type(exc).__name__}: {exc}",
+                    }
+                )
                 device = "cpu"
                 cuda_available = False
-                pipeline, hpi_active = _create_pipeline(enable_hpi, device)
+                pipeline, hpi_active = _create_pipeline(
+                    enable_hpi, device, ocr_mode, spotting_model
+                )
             else:
                 raise
-        emit({
-            "event": "ready",
-            "total": len(paths),
-            "prefetch_pages": prefetch_pages,
-            "device": device,
-            "cuda_available": cuda_available,
-            "paddle_version": paddle_version,
-            "hpi": hpi_active,
-        })
+        emit(
+            {
+                "event": "ready",
+                "total": len(paths),
+                "prefetch_pages": prefetch_pages,
+                "device": device,
+                "cuda_available": cuda_available,
+                "paddle_version": paddle_version,
+                "hpi": hpi_active,
+                "ocr_mode": ocr_mode,
+                "model_asset_sha256": spotting_model.asset_sha256 if spotting_model else "",
+            }
+        )
 
         with ThreadPoolExecutor(max_workers=1, thread_name_prefix="FBS-prefetch") as pool:
             warm: dict[int, Future[bytes]] = {}
@@ -175,46 +339,67 @@ def main() -> int:
                 last_error = ""
                 for attempt in range(1, page_retries + 2):
                     try:
-                        results = list(pipeline.predict(path))
+                        result = _predict_result(pipeline, path, ocr_mode, spotting_model)
                         _ = current_bytes
-                        if len(results) != 1:
-                            raise RuntimeError(
-                                f"PaddleOCR-VL returned {len(results)} result(s) for page {index}; expected exactly 1."
-                            )
-                        emit({
-                            "event": "page_done",
-                            "index": index,
-                            "total": len(paths),
-                            "attempt": attempt,
-                            "result": results[0].json,
-                        })
+                        emit(
+                            {
+                                "event": "page_done",
+                                "index": index,
+                                "total": len(paths),
+                                "attempt": attempt,
+                                "result": result,
+                            }
+                        )
                         page_ok = True
                         break
+                    except SpottingCapabilityError:
+                        # A missing mode/API is job-wide; repeating every page or
+                        # silently switching modes would mislabel the evidence.
+                        raise
                     except Exception as exc:
                         last_error = f"{type(exc).__name__}: {exc}"
                         low_error = last_error.lower()
                         if (
                             device.startswith("gpu")
                             and attempt <= page_retries
-                            and ("out of memory" in low_error or "cuda" in low_error or "cudnn" in low_error)
+                            and (
+                                "out of memory" in low_error
+                                or "cuda" in low_error
+                                or "cudnn" in low_error
+                            )
                         ):
-                            emit({
-                                "event": "warning",
-                                "message": f"GPU inference failed on page {index}; switching Paddle to CPU for recovery: {last_error}",
-                            })
+                            emit(
+                                {
+                                    "event": "warning",
+                                    "message": f"GPU inference failed on page {index}; switching Paddle to CPU for recovery: {last_error}",
+                                }
+                            )
                             device = "cpu"
                             cuda_available = False
-                            pipeline, hpi_active = _create_pipeline(enable_hpi, device)
+                            pipeline, hpi_active = _create_pipeline(
+                                enable_hpi, device, ocr_mode, spotting_model
+                            )
                         if attempt <= page_retries:
-                            emit({
-                                "event": "page_retry", "index": index, "total": len(paths),
-                                "attempt": attempt, "next_attempt": attempt + 1, "error": last_error,
-                            })
+                            emit(
+                                {
+                                    "event": "page_retry",
+                                    "index": index,
+                                    "total": len(paths),
+                                    "attempt": attempt,
+                                    "next_attempt": attempt + 1,
+                                    "error": last_error,
+                                }
+                            )
                         else:
-                            emit({
-                                "event": "page_failed", "index": index, "total": len(paths),
-                                "attempts": attempt, "error": last_error,
-                            })
+                            emit(
+                                {
+                                    "event": "page_failed",
+                                    "index": index,
+                                    "total": len(paths),
+                                    "attempts": attempt,
+                                    "error": last_error,
+                                }
+                            )
                 if not page_ok:
                     # Page-level isolation: a single corrupt/difficult page does not kill
                     # a 181-page job. The parent records it for review and Hybrid's
@@ -224,7 +409,15 @@ def main() -> int:
         emit({"event": "complete", "total": len(paths)})
         return 0
     except Exception as exc:
-        emit({"event": "fatal", "error": f"{type(exc).__name__}: {exc}"})
+        emit(
+            {
+                "event": "fatal",
+                "error": f"{type(exc).__name__}: {exc}",
+                "code": "spotting_unavailable"
+                if isinstance(exc, SpottingCapabilityError)
+                else "inference_failed",
+            }
+        )
         return 1
 
 

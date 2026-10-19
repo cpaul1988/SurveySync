@@ -57,7 +57,6 @@ html[data-theme="light"]{
 /* Field-book page gallery */
 .page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.page-thumb{appearance:none;border:1px solid var(--line);background:var(--panel2);border-radius:13px;padding:8px;cursor:pointer;text-align:left;overflow:hidden;transition:.15s;box-shadow:var(--shadow-sm)}.page-thumb:hover{border-color:rgba(0,125,197,.45);transform:translateY(-2px)}.page-thumb img{display:block;width:100%;height:230px;object-fit:contain;background:#20252c;border-radius:9px}.page-thumb span{display:block;padding:8px 3px 2px;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Small visual cue that bounding boxes are tied to the enhanced/analysis image. */
-.image-stage.original-mode .bbox{display:none}.image-stage.original-mode:after{content:"Evidence highlight is aligned to the enhanced analysis image";position:absolute;left:10px;bottom:10px;background:rgba(10,14,20,.82);color:#fff;font-size:9px;padding:5px 8px;border-radius:7px;pointer-events:none}
 
 /* v6 raw batch pairing ------------------------------------------------------ */
 .raw-batch-card{margin-bottom:16px}.raw-batch-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:stretch}.drop-mini{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border:1px dashed var(--border-strong);border-radius:14px;background:var(--surface-2);cursor:pointer;min-width:0}.drop-mini:hover{border-color:var(--accent);background:var(--surface-3)}.drop-mini input{font-size:12px;max-width:100%}.drop-mini small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.batch-source{display:block;color:var(--muted);font-size:11px;margin-top:3px;max-width:320px;white-space:normal}@media(max-width:980px){.raw-batch-grid{grid-template-columns:1fr}.raw-batch-grid>.btn{min-height:48px}}
@@ -396,3 +395,22 @@ input[type="checkbox"],input[type="radio"]{accent-color:var(--accent)}.control:f
 
 /* SurveySync 9.4 product-brand alignment */
 .product-brand .brand-globe,.surveysync-brand-globe{object-fit:contain}.brand-mark img{object-fit:contain}.startup-splash-logo{object-fit:contain;background:#F6F4EE}.brand-tagline{color:#C19D65}
+/* Geometry overlays always use the original image coordinate space. */
+.spatial-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.spatial-overlay rect,.spatial-overlay polyline{fill:none;stroke-width:2;vector-effect:non-scaling-stroke}
+.spatial-text{stroke:#008a99;stroke-dasharray:5 3}.spatial-structure{stroke:#735ce3}
+.spatial-anchor{stroke:#16823c;stroke-width:3!important}.spatial-path{stroke:#e16c13;stroke-width:3!important}
+.spatial-endpoint{fill:#e16c13;stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke}
+.spatial-ambiguous{stroke-dasharray:6 4}.relationship-controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.spatial-model{stroke:#69717e;stroke-dasharray:10 6}
+.relationship-controls label{display:flex;gap:8px;align-items:center}.relationship-controls select{max-width:190px}
+.relationship-legend,.relationship-verdicts{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;margin:8px 0}
+.relationship-legend span{border-bottom:3px solid;padding-bottom:3px}.text-key{border-color:#008a99!important}
+.path-key{border-color:#e16c13!important}.structure-key{border-color:#735ce3!important}.anchor-key{border-color:#16823c!important}
+.relationship-pipe{padding:10px 0;border-top:1px solid var(--border)}.relationship-pipe .raw-ocr{max-height:100px;margin:6px 0}
+.evidence-source-select{max-width:100%;margin:8px 0}.image-stage .spatial-overlay[hidden]{display:none}
+
+/* Keep review verdicts and corrections readable as each pane scrolls. */
+.modal.review-modal .review-form>*{flex-shrink:0}
+.modal.review-modal .summary-chip{min-width:0;overflow-wrap:anywhere}
+.relationship-evidence-details{margin:8px 0 12px}.relationship-evidence-details summary{cursor:pointer;font-size:12px;color:var(--muted)}
