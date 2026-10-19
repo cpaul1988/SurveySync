@@ -6,10 +6,10 @@
   "candidate_branch": "feat/fieldbook-spatial-evidence",
   "feedback": {
     "checked_before_build": true,
-    "checked_utc": "2026-10-19T14:58:37Z",
+    "checked_utc": "2026-10-19T16:11:02Z",
     "intake_count": 18,
     "latest_intake": "FBR-0018",
-    "notes": "Read the complete live Intake range A1:R1001 and spreadsheet metadata before this draft PR. 18 records; latest FBR-0018, submitted 2026-10-16T16:44:16.847587Z. No newer intake. Existing FBR-0018 integration and Defender incident hold retained."
+    "notes": "Re-read complete live Intake range A1:R1001 and spreadsheet metadata before the BRT profile follow-up. 18 records; latest FBR-0018, submitted 2026-10-16T16:44:16.847587Z. No newer intake. Existing FBR-0018 integration and Defender incident hold retained."
   },
   "qa": {
     "status": "Security evidence and independent Windows acceptance required. No claim of vendor false-positive clearance.",
@@ -23,7 +23,17 @@
       "dependency_pins_audited": 105,
       "known_dependency_vulnerabilities": 0,
       "synthetic_browser_checks": 20,
-      "scope": "Local source quality gate and synthetic UI; native Windows/model/private-page acceptance pending."
+      "scope": "Historical full local source quality gate and synthetic UI for the initial FieldBook implementation at the recorded commit; later profile follow-up has separate validation. Real model/private-page/target-hardware acceptance remains pending.",
+      "source_commit": "c53b749b017d5c8fff35c09f00d9bf817f024369"
+    },
+    "fieldbook_profile_followup": {
+      "checked_utc": "2026-10-19",
+      "based_on_commit": "c53b749b017d5c8fff35c09f00d9bf817f024369",
+      "brt_profile_version": 2,
+      "profile_tests_passed": 14,
+      "training_workflow_tests_passed": 5,
+      "lint": "Ruff E9,F passed",
+      "scope": "Confirmed profile semantics, legacy built-in loading, complete prompt delivery, cache separation, and preserved custom/example data. No new geometry or real-model acceptance; hosted follow-up validation is separate."
     }
   },
   "release": {

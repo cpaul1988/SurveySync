@@ -12,6 +12,40 @@ private field books, real Paddle model operation, or acceptable performance on
 Windows with a 4 GB GTX 1650. The [existing Defender incident and release
 decision](../SECURITY_INCIDENT_953.md) remain unchanged.
 
+## Confirmed note conventions — 2026-10-19
+
+The supplied Excel mockup describes a layout, not a completed measurement
+record or an OCR accuracy example. Its internal structure arrow marks north;
+arrowheads on the individual connections show flow. A flow arrow pointing
+toward the structure indicates inflow and one pointing away indicates outflow.
+North orientation, visual pipe bearing, written azimuth, and flow direction
+remain separate observations. Color and the top of the page do not establish
+any of those meanings on an actual scanned page.
+
+One structure can have a variable number of connections. Each connection keeps
+its own nearby annotations even when several groups repeat the same owning
+structure's `ID#`. A repeated owner label does not create a destination or a
+self-connection. The structure ID can be written outside the circle.
+
+The rectangular note boxes were added only to organize the Excel illustration.
+Actual annotations do not need a box, a fixed location, or a fixed field order.
+The listed labels had no example values and are not a mandatory set of fields
+for every connection. Missing observations remain missing.
+
+`BOS`, `TOD`, and `TOW` have no confirmed project-specific definitions, units,
+reference surface, or structure-versus-connection scope. Preserve the original
+label and any visible value in notes at its observed location; do not expand
+the abbreviations, substitute `TOP` for `TOD`, or convert them into depths or
+elevations. A later confirmed glossary can define those mappings. A label-only
+mockup does not establish any measurement or supply training gold values.
+
+These conventions inform the BRT interpretation profile. They do not extend
+the deterministic geometry core: its supported identity case still requires
+an independently read exact ID enclosed by a measured circle-like boundary,
+and it does not classify arrowheads. An external ID or unclear direction
+therefore remains a review item. Flow descriptions currently belong in the
+source notes; there is no dedicated deterministic flow-direction field.
+
 ## PointID results and source evidence
 
 With the default `status_rule="POINT_ID_FOUND"`, an exact matched field-book

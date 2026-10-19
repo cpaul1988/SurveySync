@@ -50,3 +50,32 @@ This source change is stacked on the Defender repair candidate. It adds original
 The complete local source quality gate passed on 2026-10-19 with **1,030 passed, 2 skipped, 1 dependency deprecation warning** in the regression suite, **68.52% coverage** against the unchanged **54%** floor, passing release identity/documentation/static checks, Ruff lint and formatting, mypy, Python compilation and JavaScript syntax checks. The required audit of **105 exact dependency pins** reported no known vulnerabilities. The two skips are the suite’s platform/capability skips; no new acceptance claim is made from a skipped test. Real private-page accuracy, installed PaddleOCR-VL 1.6 initialization, target Windows / GTX 1650 Max-Q 4 GB performance, current native installer/Defender checks, and independent Windows lifecycle acceptance remain separate gates. Historical checks above do not validate new executable or installer bytes.
 
 The live feedback tracker was re-read at **2026-10-19T14:58:37Z** across the complete `Intake!A1:R1001` range and metadata: **18 records**, latest **FBR-0018**, no newer intake. Tracker records were not edited.
+
+### Confirmed BRT profile follow-up — 2026-10-19
+
+The original full-gate and browser counts above belong to implementation commit
+`c53b749b017d5c8fff35c09f00d9bf817f024369`. This later follow-up updates BRT
+grammar to version 2 from the confirmed layout conventions: north is distinct
+from connection flow; note boxes and blank labels in the Excel illustration are
+not input requirements or measured values; connection count is variable; and
+undefined abbreviations remain raw notes pending a confirmed glossary.
+
+Older locked built-in BRT profiles receive the current canonical grammar when
+loaded. Stored JSON, timestamps, custom profiles, and labeled examples remain
+intact. Custom, unlocked, and future-version profiles retain their own grammar.
+The changed profile context produces a different interpretation-cache key.
+
+Focused validation passed: **14 profile tests** and **5 existing FastAPI
+training-workflow tests**, with one existing AnyIO deprecation warning in the
+workflow suite. The profile tests cover selected and AUTO composition, complete
+delivery of all 10 rules within the existing prompt limits, cache separation,
+and preservation of local profile/example data. Ruff `E9,F`, release identity,
+documentation validation, and whitespace checks passed. This is a profile and
+loading change; it adds no deterministic arrow detector, external-ID geometry
+support, dedicated flow field, or real-page accuracy result. Fresh hosted
+validation and all release acceptance gates remain separate from these focused
+checks.
+
+The feedback tracker and metadata were re-read at **2026-10-19T16:11:02Z** using
+the complete `Intake!A1:R1001` range. It still contained **18 records**, latest
+**FBR-0018**, with no newer intake. No tracker records were changed.

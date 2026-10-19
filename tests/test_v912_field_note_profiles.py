@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-import json
 import zipfile
 from pathlib import Path
 
 import pytest
 
-from fieldbook_sync.ai_reader import EXTRACTION_SCHEMA
+from fieldbook_sync import field_note_profiles
+from fieldbook_sync.ai_reader import EXTRACTION_SCHEMA, system_prompt
 from fieldbook_sync.field_note_profiles import (
     AUTO_PROFILE_ID,
     BRT_PROFILE_ID,
+    BRT_PROFILE_VERSION,
     GENERIC_PROFILE_ID,
     build_profile_prompt,
+    default_brt_profile,
     duplicate_field_note_profile,
     ensure_default_field_note_profiles,
     export_profile_bundle,
@@ -22,6 +24,7 @@ from fieldbook_sync.field_note_profiles import (
     save_field_note_profile,
     save_training_example,
 )
+from fieldbook_sync.interpret_cache import interpretation_cache_key
 from fieldbook_sync.models import (
     FieldNoteProfile,
     FieldNoteTrainingAnnotation,
@@ -55,6 +58,115 @@ def test_custom_profile_crud_and_builtin_lock(tmp_path: Path):
     clone.description = "Square structure, north tick, tabular pipe notes."
     save_field_note_profile(profiles, clone, original_profile_id=clone.profile_id)
     assert "Square structure" in get_field_note_profile(profiles, clone.profile_id).description
+
+
+@pytest.mark.parametrize("selection", [BRT_PROFILE_ID, AUTO_PROFILE_ID])
+def test_installed_brt_upgrade_reaches_prompt_and_preserves_local_data(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, selection: str
+):
+    profiles = tmp_path / "profiles"
+    profiles.mkdir()
+    legacy = FieldNoteProfile(
+        profile_id=BRT_PROFILE_ID,
+        name="BRT Utility / Structure Notes",
+        scope="built_in",
+        locked=True,
+        version=1,
+        description="Previously installed BRT grammar",
+        extraction_instructions=["Previous built-in grammar marker."],
+        created_at="2026-01-01T12:00:00Z",
+        updated_at="2026-01-02T12:00:00Z",
+    )
+    legacy_path = profiles / f"{BRT_PROFILE_ID}.json"
+    legacy_path.write_text(legacy.model_dump_json(indent=2), encoding="utf-8")
+    custom = FieldNoteProfile(
+        profile_id="CLIENT_BRT_RULES",
+        name="Client BRT rules",
+        extraction_instructions=["Keep this client-defined convention unchanged."],
+    )
+    save_field_note_profile(profiles, custom)
+    training = tmp_path / "training"
+    image = tmp_path / "page.png"
+    image.write_bytes(b"synthetic-storage-fixture")
+    example = save_training_example(
+        training,
+        FieldNoteTrainingExample(
+            profile_id=BRT_PROFILE_ID,
+            source_name="PRIVATE EXAMPLE SOURCE",
+            annotations=[
+                FieldNoteTrainingAnnotation(
+                    label="pipe_leader", bbox=[100, 200, 300, 400],
+                    pipe_index=0, text="PRIVATE HANDWRITTEN VALUE",
+                ),
+            ],
+            accepted_result={"notes": "PRIVATE ACCEPTED VALUE"},
+        ),
+        source_image=image,
+    )
+    stored = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+
+    # Reproduce the previous installed grammar before its version upgrade. The
+    # actual context, including local training hints, is part of the cache key.
+    with monkeypatch.context() as previous_version:
+        previous_version.setattr(field_note_profiles, "BRT_PROFILE_VERSION", 1)
+        previous_context = build_profile_prompt(profiles, selection, training)
+    context = build_profile_prompt(profiles, selection, training)
+    composed_prompt = system_prompt(context)
+    effective = get_field_note_profile(profiles, BRT_PROFILE_ID)
+    current = default_brt_profile()
+
+    assert effective.version == BRT_PROFILE_VERSION > legacy.version
+    assert effective.created_at == legacy.created_at
+    assert effective.updated_at == legacy.updated_at
+    assert effective.symbols == current.symbols
+    # This checks delivery through the real prompt budget/composition, so adding
+    # an eleventh rule or truncating a long rule cannot silently drop a safeguard.
+    for rule in current.extraction_instructions:
+        assert rule in composed_prompt
+    assert "Previous built-in grammar marker." not in composed_prompt
+    assert "Learned from 1 locally labeled example" in composed_prompt
+    for private_text in ("PRIVATE EXAMPLE SOURCE", "PRIVATE HANDWRITTEN VALUE", "PRIVATE ACCEPTED VALUE"):
+        assert private_text not in composed_prompt
+    assert interpretation_cache_key(
+        image, point_id="42", model="local-test-model", profile_context=previous_context,
+    ) != interpretation_cache_key(
+        image, point_id="42", model="local-test-model", profile_context=context,
+    )
+    assert build_profile_prompt(profiles, selection, training) == context
+    assert get_field_note_profile(profiles, custom.profile_id) == custom
+    assert list_training_examples(training, BRT_PROFILE_ID) == [example]
+    assert {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()} == stored
+
+
+@pytest.mark.parametrize(
+    ("scope", "locked", "version"),
+    [
+        ("custom", False, 1),
+        ("custom", True, 1),
+        ("built_in", False, 1),
+        ("built_in", True, BRT_PROFILE_VERSION + 1),
+    ],
+)
+def test_brt_upgrade_does_not_replace_custom_unlocked_or_future_grammar(
+    tmp_path: Path, scope: str, locked: bool, version: int
+):
+    profiles = tmp_path / "profiles"
+    profiles.mkdir()
+    profile = FieldNoteProfile(
+        profile_id=BRT_PROFILE_ID,
+        name="Stored profile",
+        scope=scope,
+        locked=locked,
+        version=version,
+        extraction_instructions=["Preserve this independently owned or newer grammar."],
+    )
+    path = profiles / f"{BRT_PROFILE_ID}.json"
+    path.write_text(profile.model_dump_json(indent=2), encoding="utf-8")
+    stored = path.read_bytes()
+
+    assert get_field_note_profile(profiles, BRT_PROFILE_ID) == profile
+    assert profile.extraction_instructions[0] in build_profile_prompt(profiles, BRT_PROFILE_ID)
+    assert path.read_bytes() == stored
 
 
 def test_labeled_examples_change_prompt_without_leaking_raw_project_values(tmp_path: Path):

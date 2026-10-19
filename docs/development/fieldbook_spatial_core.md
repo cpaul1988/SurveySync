@@ -14,6 +14,14 @@ a general solution for handwritten surveying pages. Open or broken circles,
 arrowhead branches, crossings, crowded annotations, and ambiguous IDs can abstain.
 Synthetic tests establish the intended mechanics, not accuracy on real fieldbooks.
 
+The later [confirmed layout conventions](fieldbook_relationships.md#confirmed-note-conventions--2026-10-19)
+allow an external structure ID, an internal north arrow, and a variable number
+of unboxed connection notes with flow arrowheads. Those are interpretation
+conventions, not additional positive geometry cases. This core still requires
+an enclosed exact ID and does not classify north or flow arrowheads. The Excel
+mockup's rectangular note borders and blank values are illustrative; they are
+not required input geometry or labeled measurement truth.
+
 ## Public API
 
 ```python

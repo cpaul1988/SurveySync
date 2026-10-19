@@ -10,6 +10,7 @@ Pinned supported Go toolchain, native product resources, mandatory active Defend
 - Add explicit PaddleOCR-VL 1.6 spotting with a supplied local native model directory, CPU execution, capability errors, verified input/model provenance and separate caches. Block OCR remains the default.
 - Show original-page review overlays, separate agreement checks, pipe filters and evidence-page selection. Keep unsaved corrections when changing evidence pages and preserve each in-flight interpretation's actual crop coordinates.
 - Add private benchmark exports and a conservative scorer for raw PointID, field, pipe and structure predictions, incorrect automatic acceptance, and measured review time. Synthetic fixtures check swapped records; field accuracy and native Windows / 4 GB acceptance remain pending.
+- Clarify the BRT note profile from the supplied layout example: separate north from connection flow, allow multiple unboxed note groups, and preserve undefined abbreviations and missing values. External-ID and automatic arrowhead geometry remain review limitations.
 - Retain the Defender release hold and exact-artifact security gates. This source candidate does not publish an installer or promote Beta/Stable.
 
 ## 9.5.3-beta.1 — FBR-0018 shared FieldBook workspace

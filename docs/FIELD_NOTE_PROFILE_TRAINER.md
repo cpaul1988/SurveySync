@@ -9,6 +9,30 @@ SurveySync separates handwriting recognition from **field-note grammar**. OCR/vi
 
 Built-in profile rules are locked. A built-in may receive local labeled examples, but duplicate it before changing its grammar.
 
+### Confirmed BRT layout conventions
+
+BRT grammar version 2 keeps the structure's north marker separate from the flow
+arrowheads on its connections. An arrowhead toward the structure indicates
+inflow; an arrowhead away indicates outflow when the direction is visibly clear.
+Keep the written azimuth and observed pipe bearing separate from that flow note.
+Unclear symbols remain review items, and color or page-up is not an orientation
+rule.
+
+A structure can have multiple unboxed note groups at different positions. Each
+connection keeps its own annotations, including a repeated owning structure
+`ID#`. The labels in the supplied Excel layout example had no actual values and
+are not mandatory fields. Preserve undefined abbreviations such as `BOS`, `TOD`,
+and `TOW` with any visible values in notes until a glossary confirms their
+meaning, units, reference, and scope. Missing entries remain missing.
+
+Older locked built-in BRT profiles use the updated grammar when loaded. Custom
+profiles and saved labeled examples keep their existing content. Re-run analysis
+to use new profile rules on existing pages; previously saved results are not
+rewritten. These profile instructions do not establish automatic arrowhead
+detection or resolve an external PointID geometrically. See the
+[relationship review guide](development/fieldbook_relationships.md) for those
+current limits.
+
 ## Normal v9.1.3 workflow
 
 1. Import a field book normally.
