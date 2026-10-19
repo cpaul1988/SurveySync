@@ -1,6 +1,22 @@
-# SurveySync 9.3.0 engineering hardening and TopoSync source candidate
+# SurveySync
 
-Start with [BUILD_9_3_0.md](BUILD_9_3_0.md). See [release notes](RELEASE_NOTES_v9_3_0.md) and [engineering standards](docs/ENGINEERING_STANDARDS.md). The standalone rod-height range tool is under TopoSync → Rod Height Bust QC; see [workflow and synthetic example](docs/TOPO_ROD_HEIGHT_QC.md). Your supplied SurveySync logo is included. This source package has not been compiled or published as a Windows installer.
+SurveySync is a Windows surveying application with a shared project, source-evidence registry, coordinate context, audit history, and review/export workflows across its modules. See the [architecture](docs/ARCHITECTURE.md) and [engineering standards](docs/ENGINEERING_STANDARDS.md).
+
+## Current source and distribution status
+
+Read `VERSION.txt`, `RELEASE_ID.txt`, and the actual Git commit together to identify a source checkout. The active [update manifest](https://github.com/cpaul1988/SurveySync/blob/main/update.json), current pull requests, and their exact CI artifacts determine distribution and acceptance status. A version number or a historical passing test report does not establish that a different source tree is accepted.
+
+At the [October 19, 2026 development checkpoint](docs/development/repository_tools_review_2026_10_19.md), Beta and Stable distribution remain held after the 9.5.3 Defender report. The separate [9.5.4 repair candidate in PR #25](https://github.com/cpaul1988/SurveySync/pull/25) has recorded Windows acceptance for specific artifacts; workstation acceptance and general rollout remain separate. Check the live sources before relying on this dated checkpoint.
+
+## Continuing development
+
+Use the [development handoff helper](docs/development/handoff.md) to record the current Git identity, working-tree status, release hold, active task, and explicitly supplied evidence. Handoffs stay in the ignored `.dev-handoff/` directory. They are development notes, never authority to change a release hold or survey observations.
+
+The [Ghidra trial](docs/development/ghidra_trial.md) documents a separate static-analysis workflow for native binaries. Developer tools are not part of SurveySync's normal runtime.
+
+## Historical 9.3.0 milestone
+
+The following versioned milestone sections record earlier changes and limitations. For the 9.3.0 engineering-hardening and TopoSync milestone, see [BUILD_9_3_0.md](BUILD_9_3_0.md), its [release notes](RELEASE_NOTES_v9_3_0.md), and the [rod-height workflow](docs/TOPO_ROD_HEIGHT_QC.md). These historical sections do not override current source, privacy policy, or release status.
 
 ## Platform background
 
@@ -55,7 +71,7 @@ v9.1.3 completes FBR-0010 by bringing Field Note Profile selection and training 
 - Embedded **FieldBookSync v8.1.22 processing engine** using project-local state, pages, caches, recovery files, logs and analysis job database.
 - Legacy `.fbs` migration into a chosen v9 project while preserving the original bundle in the immutable source registry.
 - COGOSync foundation: inverse, bearing-distance and line-line intersection.
-- ControlSync: generic control averaging plus Ron's validated exact 3-point workbook profile, project-point selection, immutable solution revisions, three-wire level reduction/QC, and open/closed traverse calculation/adjustment.
+- ControlSync: generic control averaging plus the validated 3-point workbook profile, project-point selection, immutable solution revisions, three-wire level reduction/QC, and open/closed traverse calculation/adjustment.
 - **v9.2.0 active revision workflow:** control and level solution history now expose the active revision, revision-to-revision comparison, and non-destructive restore. Control reports honor the selected active revision.
 - **v9.2.6 Control Survey workspace:** offline EPSG/ESRI CRS selection, optional Local Site modified-ground transform, TBC-style P/N/E/elev/Code loading, spatial control map/Project Explorer, automated best-three QC at 0.045 H/V defaults, spatial misnumber detection/grouping, strict field-observation checks (60-minute separation, 300 epochs OR 5 minutes, 5+ satellites), accepted/reshoot lists and reusable CRS-aware custom exporters.
 - **v9.2.1 Project Health / QA:** centralized project rules, READY/REVIEW/BLOCKING preflight, coordinate sanity, stale-output and failed-task checks.
@@ -66,7 +82,7 @@ v9.1.3 completes FBR-0010 by bringing Field Note Profile selection and training 
 - ReportSync: crew point-range planning/sorting, professional survey/control PDFs, annotated FieldBook deliverables, deliverable registry, and optional stakeholder notification workflow.
 - Retained from v9.1.1 — Point Range source selector: use current canonical project points by default or browse to a separate point file; CSV/TXT/XLSX outputs are generated together.
 - Retained from v9.1.1 — direct Trimble Access intake: `.job` through the official Trimble ASCII File Generator plus direct `.jxl`/JobXML parsing, with original source preservation and PointID conflict review.
-- Retained from v9.1.1 — BRT field-note intelligence: circle/north-arrow/leader structure, per-leader annotation association, explicit `to PointID` topology, and geometry cross-checks without silent correction.
+- Retained from v9.1.1 — BRT field-note profiles, reviewed annotation associations, explicit `to PointID` topology, and geometry cross-checks without silent correction. Automatic circle/leader segmentation and fully solved multi-directional handwriting remain outside the validated capabilities; see the [local field-book pipeline](docs/LOCAL_FIELDBOOK_PIPELINE.md).
 - Retained from v9.1.2 — Field Note Profile Trainer: create named client/job-format grammars, visually annotate real pages, teach from reviewed corrections, use per-page overrides, and export/import reusable `.fnp` profile bundles. Labeled examples influence later profile interpretation through privacy-preserving structural hints; SurveySync does not claim that PaddleOCR/Qwen weights are retrained in-app.
 - **v9.1.3 FBR-0010 workflow:** after field-book import, choose a profile per imported book, preview up to five representative pages, open **Train this field book** directly into a source-filtered Trainer, persist profile/version/mode with the project, and preserve page-level mixed-format overrides.
 - **v9.1.3 release documentation gate:** architecture/feature/data-flow/API/decision/test/release docs plus `IMPLEMENTATION_INDEX.json` are validated before release QA/build.
@@ -90,7 +106,7 @@ v9.1.3 completes FBR-0010 by bringing Field Note Profile selection and training 
 - The Settings page contains application-wide theme, accent and appearance controls.
 - The top-left SurveySync mark is now the branded globe rather than the temporary letter-S orbit mark.
 
-## Ron Control Average/QC and 3-wire profiles
+## Control Average/QC and 3-wire profiles
 
 The authoritative `3 Point Control Averaged Template.xlsx` and `3 Wire Level Loop Template.xlsx` have now been analyzed and turned into validated SurveySync calculation profiles. The control profile requires exactly three included shots and reproduces the workbook's arithmetic N/E/Z averages plus horizontal and A/B/C vertical residual displays. ControlSync can also select three existing canonical SurveySync PointIDs directly, matching the workbook's VLOOKUP-style workflow while retaining source-point provenance.
 
@@ -149,15 +165,13 @@ python run_browser.py
 ```
 
 
-## Automatic free local AI
+## Local field-book processing
 
-SurveySync 9.2.1 defaults to **Automatic — Free Local AI**. FieldBookSync now uses an **evidence-first** local pipeline: Windows AI Text Recognition is used as a fast pass when it is already ready, PaddleOCR-VL 1.6 handles unresolved/risky document evidence, and a hardware-sized Qwen3-VL model interprets only localized crops. Deterministic evidence scoring decides whether semantic details can be accepted or need review. No paid cloud provider is selected automatically.
+FieldBookSync rejects cloud document providers at settings and processing boundaries. Local document requests require verified installed model weights and literal loopback endpoints. Downloads for optional models or packages remain separate, explicitly initiated operations; inference does not silently download a model or fall back to a cloud provider.
 
-No Windows AI or Foundry model is downloaded merely because Automatic is selected. The Settings > AI & OCR controls show readiness and require explicit user approval before a one-time component/model download. Optional Microsoft-AI Python packages are installed best-effort by Setup; if they are unsupported on a workstation, the core SurveySync installation remains usable.
+The original rendered page remains authoritative. Original and grid-cleaned OCR views are retained separately, and semantic vision reads original imagery. Exact independent PointID evidence, disagreement checks, and manual review govern acceptance. Actual model accuracy, latency, memory fit, and cancellation on the target workstation require hardware acceptance.
 
-**Cloud backups remain available by explicit choice.** FieldBookSync exposes Gemini, OpenAI, and Anthropic Claude as selectable providers. Their API keys are held in memory for the current session (or may come from their standard environment variables) and are not written into the project settings file. Automatic never switches to them.
-
-FieldBookSync keeps PointID authority deterministic: an exact OCR hit must independently match a loaded survey PointID. A local language/vision model may interpret the associated crop, but it is not allowed to invent a different PointID.
+See the [local field-book pipeline](docs/LOCAL_FIELDBOOK_PIPELINE.md) for the current processing boundaries and known limitations. Earlier milestone descriptions of selectable cloud providers are historical and do not override this policy.
 
 ## Windows installer
 
@@ -199,20 +213,20 @@ FieldBookSync now uses the same full-width SurveySync environment strip, applica
 
 
 ## Automatic AI selection
-The default **Automatic — Best Local** mode prefers **Evidence-First Local**. On Windows PCs where TextRecognizer is ready, Windows AI performs the fast exact-PointID/page-type pass; PaddleOCR-VL 1.6 then covers unresolved or risky evidence; Qwen3-VL interprets targeted crops. On systems without Windows AI, PaddleOCR-VL + Qwen3-VL remains the preferred local path. Model size is selected from installed 2B/4B/8B variants according to the local hardware profile. Foundry Local and Windows-local combinations remain fallbacks. Cloud providers are opt-in only.
+Automatic selection uses available local engines and installed models. For less than 6 GB dedicated VRAM, the documented performance plan keeps Paddle on CPU and reserves GPU memory for local vision, preferring an installed 2B vision model. Selection is not a model download or proof of workstation performance. See [local processing and hardware acceptance](docs/LOCAL_FIELDBOOK_PIPELINE.md).
 
 ## Updater and core QA consolidation
 
 - **Check & Update** is now a single action throughout SurveySync and FieldBookSync. It checks the active SurveySync release channel, downloads a newer installer when needed, verifies size/SHA-256/Windows EXE header, writes the one shared `%LOCALAPPDATA%\SurveySync\pending_update.json` handoff, and closes SurveySync so the native helper can launch Setup.
 - FieldBookSync no longer owns or exposes a separate update source. Its compatibility update routes proxy the SurveySync updater and its UI contains no FieldBookSync GitHub updater configuration.
 - The default update manifest is `cpaul1988/SurveySync/main/update.json`; environment changes keep that shared manifest while selecting Developer/Beta/Stable through the release channel.
-- Version comparison now normalizes missing numeric components so `9.1`, `9.1.4`, and `9.1.4.0` compare equally.
+- Version comparison normalizes missing trailing numeric components: `9.1.4` and `9.1.4.0` compare equally; `9.1` remains earlier than `9.1.4`.
 - Oversized partial downloads are deleted immediately.
 - ReportSync point-range calculation now uses an O(n) gap walk instead of iterating every unused integer, and ambiguous empty input returns a clear error rather than a misleading empty report.
 - FieldBookSync point-range output uses the same canonical gap algorithm.
 - Survey/control header aliases are deterministic ordered tuples; `Height` is accepted as an elevation header.
 - Export metadata now reports the current SurveySync version instead of the stale FieldBook Sync v8.0.0 string.
 
-## Current feedback / release notes
+## Feedback before builds
 
-The shared Intake/Error Log tracker is a required pre-build and pre-package check. At the start of the v9.2.0 milestone there were no Intake items newer than **FBR-0012**, and the legacy Form Responses sheet contained no unprocessed submissions. v9.1.4 items FBR-0011/FBR-0012 and all earlier incorporated workflow fixes remain preserved.
+Check the shared tracker identified by `feedback.json` before a build or package. Record the check time, newest feedback ID, and the sheets actually inspected. Historical checkpoint counts are not a live feedback check. The [October 19 development review](docs/development/repository_tools_review_2026_10_19.md) records this tooling change's read-only check; a future build needs a fresh check.

@@ -1,0 +1,64 @@
+name: SurveySync Development Tools
+
+on:
+  pull_request:
+    paths:
+      - scripts/dev_handoff.py
+      - tests/test_dev_handoff.py
+      - requirements-dev.lock
+      - installer/SurveySync.iss
+      - scripts/build_beta_fixture.py
+      - tests/test_development_packaging.py
+      - .github/workflows/development-tools.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/dev_handoff.py
+      - tests/test_dev_handoff.py
+      - requirements-dev.lock
+      - installer/SurveySync.iss
+      - scripts/build_beta_fixture.py
+      - tests/test_development_packaging.py
+      - .github/workflows/development-tools.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  handoff:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install only existing hash-locked verification tools
+        shell: python
+        run: |
+          import os, pathlib, re, subprocess, sys
+          source = pathlib.Path('requirements-dev.lock').read_text(encoding='utf-8')
+          packages = ('pytest', 'iniconfig', 'packaging', 'pluggy', 'pygments', 'colorama', 'ruff')
+          blocks = []
+          for package in packages:
+              matches = re.findall(r'^' + package + r'==[^\n]*(?:\n[ \t]+[^\n]*)*', source, re.M)
+              if len(matches) != 1 or '--hash=sha256:' not in matches[0]:
+                  raise RuntimeError('Missing unique hash-locked dependency: ' + package)
+              blocks.append(matches[0])
+          lock = pathlib.Path(os.environ['RUNNER_TEMP']) / 'surveysync-development-tools.lock'
+          lock.write_text('\n'.join(blocks) + '\n', encoding='utf-8')
+          subprocess.run([sys.executable, '-m', 'pip', 'install', '--require-hashes',
+                          '--only-binary=:all:', '--no-deps', '-r', str(lock)], check=True)
+      - name: Check handoff helper names
+        run: python -m ruff check --select F scripts/dev_handoff.py tests/test_dev_handoff.py tests/test_development_packaging.py
+      - name: Check handoff helper formatting
+        run: python -m ruff format --check scripts/dev_handoff.py tests/test_dev_handoff.py tests/test_development_packaging.py
+      - name: Verify privacy, Git identity, and evidence handling
+        run: python -m pytest -q tests/test_dev_handoff.py tests/test_development_packaging.py

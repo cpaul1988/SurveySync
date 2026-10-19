@@ -12,6 +12,13 @@ import subprocess
 import sys
 
 
+def copy_fixture_source(root: Path, fixture: Path) -> None:
+    """Stage source without private development notes or generated evidence."""
+    shutil.copytree(root, fixture, ignore=shutil.ignore_patterns('.git', '.github', '.venv',
+        '.dev-handoff', 'runtime', '__pycache__', '*.pyc', 'output', '*-evidence', 'released-baseline',
+        'baseline-artifact', '.pytest_cache', '.ruff_cache', '.mypy_cache', '.coverage', 'coverage.xml'))
+
+
 def build_fixture(root: Path, temp: Path) -> tuple[Path, str, list[str]]:
     assert sys.platform == 'win32' and os.environ.get('GITHUB_ACTIONS') == 'true'
     fixture = temp/'numbered-beta-predecessor-source'
@@ -20,9 +27,7 @@ def build_fixture(root: Path, temp: Path) -> tuple[Path, str, list[str]]:
     target=(root/'RELEASE_ID.txt').read_text(encoding='utf-8-sig').strip()
     predecessor=core+'-beta.0'
     assert target == core+'-beta.1', 'Review fixture identities for another candidate'
-    shutil.copytree(root, fixture, ignore=shutil.ignore_patterns('.git', '.github', '.venv',
-        'runtime', '__pycache__', '*.pyc', 'output', '*-evidence', 'released-baseline',
-        'baseline-artifact', '.pytest_cache', '.ruff_cache', '.mypy_cache', '.coverage', 'coverage.xml'))
+    copy_fixture_source(root, fixture)
     changed=[]
     for relative in ('RELEASE_ID.txt', 'BUILD_MANIFEST.json', 'installer/SurveySync.iss',
                      'surveysync/static/index.html', 'fieldbook_sync/static/index.html',
